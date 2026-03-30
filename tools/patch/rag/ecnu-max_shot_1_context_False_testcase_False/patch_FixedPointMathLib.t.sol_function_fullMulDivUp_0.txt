@@ -1,0 +1,18 @@
+function fullMulDivUp(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+function fullMulDivUp(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+z = fullMulDiv(x, y, d);
+    assembly ("memory-safe") {
+        // We check if there is a remainder by computing (x * y) % d using mulmod.
+        // If the remainder is non-zero, we need to round up.
+        if mulmod(x, y, d) {
+            // Increment z to round up.
+            z := add(z, 1)
+            // Check for overflow: if z was max uint256, adding 1 makes it 0.
+            if iszero(z) {
+                // Revert with the custom error FullMulDivFailed()
+                // The selector for FullMulDivFailed() is 0x35278d12 (calculated as bytes4(keccak256("FullMulDivFailed()")))
+                mstore(0x00, 0x35278d12)
+                revert(0x1c, 0x04)
+            }
+        }
+    }

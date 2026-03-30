@@ -1,0 +1,22 @@
+function replace_22_10(bytes22 self, bytes10 value, uint8 offset) internal  pure returns (bytes22 result) {
+function replace_22_10(bytes22 self, bytes10 value, uint8 offset) internal  pure returns (bytes22 result) {
+assembly {
+        // Extract the existing 10-byte segment from the 22-byte value at the specified offset.
+        // We shift self right by (8 * offset) to align the target segment to the least significant bytes,
+        // then mask with 0xFFFFFFFFFFFFFFFFFFFF (80 bits) to isolate the 10 bytes.
+        let oldSegment := and(shr(mul(offset, 8), self), 0xFFFFFFFFFFFFFFFFFFFF)
+
+        // Mask the new 10-byte value to ensure it fits within the 10-byte segment (safety check).
+        let newSegment := and(value, 0xFFFFFFFFFFFFFFFFFFFF)
+
+        // Shift the new segment to the correct position.
+        let shiftedNew := shl(mul(offset, 8), newSegment)
+        
+        // Shift the old segment to the correct position to remove it from the original value.
+        let shiftedOld := shl(mul(offset, 8), oldSegment)
+
+        // Calculate the modified 22-byte value:
+        // 1. XOR self with shiftedOld to zero out the old segment.
+        // 2. XOR the result with shiftedNew to insert the new segment.
+        result := xor(xor(self, shiftedOld), shiftedNew)
+    }

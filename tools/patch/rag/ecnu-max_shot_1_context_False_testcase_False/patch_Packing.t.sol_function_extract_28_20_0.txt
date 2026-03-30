@@ -1,0 +1,14 @@
+function extract_28_20(bytes28 self, uint8 offset) internal  pure returns (bytes20 result) {
+function extract_28_20(bytes28 self, uint8 offset) internal  pure returns (bytes20 result) {
+if (offset > 8) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift left by (offset * 8) bits to align the desired 20-byte segment to the most significant position.
+            // Then shift right by 64 bits (8 bytes) to discard the remaining trailing bytes, leaving exactly 20 bytes.
+            // Total shift logic: (self << (offset * 8)) >> 64
+            let shifted := shl(mul(offset, 8), self)
+            result := shr(64, shifted)
+        }
+    }

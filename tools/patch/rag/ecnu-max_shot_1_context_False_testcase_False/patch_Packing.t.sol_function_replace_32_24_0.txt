@@ -1,0 +1,95 @@
+function replace_32_24(bytes32 self, bytes24 value, uint8 offset) internal  pure returns (bytes32 result) {
+function replace_32_24(bytes32 self, bytes24 value, uint8 offset) internal  pure returns (bytes32 result) {
+assembly {
+        // Calculate the bit shift amount: (8 - offset) * 8
+        let shift := shl(3, sub(8, offset))
+        
+        // Create a mask for 24 bytes (24 * 8 = 192 bits). 
+        // 0xFFFFFF... (24 bytes of 1s) shifted to the correct position.
+        // 0xFFFFFF is 24 bits, we need 24 bytes = 192 bits.
+        // A full 32-byte mask of 1s is not(sub(0, 1)). 
+        // We want 24 bytes of 1s: 0xFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000 is wrong.
+        // 24 bytes = 0xFFFFFF followed by 8 zeros? No.
+        // 32 bytes total. We are replacing 24 bytes.
+        // Mask for 24 bytes aligned to the LEFT (most significant) would be:
+        // 0xFFFFFF... (24 bytes) then 0x00... (8 bytes).
+        // Actually, let's construct the mask dynamically or use constants.
+        // 24 bytes = 192 bits. 
+        // Mask = (2^(192) - 1) << (8 * 8) = (2^192 - 1) << 64.
+        // In hex: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000 (This is 24 bytes of FF then 8 of 00).
+        // Wait, `value` is bytes24. When cast to bytes32, it is left-aligned (most significant).
+        // So if offset is 0, we replace the first 24 bytes (MSB).
+        // If offset is 8, we replace the last 24 bytes? No, offset 0-8 implies byte indices.
+        // If offset is 0, we replace bytes 0-23.
+        // If offset is 8, we replace bytes 8-31 (the last 24 bytes).
+        
+        // Let's align the mask based on offset.
+        // The segment to replace starts at byte `offset`. Length 24.
+        // Start bit = offset * 8.
+        // End bit = (offset + 24) * 8.
+        // We need a mask that has 1s from bit (256 - (offset+24)*8) to (256 - offset*8 - 1)? 
+        // Solidity/Assembly integers are big-endian in representation but math is standard.
+        // MSB is bit 255. LSB is bit 0.
+        // Byte 0 is bits 248-255. Byte 31 is bits 0-7.
+        // Replacement range: Byte `offset` to `offset + 23`.
+        // Start bit (from LSB side) = (31 - (offset + 23)) * 8 = (8 - offset) * 8.
+        // End bit (from LSB side) = (31 - offset) * 8 + 7.
+        // Actually simpler: Shift the 24-byte value to the correct position.
+        // `value` as bytes32 is left aligned (bits 255 down to 64 are the data).
+        // We need to shift it RIGHT by (offset * 8).
+        let shiftedValue := shr(mul(offset, 8), value)
+        
+        // Now we need a mask to clear the corresponding 24 bytes in `self`.
+        // The mask should have 0s where the new data goes, and 1s elsewhere.
+        // The region to clear is 24 bytes starting at `offset`.
+        // This corresponds to a mask of 24 bytes of 0s, shifted right by (offset * 8).
+        // Base mask for 24 bytes of 0s at the MSB position (bits 255-64):
+        // Inverted: 0s at MSB 24 bytes, 1s at LSB 8 bytes.
+        // Constant: 0x00000000000000000000000000000000000000000000000000000000FFFFFFFF (8 bytes of 1s).
+        // Let's call this `lowMask`.
+        // Then shift `lowMask` LEFT by ((8 - offset) * 8) ? No.
+        
+        // Let's re-evaluate the mask construction.
+        // We want to clear 24 bytes starting at `offset`.
+        // Total 32 bytes.
+        // If offset = 0: Clear bytes 0-23. Keep bytes 24-31 (LSB 8 bytes).
+        // Mask needed: 0x00...00 (24 bytes) followed by 0xFF...FF (8 bytes).
+        // If offset = 8: Clear bytes 8-31. Keep bytes 0-7 (MSB 8 bytes).
+        // Mask needed: 0xFF...FF (8 bytes) followed by 0x00...00 (24 bytes).
+        
+        // General formula:
+        // We need 1s in the top `offset` bytes and 1s in the bottom `8 - offset` bytes.
+        // Top part: 1s shifted left?
+        // Bottom part: 1s at the bottom.
+        
+        // Approach using XOR as requested:
+        // result = self ^ oldSegment ^ newSegment
+        // oldSegment = self & maskOfInterest
+        // maskOfInterest = ~(maskToKeep)
+        // maskToKeep = (top `offset` bytes of 1s) | (bottom `8-offset` bytes of 1s)
+        
+        // Construct maskToKeep:
+        // Top part: if offset > 0, generate `offset` bytes of 1s at MSB.
+        // Bottom part: if offset < 8, generate `8-offset` bytes of 1s at LSB.
+        
+        let maskToKeep := 0
+        if gt(offset, 0) {
+            // Create `offset` bytes of 1s at MSB.
+            // 0xFF...FF (32 bytes) << ((32 - offset) * 8)
+            maskToKeep := or(maskToKeep, shl(mul(sub(32, offset), 8), not(0)))
+        }
+        if lt(offset, 8) {
+            // Create `8 - offset` bytes of 1s at LSB.
+            // 0xFF...FF >> ((32 - (8 - offset)) * 8) = >> ((24 + offset) * 8)
+            // Or simply: not(0) >> (mul(sub(32, sub(8, offset)), 8))
+            // Number of zero bytes at top = 32 - (8 - offset) = 24 + offset.
+            maskToKeep := or(maskToKeep, shr(mul(add(24, offset), 8), not(0)))
+        }
+        
+        let maskOfInterest := not(maskToKeep)
+        let oldSegment := and(self, maskOfInterest)
+        
+        // XOR self with oldSegment to clear those bits, then XOR with shiftedValue to set new bits.
+        // (self ^ oldSegment) ^ shiftedValue
+        result := xor(xor(self, oldSegment), shiftedValue)
+    }

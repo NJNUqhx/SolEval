@@ -1,0 +1,7 @@
+function get(TUint256 storage ptr) internal  view returns (uint256 result) {
+function get(TUint256 storage ptr) internal  view returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := tload(ptr.slot)
+        }
+    }

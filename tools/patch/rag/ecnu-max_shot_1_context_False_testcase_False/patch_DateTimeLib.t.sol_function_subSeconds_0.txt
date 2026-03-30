@@ -1,0 +1,4 @@
+function subSeconds(uint256 timestamp, uint256 numSeconds) internal  pure returns (uint256 result) {
+function subSeconds(uint256 timestamp, uint256 numSeconds) internal  pure returns (uint256 result) {
+    result = timestamp - numSeconds;
+}

@@ -1,0 +1,9 @@
+function get(Bytes32ToBytes32Map storage map, bytes32 key) internal  view returns (bytes32 value) {
+function get(Bytes32ToBytes32Map storage map, bytes32 key) internal  view returns (bytes32 value) {
+value = map[key];
+        if (value == bytes32(0)) {
+            if (!contains(map, key)) {
+                revert();
+            }
+        }
+    }

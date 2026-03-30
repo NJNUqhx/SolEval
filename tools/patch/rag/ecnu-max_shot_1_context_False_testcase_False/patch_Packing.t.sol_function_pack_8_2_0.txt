@@ -1,0 +1,48 @@
+function pack_8_2(bytes8 left, bytes2 right) internal  pure returns (bytes10 result) {
+function pack_8_2(bytes8 left, bytes2 right) internal  pure returns (bytes10 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Clear extraneous bits from `left` (keep only the first 8 bytes / 64 bits).
+            // `not(0)` is all 1s. `shl(192, not(0))` creates a mask with the top 64 bits set to 1.
+            let leftClean := and(left, shl(192, not(0)))
+
+            // Step 2: Clear extraneous bits from `right` (keep only the first 2 bytes / 16 bits).
+            // `shl(240, not(0))` creates a mask with the top 16 bits set to 1.
+            let rightClean := and(right, shl(240, not(0)))
+
+            // Step 3: Combine the values.
+            // `left` is already in the high-order position for a bytes10 (bits 159..96 if treated as 256, 
+            // but effectively we just need to shift `right` to sit immediately after `left`).
+            // A bytes10 is 80 bits. `left` takes bits 79..16 (8 bytes). `right` takes bits 15..0 (2 bytes).
+            // In a 256-bit word:
+            // `left` (bytes8) is aligned to the left (bits 255..192).
+            // We need `right` to be at bits 191..176 so that together they form the top 80 bits.
+            // Current `rightClean` is at bits 255..240. We need to shift it right by 64 bits (256 - 192 = 64? No).
+            // Let's re-evaluate positions in a 256-bit word for a `bytes10` result returned in the low 160 bits? 
+            // Actually, Solidity return values for fixed bytes are left-aligned in the 32-byte slot usually, 
+            // OR the function just returns the value and the compiler handles alignment. 
+            // However, the requirement says "packed into a single bytes10".
+            // Standard packing: (left << 16) | right. 
+            // Since `left` is bytes8 (64 bits) and `right` is bytes2 (16 bits).
+            // If we treat them as integers: result = (uint(left) << 16) | uint(right).
+            // In assembly with 256-bit words where values are left-aligned (standard for bytesN):
+            // `left` is in bits 255..192.
+            // `right` is in bits 255..240.
+            // To pack them into a continuous 80-bit sequence starting at bit 255:
+            // `left` stays put.
+            // `right` needs to move from 255..240 to 191..176.
+            // Shift amount = 255 - 191 = 64? No. 240 (start of right) - 192 (end of left + 1) = 48?
+            // Let's trace bits:
+            // Left:  [0-63] (if we count from left 0).
+            // Right: [0-15].
+            // Target: [0-63] then [64-79].
+            // In 256 bit word (left aligned):
+            // Left occupies 255 down to 192.
+            // Right occupies 255 down to 240.
+            // We want Right to occupy 191 down to 176.
+            // Shift right by: 240 - 176 = 64 bits.
+            let rightShifted := shr(64, rightClean)
+            
+            result := or(leftClean, rightShifted)
+        }
+    }

@@ -1,0 +1,7 @@
+function rawAdd(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+function rawAdd(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+{
+        unchecked {
+            z = x + y;
+        }
+    }

@@ -1,0 +1,18 @@
+function extract_20_1(bytes20 self, uint8 offset) internal  pure returns (bytes1 result) {
+function extract_20_1(bytes20 self, uint8 offset) internal  pure returns (bytes1 result) {
+if (offset >= 20) {
+    revert OutOfRangeAccess();
+}
+
+assembly {
+    // Shift the bytes20 value left by (8 * offset) bits to bring the target byte to the most significant position.
+    // Since `self` is 160 bits, shifting it left moves the desired byte towards the top of the 256-bit word.
+    let shifted := shl(mul(8, offset), self)
+    
+    // Mask to isolate the most significant byte.
+    // not(0) is all 1s. shl(248, not(0)) results in 0xFF0000... (0xFF at the top).
+    let mask := shl(248, not(0))
+    
+    // Apply the mask and store the result.
+    result := and(shifted, mask)
+}

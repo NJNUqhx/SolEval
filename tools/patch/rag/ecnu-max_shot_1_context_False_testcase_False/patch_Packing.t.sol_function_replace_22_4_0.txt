@@ -1,0 +1,64 @@
+function replace_22_4(bytes22 self, bytes4 value, uint8 offset) internal  pure returns (bytes22 result) {
+function replace_22_4(bytes22 self, bytes4 value, uint8 offset) internal  pure returns (bytes22 result) {
+function replace_22_4(bytes22 self, bytes4 value, uint8 offset) internal  pure returns (bytes22 result) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Load the full 32-byte word containing the bytes22 value.
+        // bytes22 is stored in the lower 22 bytes of the 32-byte slot.
+        let original := self
+        
+        // Ensure offset is within valid bounds for a 4-byte replacement in 22 bytes.
+        // Valid offsets: 0 to 18 (since 18 + 4 = 22).
+        if gt(offset, 18) {
+            mstore(0x00, 0x4e487b71) // Selector for "Panic(uint256)" with code 0x21 (out-of-bounds).
+            mstore(0x20, 0x21)
+            revert(0x1c, 0x24)
+        }
+
+        // Calculate the shift amount to align the 4-byte segment to the least significant position.
+        // The bytes are stored such that byte 0 is at the highest significance within the used range.
+        // For a 22-byte value stored in a 32-byte word:
+        // Byte 0 is at bit position (32 - 22) * 8 = 80.
+        // Byte 'offset' is at bit position 80 + (offset * 8).
+        // We want to shift right so that the target 4 bytes land in the lowest 4 bytes (bits 0-31).
+        // Shift amount = (32 - 22 + offset) * 8 = (10 + offset) * 8.
+        let shift := shl(3, add(10, offset))
+
+        // Extract the old 4-byte segment at the specified offset.
+        let oldSegment := shr(shift, original)
+        // Mask to keep only the lowest 4 bytes (32 bits).
+        oldSegment := and(oldSegment, 0xFFFFFFFF)
+
+        // Prepare the new value: ensure it's treated as 4 bytes and shift it to the correct position.
+        let newSegment := and(value, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+        newSegment := shr(sub(224, shift), newSegment) 
+        // Explanation of shift for newSegment:
+        // 'value' (bytes4) is left-aligned in the 32-byte word (bits 224-255).
+        // We need to move it to the position calculated by 'shift'.
+        // Current position start: 224. Target position start: (256 - 32) - shift = 224 - shift? 
+        // Let's re-calculate based on bit positions from LSB (0).
+        // Target LSB position for the 4 bytes: shift.
+        // 'value' loaded from memory or passed as bytes4 usually has the data in the most significant 4 bytes.
+        // If `value` is a bytes4 argument, it is right-padded with zeros in the 32-byte word? 
+        // No, in Solidity, bytes4 in a 32-byte word is left-aligned (MSB).
+        // So `value` has data in bits 224..255.
+        // We need data in bits `shift` .. `shift+31`.
+        // Right shift needed: 224 - shift.
+        
+        // Construct the result:
+        // 1. Clear the old segment from the original value.
+        //    Mask to clear: ~(0xFFFFFFFF << shift)
+        let mask := not(shl(shift, 0xFFFFFFFF))
+        let cleared := and(original, mask)
+        
+        // 2. Insert the new segment.
+        //    We already calculated `newSegment` shifted correctly? 
+        //    Let's re-do the newSegment shift logic simply:
+        //    Take the 4 bytes from `value` (which are at MSB), move them to `shift`.
+        //    `value` is at 224. Target is `shift`.
+        //    Right shift by (224 - shift).
+        let shiftedNew := shr(sub(224, shift), and(value, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000))
+        
+        result := or(cleared, shiftedNew)
+    }
+}

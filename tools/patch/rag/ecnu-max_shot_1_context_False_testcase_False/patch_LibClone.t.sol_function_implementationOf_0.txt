@@ -1,0 +1,180 @@
+function implementationOf(address instance) internal  view returns (address result) {
+function implementationOf(address instance) internal  view returns (address result) {
+assembly {
+            // Load the free memory pointer to know where to start writing.
+            let m := mload(0x40)
+            
+            // Step 1: Copy the bytecode of the instance into memory.
+            // We assume a reasonable max size for standard proxies (e.g., 32KB) to avoid excessive gas.
+            // If the contract is larger, extcodecopy will just fill what it can up to the limit, 
+            // but for proxy detection, the header is what matters.
+            let size := extcodesize(instance)
+            // Cap size to prevent memory expansion issues if the contract is huge, 
+            // though for proxy detection we mostly care about the beginning.
+            // Using a safe upper bound for memory allocation context.
+            if gt(size, 0x6000) { size := 0x6000 }
+            
+            extcodecopy(instance, m, 0, size)
+
+            // We will use `result` variable to store the found implementation.
+            // Initialize to 0.
+            result := 0
+
+            // Step 2: Check for specific bytecode patterns.
+
+            // --- Pattern A: ERC1967 (Transparent Proxy & Beacon Proxy) ---
+            // These proxies usually have a fallback that delegates, but the implementation
+            // is stored in a specific slot. However, the requirement says "analyzing its bytecode".
+            // Pure bytecode analysis for ERC1967 is hard without staticcall because the address
+            // is in storage, not hardcoded in the bytecode (unlike clones).
+            // BUT, the requirement mentions: "ERC1967I and ERC1967IBeaconProxy: Use `staticcall`".
+            // So we perform a staticcall to the standard ERC1967 slot logic if the bytecode looks like a delegatecall proxy.
+            // Common ERC1967 fallback starts with: 363d3d373d3d3d363d73 (push20 <addr> 5af43d82803e903d91602b57fd5bf3)
+            // Or simpler: checks if it contains the delegatecall pattern.
+            
+            // Let's try the staticcall approach first as requested for ERC1967.
+            // The standard ERC1967 implementation slot is: 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+            // We construct a call to get the implementation.
+            // However, doing a staticcall inside a loop of checks might be heavy. 
+            // Let's look for the specific bytecode signature of a minimal ERC1967 proxy or just attempt the call.
+            // The prompt implies logic branching based on bytecode hashes or patterns.
+            
+            // Check for ERC1967 Proxy Bytecode pattern (EIP-1967 standard proxy bytecode often has a specific structure)
+            // A very common minimal ERC1967 proxy bytecode ends with the implementation address pushed? 
+            // No, EIP-1967 stores it in storage. The bytecode is generic.
+            // The requirement says: "Use staticcall to retrieve...".
+            // So we attempt the staticcall. If it returns a valid address and the code size is non-zero, we accept it.
+            
+            // Prepare calldata for ERC1967 implementation() call? 
+            // Actually, ERC1967 proxies don't have a standard `implementation()` function in the proxy itself usually,
+            // unless it's a UUPS or specific variant. The standard way is reading the slot.
+            // But the requirement says "Use staticcall". This implies calling a function like `implementation()` 
+            // which exists on many proxy standards (like EIP-1967 compatible proxies that expose it, or Beacon proxies).
+            // Let's assume we call `implementation()` (selector: 0x5c60da1b).
+            
+            mstore(m, 0x5c60da1b00000000000000000000000000000000000000000000000000000000)
+            if staticcall(gas(), instance, m, 0x04, m, 0x20) {
+                if eq(returndatasize(), 0x20) {
+                    let impl := mload(m)
+                    // Validate it's an address (high 96 bits zero) and has code
+                    if and(iszero(shr(96, impl)), gt(extcodesize(impl), 0)) {
+                        result := impl
+                    }
+                }
+            }
+
+            // If not found yet, check Clone patterns (Hardcoded in bytecode)
+            if iszero(result) {
+                // --- Pattern B: 0age Clones (Minimal Proxy Contract) ---
+                // Bytecode: 3d602d80600a3d3981f3363d3d373d3d3d363d73 [20 bytes] 5af43d82803e903d91602b57fd5bf3
+                // Length: 0x37 (55 bytes)
+                // Hash of this pattern (with 0s for address) or direct comparison.
+                // Direct comparison is safer and cheaper than hashing if we know the layout.
+                // Layout: 0x00 to 0x0B is prefix, 0x0C to 0x1F is address, 0x20 to 0x36 is suffix.
+                
+                if eq(size, 0x37) {
+                    // Check prefix: 3d602d80600a3d3981f3363d3d373d3d3d363d73
+                    let prefix := mload(m)
+                    // The first 11 bytes. Shift right to align? 
+                    // mload loads 32 bytes. We need to check the first 11.
+                    // 3d602d80600a3d3981f3363d3d373d3d3d363d73 -> 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
+                    if eq(and(prefix, shl(168, not(0))), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000) {
+                         // Check suffix starts at offset 0x20 (32)
+                         // Suffix: 5af43d82803e903d91602b57fd5bf3 (15 bytes)
+                         let suffixPart1 := mload(add(m, 0x20))
+                         // We need to match 5af43d82803e903d91602b57fd5bf3 followed by zeros?
+                         // The suffix is 15 bytes. 
+                         // 5af43d82803e903d91602b57fd5bf3 -> 0x5af43d82803e903d91602b57fd5bf300000000000000000000000000000000
+                         if eq(and(suffixPart1, shl(136, not(0))), 0x5af43d82803e903d91602b57fd5bf300000000000000000000000000000000) {
+                             // Extract address from 0x0C (12) to 0x1F (31) -> 20 bytes
+                             result := shr(96, mload(add(m, 0x0c)))
+                         }
+                    }
+                }
+
+                // --- Pattern C: CWIA (Create2 With Initialization Arguments) / Push0 Clones ---
+                // These often use PUSH0 (0x5f) or specific create2 patterns.
+                // A common CWIA clone pattern (from 0age or similar):
+                // 365f5f375f5f363f73 [20 bytes] 5afa3d81602a573d5ffd5b3d5ff3
+                // Or Push0 clone: 365f5f375f5f363f73 [20 bytes] 5afa3d81602a573d5ffd5b3d5ff3 (Length 0x31 = 49 bytes)
+                
+                if iszero(result) {
+                    if eq(size, 0x31) {
+                        // Check prefix: 365f5f375f5f363f73 (9 bytes)
+                        let p := mload(m)
+                        // 365f5f375f5f363f73 -> 0x365f5f375f5f363f730000000000000000000000000000000000000000000000
+                        if eq(and(p, shl(184, not(0))), 0x365f5f375f5f363f730000000000000000000000000000000000000000000000) {
+                            // Check suffix: 5afa3d81602a573d5ffd5b3d5ff3 (15 bytes) starting at 0x19 (25)
+                            // Address is at 0x09 (9) for 20 bytes.
+                            let s := mload(add(m, 0x19))
+                            // 5afa3d81602a573d5ffd5b3d5ff3 -> 0x5afa3d81602a573d5ffd5b3d5ff300000000000000000000000000000000
+                            if eq(and(s, shl(136, not(0))), 0x5afa3d81602a573d5ffd5b3d5ff300000000000000000000000000000000) {
+                                result := shr(96, mload(add(m, 0x09)))
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback: Check generic Beacon Proxy pattern if not caught by staticcall?
+                // Beacon Proxy bytecode is often: 363d3d373d3d3d363d73 [20 bytes beacon] 5af43d82803e903d91602b57fd5bf3
+                // This looks like the 0age clone but calls a beacon. The requirement says "ERC1967IBeaconProxy" uses staticcall.
+                // But some beacon proxies are minimal clones pointing to a beacon.
+                // If the staticcall failed, maybe it's a minimal beacon proxy clone?
+                // Pattern: 363d3d373d3d3d363d73 [20 bytes] 5af43d82803e903d91602b57fd5bf3
+                if iszero(result) {
+                    if eq(size, 0x37) {
+                         let pre := mload(m)
+                         // 363d3d373d3d3d363d73
+                         if eq(and(pre, shl(168, not(0))), 0x363d3d373d3d3d363d7300000000000000000000000000000000000000000000) {
+                             let suf := mload(add(m, 0x20))
+                             if eq(and(suf, shl(136, not(0))), 0x5af43d82803e903d91602b57fd5bf300000000000000000000000000000000) {
+                                 // This is a minimal proxy pointing to a BEACON, not the implementation directly.
+                                 // The requirement says "ERC1967IBeaconProxy: Use staticcall". 
+                                 // Since we are analyzing bytecode, if it matches this pattern, the "implementation" 
+                                 // in the context of the proxy pattern is the Beacon address? 
+                                 // OR we must call the beacon to get the implementation.
+                                 // Given the constraint of "view" and "bytecode analysis", returning the beacon address 
+                                 // might be the best effort if we can't chain calls easily without more gas/complexity.
+                                 // However, usually "implementationOf" wants the final logic contract.
+                                 // Let's assume for this bytecode pattern, we return the address embedded (the beacon) 
+                                 // or we try to staticcall the beacon.
+                                 // To keep it simple and robust within one function:
+                                 // If it matches minimal beacon proxy, the embedded address is the Beacon.
+                                 // We could try to staticcall the beacon's `implementation()`?
+                                 let beacon := shr(96, mload(add(m, 0x0c)))
+                                 if gt(extcodesize(beacon), 0) {
+                                     // Try to get implementation from beacon
+                                     mstore(m, 0x5c60da1b00000000000000000000000000000000000000000000000000000000)
+                                     if staticcall(gas(), beacon, m, 0x04, m, 0x20) {
+                                         if eq(returndatasize(), 0x20) {
+                                             let impl := mload(m)
+                                             if and(iszero(shr(96, impl)), gt(extcodesize(impl), 0)) {
+                                                 result := impl
+                                             }
+                                         }
+                                     }
+                                     // If that fails, maybe return the beacon itself? 
+                                     // The prompt asks for "implementation address". 
+                                     // If we can't resolve, we might leave it 0 or return the beacon.
+                                     // Let's stick to resolving if possible. If not, result stays 0.
+                                     // But wait, if the staticcall to the original instance failed earlier, 
+                                     // maybe this instance IS the beacon proxy clone.
+                                     // Let's set result to the beacon if direct resolution fails? 
+                                     // No, strict interpretation: return implementation.
+                                     // If we found the beacon, and couldn't get implementation, we return 0?
+                                     // Let's assume the beacon returns the implementation successfully in most cases.
+                                 }
+                             }
+                         }
+                    }
+                }
+            }
+
+            // Step 4: Restore memory (optional in internal view if we don't care about dirtying memory after return,
+            // but good practice to not leave garbage if the caller relies on memory continuity, 
+            // though solidity allocates new memory for returns usually).
+            // The free memory pointer is still at 0x40. We wrote to `m`. 
+            // We don't need to explicitly zero it out unless we want to be super clean, 
+            // but the function returns immediately.
+        }
+    }

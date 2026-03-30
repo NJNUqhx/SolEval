@@ -1,0 +1,37 @@
+function incSigned(TUint256 storage ptr, int256 delta) internal   returns (uint256 newValue) {
+function incSigned(TUint256 storage ptr, int256 delta) internal   returns (uint256 newValue) {
+/// @solidity memory-safe-assembly
+    assembly {
+        // Load the current value from the storage slot
+        let currentValue := sload(ptr.slot)
+        
+        // Calculate the new value (Solidity handles int256 + uint256 conversion in assembly as raw addition)
+        // We treat them as raw 256-bit integers for the addition
+        newValue := add(currentValue, delta)
+        
+        // Check for overflow/underflow
+        // If delta is positive, newValue must be >= currentValue. If newValue < currentValue, underflow of uint (wrap around) occurred.
+        // If delta is negative, newValue must be <= currentValue. If newValue > currentValue, underflow of uint (wrap around) occurred.
+        // A simpler check for signed addition on unsigned storage:
+        // If delta >= 0: overflow if newValue < currentValue
+        // If delta < 0: underflow if newValue > currentValue
+        
+        if slt(delta, 0) {
+            // delta is negative
+            if gt(newValue, currentValue) {
+                // Underflow occurred
+                mstore(0x00, 0x11) // Panic code for arithmetic overflow/underflow
+                revert(0x1c, 0x20)
+            }
+        } else {
+            // delta is positive or zero
+            if lt(newValue, currentValue) {
+                // Overflow occurred
+                mstore(0x00, 0x11) // Panic code for arithmetic overflow/underflow
+                revert(0x1c, 0x20)
+            }
+        }
+        
+        // Store the new value back to storage
+        sstore(ptr.slot, newValue)
+    }

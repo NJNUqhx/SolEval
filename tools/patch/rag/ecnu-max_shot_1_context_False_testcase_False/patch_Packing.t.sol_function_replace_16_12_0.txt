@@ -1,0 +1,88 @@
+function replace_16_12(bytes16 self, bytes12 value, uint8 offset) internal  pure returns (bytes16 result) {
+function replace_16_12(bytes16 self, bytes12 value, uint8 offset) internal  pure returns (bytes16 result) {
+assembly {
+        // Load the 16-byte self value and the 12-byte value into registers.
+        // self is already in the first slot of memory or register depending on context, 
+        // but for inline assembly with arguments, we access them directly.
+        let original := mload(self)
+        let newVal := mload(value)
+        
+        // Calculate shift amount: (16 - offset - 12) * 8 bits.
+        // We want to align the 12-byte value to the specific offset within the 16-byte word.
+        // The 12 bytes occupy positions [offset, offset+12).
+        // In a 32-byte word (though we only care about 16), bytes are indexed 0..15.
+        // To place 12 bytes starting at `offset`, we need to shift left by (16 - 12 - offset) * 8?
+        // Actually, let's think in terms of clearing and inserting.
+        
+        // Strategy using XOR as requested:
+        // 1. Extract the old 12-byte segment at `offset`.
+        // 2. Create a mask for the new value aligned at `offset`.
+        // 3. result = original ^ old_segment ^ new_aligned_segment.
+        
+        // Shift amount to move the target 12-byte window to the least significant 12 bytes (right aligned)
+        // Bytes are big-endian in solidity words. 
+        // If offset is 0, we want bytes 0-11. These are the MOST significant 12 bytes of the 16.
+        // If offset is 4, we want bytes 4-15. These are the LEAST significant 12 bytes.
+        // Number of bytes to shift right = offset.
+        // Number of bits to shift right = offset * 8.
+        
+        let shiftRight := mul(offset, 8)
+        let shiftLeft := mul(sub(4, offset), 8) // 16 - 12 = 4. Total shift space is 4 bytes.
+        
+        // Extract old segment: shift right to align to LSB, then mask 12 bytes (96 bits), then shift back?
+        // Actually, to XOR out, we just need the bits at that position.
+        // Let's create the mask for the 12-byte region at `offset`.
+        // 12 bytes = 0xFFFFFFFFFFFFFFFFFFFFFFFF (24 hex chars).
+        // We need this mask shifted to the correct position.
+        // Position from right (LSB): (16 - 12 - offset) * 8 = (4 - offset) * 8.
+        
+        let mask := shl(mul(sub(4, offset), 8), sub(shl(96, 1), 1)) // 12 bytes of 1s shifted left
+        
+        // Extract old segment at the position
+        let oldSegment := and(original, mask)
+        
+        // Prepare new value:
+        // The `value` (12 bytes) is loaded. In Solidity, bytes12 is left-aligned in the 32-byte slot?
+        // No, `bytes12` in memory is 32 bytes with data in the first 12 bytes (left-aligned).
+        // Wait, `mload(value)` loads the 32-byte word. For `bytes12`, the data is in the high 12 bytes of the 32-byte word?
+        // Actually, Solidity stores dynamic types differently, but `bytes12` is a static type.
+        // Static types are right-aligned (LSB) in their 32-byte slot? 
+        // Let's verify: `bytes16` is stored in the lower 16 bytes? No, usually right-aligned (LSB) for value types.
+        // If `value` is `bytes12`, it occupies the least significant 12 bytes of the 32-byte word in the stack/memory slot.
+        // So `newVal` has the data in the lowest 12 bytes.
+        // We need to shift it LEFT to match the `offset` position within the 16-byte word.
+        // The 16-byte word `original` has its data in the least significant 16 bytes of the 32-byte slot?
+        // Yes, `bytes16` is right-aligned.
+        // So if offset=0, we replace the top 12 bytes of the 16-byte sequence.
+        // The 16-byte sequence is in bits 0..127 (if we consider 16 bytes).
+        // Wait, Solidity `bytes16` is stored in the least significant 128 bits of the 256-bit word.
+        // Byte 0 of `bytes16` is at bit 120 (most significant of the 16 bytes).
+        // Byte 15 is at bit 0.
+        // If `offset` is 0, we replace bytes 0..11. These are bits 120 down to 24.
+        // If `offset` is 4, we replace bytes 4..15. These are bits 88 down to 0.
+        
+        // Let's re-evaluate the shift logic based on "right-aligned" storage.
+        // `original`: 16 bytes at [0..127] bits (where 0 is LSB).
+        // Byte index `i` (0..15) corresponds to bits `(15-i)*8` to `(16-i)*8 - 1`.
+        // We want to replace 12 bytes starting at `offset`.
+        // Start bit (MSB of segment) = (15 - offset) * 8.
+        // End bit (LSB of segment) = (15 - (offset + 11)) * 8 = (4 - offset) * 8.
+        // So the segment spans from bit `(4-offset)*8` to `(4-offset)*8 + 95`.
+        // This confirms the mask should start at bit `(4-offset)*8`.
+        // Mask = 0xFFFFFFFFFFFFFFFFFFFFFFFF (96 ones) shifted left by `(4-offset)*8`.
+        
+        // `newVal` (bytes12) is stored right-aligned. Its byte 0 is at bit 88, byte 11 at bit 0.
+        // We need to move `newVal` so its byte 0 aligns with the segment's start bit.
+        // Segment start bit = (15 - offset) * 8.
+        // Current `newVal` byte 0 bit = 88.
+        // Shift needed = (15 - offset) * 8 - 88 = 120 - 8*offset - 88 = 32 - 8*offset = 8 * (4 - offset).
+        // So we shift `newVal` left by `8 * (4 - offset)`.
+        
+        let shiftAmount := mul(sub(4, offset), 8)
+        let newAligned := shl(shiftAmount, newVal)
+        
+        // Calculate result: (original ^ oldSegment) ^ newAligned
+        // Since oldSegment = original & mask, and newAligned is within mask,
+        // this effectively clears the old bits and sets the new ones.
+        result := xor(xor(original, oldSegment), newAligned)
+    }

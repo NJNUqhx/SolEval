@@ -1,0 +1,34 @@
+constructor (address _logic) {
+constructor (address _logic) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Ensure that the provided `_logic` address is a valid contract.
+            if iszero(extcodesize(_logic)) {
+                mstore(0x00, 0x48f5c3ed) // selector for "Error(string)"
+                mstore(0x20, 0x20)
+                mstore(0x40, 0x2c)
+                mstore(0x60, "ERC1967: new implementation is not a contract")
+                revert(0x1c, 0x4c)
+            }
+
+            // Step 2: Store the `_logic` address in the implementation slot.
+            // The standard ERC1967 implementation slot is: bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1)
+            // which equals 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+            mstore(0x00, _logic)
+            mstore(0x20, 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc)
+            sstore(keccak256(0x00, 0x40), _logic)
+
+            // Step 3: Delegatecall the `initialize()` function on the `_logic` contract.
+            // initialize() selector is 0xc4d66de8
+            mstore(0x00, 0xc4d66de8)
+            if iszero(delegatecall(gas(), _logic, 0x00, 0x04, 0x00, 0x00)) {
+                // Step 4: Ensure that the delegatecall was successful.
+                // Revert with "Call failed" if it fails.
+                mstore(0x00, 0x08c379a0) // selector for "Error(string)"
+                mstore(0x20, 0x20)
+                mstore(0x40, 0x0a)
+                mstore(0x60, "Call failed")
+                revert(0x1c, 0x4a)
+            }
+        }
+    }

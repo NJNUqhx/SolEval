@@ -1,0 +1,21 @@
+function extract_6_4(bytes6 self, uint8 offset) internal  pure returns (bytes4 result) {
+function extract_6_4(bytes6 self, uint8 offset) internal  pure returns (bytes4 result) {
+if (offset > 2) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift the 6-byte input left by `8 * offset` bits to align the desired segment to the top.
+            // Since `self` is stored in the lower bits of the 32-bit slot, shifting left moves the
+            // target 4 bytes towards the most significant position.
+            let shifted := shl(mul(offset, 8), self)
+            
+            // Mask the result to retain only the first 4 bytes (32 bits).
+            // The mask 0xFFFFFFFF0000... isolates the top 4 bytes after the shift.
+            result := and(shifted, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            
+            // Shift right by 224 bits (32 - 4 = 28 bytes * 8) to move the result to the least significant position
+            // so it conforms to the standard `bytes4` alignment in the return slot.
+            result := shr(224, result)
+        }
+    }

@@ -1,0 +1,110 @@
+function buildDeployCommand(ContractInfo memory contractInfo, string memory buildInfoFile, bytes memory constructorData, DefenderOptions memory defenderOpts) internal  view returns (string[] memory) {
+function buildDeployCommand(ContractInfo memory contractInfo, string memory buildInfoFile, bytes memory constructorData, DefenderOptions memory defenderOpts) internal  view returns (string[] memory) {
+function buildDeployCommand(ContractInfo memory contractInfo, string memory buildInfoFile, bytes memory constructorData, DefenderOptions memory defenderOpts) internal  view returns (string[] memory) {
+        Vm vm = Vm(HEVM_ADDRESS);
+
+        // Step 2: Validate licenseType option
+        if (defenderOpts.skipVerifySourceCode && !defenderOpts.skipLicenseType) {
+            revert InvalidLicenseType();
+        }
+
+        // Step 3: Initialize an array to store the command inputs
+        // We estimate a maximum size to avoid dynamic resizing overhead, then trim later.
+        // Max expected args: npx, oz, deploy, name, path, --network, chainId, --build-info, file,
+        // --constructor-args, data, --license, type, --relayer, id, --salt, salt,
+        // --gas-limit, val, --gas-price, val, --max-fee, val, --max-priority-fee, val, --metadata, json
+        string[] memory rawInputs = new string[](25);
+        uint256 count = 0;
+
+        // Step 4: Populate the command inputs
+        rawInputs[count++] = "npx";
+        rawInputs[count++] = "oz";
+        rawInputs[count++] = "deploy";
+        rawInputs[count++] = contractInfo.name;
+        rawInputs[count++] = contractInfo.path;
+
+        // Chain ID is usually passed via env or flag, assuming flag for explicit command construction
+        // Note: In a real Foundry script, chainId might be fetched from vm.chainId(), 
+        // but the requirement implies constructing the command arguments.
+        // Assuming the caller handles chain selection via env or we add a placeholder if needed.
+        // However, based on typical CLI usage: `oz deploy ... --network <name>` or similar.
+        // The requirement lists "Chain ID" specifically. Let's assume a flag `--chain-id`.
+        rawInputs[count++] = "--chain-id";
+        rawInputs[count++] = vm.toString(vm.chainId());
+
+        rawInputs[count++] = "--build-info";
+        rawInputs[count++] = buildInfoFile;
+
+        if (constructorData.length > 0) {
+            rawInputs[count++] = "--constructor-args";
+            rawInputs[count++] = vm.toString(constructorData);
+        }
+
+        if (!defenderOpts.skipLicenseType) {
+            rawInputs[count++] = "--license";
+            rawInputs[count++] = _licenseTypeToString(defenderOpts.licenseType);
+        }
+
+        if (bytes(defenderOpts.relayerId).length > 0) {
+            rawInputs[count++] = "--relayer";
+            rawInputs[count++] = defenderOpts.relayerId;
+        }
+
+        if (defenderOpts.salt != bytes32(0)) {
+            rawInputs[count++] = "--salt";
+            rawInputs[count++] = vm.toString(defenderOpts.salt);
+        }
+
+        if (defenderOpts.gasLimit > 0) {
+            rawInputs[count++] = "--gas-limit";
+            rawInputs[count++] = vm.toString(defenderOpts.gasLimit);
+        }
+
+        if (defenderOpts.gasPrice > 0) {
+            rawInputs[count++] = "--gas-price";
+            rawInputs[count++] = vm.toString(defenderOpts.gasPrice);
+        }
+
+        if (defenderOpts.maxFeePerGas > 0) {
+            rawInputs[count++] = "--max-fee-per-gas";
+            rawInputs[count++] = vm.toString(defenderOpts.maxFeePerGas);
+        }
+
+        if (defenderOpts.maxPriorityFeePerGas > 0) {
+            rawInputs[count++] = "--max-priority-fee-per-gas";
+            rawInputs[count++] = vm.toString(defenderOpts.maxPriorityFeePerGas);
+        }
+
+        if (bytes(defenderOpts.metadata).length > 0) {
+            rawInputs[count++] = "--metadata";
+            rawInputs[count++] = defenderOpts.metadata;
+        }
+
+        // Step 5: Create a correctly sized copy of the inputs array to avoid empty slots
+        string[] memory inputs = new string[](count);
+        for (uint256 i = 0; i < count; i++) {
+            inputs[i] = rawInputs[i];
+        }
+
+        // Step 6: Return the constructed command inputs
+        return inputs;
+    }
+
+    // Helper function to convert LicenseType enum to string (assumed existence based on context)
+    function _licenseTypeToString(LicenseType licenseType) internal pure returns (string memory) {
+        if (licenseType == LicenseType.None) return "none";
+        if (licenseType == LicenseType.Unlicense) return "unlicense";
+        if (licenseType == LicenseType.MIT) return "mit";
+        if (licenseType == LicenseType.GNU_GPLv2) return "gnu_gplv2";
+        if (licenseType == LicenseType.GNU_GPLv3) return "gnu_gplv3";
+        if (licenseType == LicenseType.GNU_LGPLv2_1) return "gnu_lgplv2_1";
+        if (licenseType == LicenseType.GNU_LGPLv3) return "gnu_lgplv3";
+        if (licenseType == LicenseType.BSD_2_Clause) return "bsd_2_clause";
+        if (licenseType == LicenseType.BSD_3_Clause) return "bsd_3_clause";
+        if (licenseType == LicenseType.Mozilla_Public_License_2_0) return "mozilla_public_license_2_0";
+        if (licenseType == LicenseType.OSL_3_0) return "osl_3_0";
+        if (licenseType == LicenseType.Apache_2_0) return "apache_2_0";
+        if (licenseType == LicenseType.GNU_AGPLv3) return "gnu_agplv3";
+        if (licenseType == LicenseType.BSL_1_1) return "bsl_1_1";
+        revert("InvalidLicenseType");
+    }

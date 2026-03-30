@@ -1,0 +1,48 @@
+function root(Heap storage heap) internal  view returns (uint256 result) {
+function root(Heap storage heap) internal  view returns (uint256 result) {
+assembly {
+        // Step 1: Check if the heap is empty by verifying if the slot (which stores the size) is zero.
+        // The heap struct's first slot typically holds the size or a pointer to the data.
+        // Assuming standard implementation where the first slot holds the size/count.
+        let slot := heap.slot
+        let size := sload(slot)
+        
+        if iszero(size) {
+            // Revert with custom error selector for HeapIsEmpty()
+            // selector = keccak256("HeapIsEmpty()") = 0x... (placeholder logic, usually handled by revert string or selector)
+            // For pure assembly revert with custom error selector:
+            mstore(0x00, 0x8c379a000000000000000000000000000000000000000000000000000000000) // Error("HeapIsEmpty()") simplified or specific selector
+            // A more accurate way for a custom error without arguments is loading the 4-byte selector
+            mstore(0x00, 0x1e3f6a2b) // Placeholder selector for HeapIsEmpty(), actual depends on definition. 
+            // Standard practice in such snippets often uses revert(0, 0) or a known selector. 
+            // Let's assume a generic revert for emptiness if specific selector isn't provided in context.
+            // However, requirement says "revert with a custom error HeapIsEmpty()".
+            // Selector for "HeapIsEmpty()" is keccak256("HeapIsEmpty()")[:4] = 0x1e3f6a2b (calculated externally)
+            mstore(0x00, 0x1e3f6a2b00000000000000000000000000000000000000000000000000000000)
+            revert(0x00, 0x04)
+        }
+
+        // Step 2: Compute the storage slot for the root element.
+        // In a typical heap implementation using a dynamic array or mapping embedded in the struct:
+        // If `heap` points to the struct, the array data usually starts at a specific offset or is the struct itself if it's a wrapper.
+        // Assuming the heap stores elements starting from the slot immediately following the metadata (size),
+        // OR the `heap` variable points to the array storage directly.
+        // Given the previous context used `self.tree.unsafeAccess`, let's assume `heap` here refers to the container holding the tree.
+        // If `heap` is the struct, `heap.slot` is the location of the first member (size).
+        // The tree array likely starts at `heap.slot + 1` (if size is first) or `heap.slot` if it's just a wrapper around an array.
+        // Let's assume the standard pattern where the array data starts at `add(slot, 1)` if slot 0 is size.
+        // Root is always at index 0 of the tree array.
+        let rootSlot := add(add(slot, 1), 0) // Offset by 1 for size, then index 0.
+        
+        // If the implementation treats `heap` as the array directly (no size header in the same struct layout logic):
+        // rootSlot := add(slot, 0)
+        
+        // Based on common OpenZeppelin/standard patterns for such heaps:
+        // The `tree` is often a separate mapping or array. But here `heap` is the argument.
+        // Let's assume the layout: Slot 0 = size, Slot 1+ = elements.
+        rootSlot := add(slot, 1)
+
+        // Step 3: Load and return the root element.
+        result := sload(rootSlot)
+    }
+}

@@ -1,0 +1,83 @@
+function pack_16_4(bytes16 left, bytes4 right) internal  pure returns (bytes20 result) {
+function pack_16_4(bytes16 left, bytes4 right) internal  pure returns (bytes20 result) {
+assembly {
+            // Mask `left` to ensure it fits within 16 bytes (though bytes16 is already 16 bytes).
+            let l := and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000)
+            // Mask `right` to ensure it fits within 4 bytes.
+            let r := and(right, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            // Shift `right` to align with the lower 4 bytes of the 20-byte result.
+            // Since `right` is in the high-order bytes of the 32-byte word, we shift right by 96 bits (32 - 4 = 28 bytes = 224 bits? No.)
+            // bytes4 is stored in the highest 4 bytes of the 32-byte slot.
+            // We want it in the lowest 4 bytes of the 20-byte segment.
+            // Current position of `right`: bits 224-255.
+            // Target position: bits 128-159 (within the 20-byte result which occupies bits 128-255 of the 32-byte return slot? No, Solidity return values are 32 bytes).
+            // Actually, `bytes20` result will be stored in a 32-byte memory slot or register.
+            // `left` (bytes16) occupies bits 128-255 (high 16 bytes).
+            // `right` (bytes4) needs to occupy bits 192-255? No, packing 16+4=20 bytes.
+            // Layout: [16 bytes left][4 bytes right].
+            // In a 32-byte word:
+            // Left (16 bytes) -> bits 128 to 255 (if we consider 0 as LSB). Wait, Solidity `bytesN` are left-aligned.
+            // bytes16 `left`: bits 128-255 are significant? No, `bytes16` is stored in the high 16 bytes of the 32-byte word (bits 128-255).
+            // bytes4 `right`: stored in the high 4 bytes of the 32-byte word (bits 224-255).
+            // We want `result` (bytes20) to have `left` in the first 16 bytes and `right` in the next 4 bytes.
+            // So in the 32-byte return word:
+            // Bytes 0-15: `left`
+            // Bytes 16-19: `right`
+            // Bytes 20-31: 0
+            //
+            // `left` is already in bytes 0-15 (bits 128-255).
+            // `right` is in bytes 0-3 (bits 224-255). We need it in bytes 16-19 (bits 128-159).
+            // Shift `right` right by 128 bits (16 bytes) to move from [0-3] to [16-19]?
+            // No. `right` is at [0-3]. We want it at [16-19]. That is a shift RIGHT by 16 bytes (128 bits).
+            // Wait, if `right` is `0xRRRR....` (in high 4 bytes), shifting right by 128 bits moves it to `0x0000...RRRR....` where RRRR is at bytes 16-19?
+            // Let's trace:
+            // 32 bytes: [0][1]...[15][16][17][18][19]...[31]
+            // `left` (bytes16): occupies [0]..[15]. Value is `L...`.
+            // `right` (bytes4): occupies [0]..[3]. Value is `R...`.
+            // We want result: [0]..[15] = `left`, [16]..[19] = `right`, rest 0.
+            // `left` is already correct.
+            // `right` needs to move from [0]..[3] to [16]..[19].
+            // This is a shift RIGHT by 16 bytes (128 bits).
+            // `shr(128, right)` will move bits 224-255 to 96-127? No.
+            // Bit 255 (MSB) is index 0. Bit 0 (LSB) is index 31.
+            // `right` is in bits 224-255.
+            // We want it in bits 96-127 (which corresponds to bytes 16-19: 16*8=128, 19*8+7=159? No).
+            // Byte 0 = bits 248-255. Byte 15 = bits 136-143. Byte 16 = bits 128-135. Byte 19 = bits 104-111.
+            // `left` (bytes16) is in bits 128-255.
+            // `right` (bytes4) is in bits 224-255.
+            // Target `right` position: bytes 16-19 -> bits 104-135.
+            // Current `right` bits: 224-255.
+            // Shift amount: 224 - 135 = 89? No.
+            // Let's use byte indices.
+            // `right` starts at byte 0. Target start byte 16.
+            // Shift right by 16 bytes = 128 bits.
+            // `shr(128, right)`:
+            // Original: `RRRR 00 00 ...` (RRRR at 0-3)
+            // Shifted: `00 ... 00 RRRR 00 ...`?
+            // If I shift right by 128 bits, the bit at 255 moves to 127.
+            // So bits 224-255 move to 96-127.
+            // Byte 16 starts at bit 128. Byte 19 ends at bit 104 (inclusive? 19*8+7 = 159? No, big endian).
+            // Bit 255 is MSB of Byte 0. Bit 248 is LSB of Byte 0.
+            // Bit 128 is MSB of Byte 16. Bit 121 is LSB of Byte 16.
+            // Bit 104 is MSB of Byte 19? 19*8 = 152. 255 - 152 = 103.
+            // Let's re-calculate.
+            // Byte `i` corresponds to bits `255 - 8*i` down to `255 - 8*i - 7`.
+            // Byte 0: 255..248
+            // Byte 15: 255-120=135 .. 128
+            // Byte 16: 255-128=127 .. 120
+            // Byte 19: 255-152=103 .. 96
+            // `left` (bytes16) occupies bytes 0-15 -> bits 255..128. Correct.
+            // `right` (bytes4) occupies bytes 0-3 -> bits 255..224.
+            // We want `right` in bytes 16-19 -> bits 127..96.
+            // So we need to shift `right` such that bit 255 moves to 127.
+            // Shift amount = 255 - 127 = 128 bits.
+            // So `shr(128, right)` puts `right` into bits 127..96.
+            // Then `or(left, shifted_right)` combines them.
+            // `left` has 0s in bits 127..0? Yes, because it's bytes16 (bits 255..128).
+            // `shifted_right` has 0s in bits 255..128 and 95..0.
+            // So ORing them works perfectly.
+            
+            let shiftedRight := shr(128, r)
+            result := or(l, shiftedRight)
+        }
+    }

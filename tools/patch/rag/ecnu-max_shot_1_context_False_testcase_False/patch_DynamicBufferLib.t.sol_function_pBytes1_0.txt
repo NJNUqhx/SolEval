@@ -1,0 +1,5 @@
+function pBytes1(DynamicBuffer memory buffer, bytes1 data) internal  pure returns (DynamicBuffer memory result) {
+function pBytes1(DynamicBuffer memory buffer, bytes1 data) internal  pure returns (DynamicBuffer memory result) {
+    _deallocate(result);
+    result = p(buffer, _single(bytes32(uint256(uint8(data))), 1));
+} 

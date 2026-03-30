@@ -1,0 +1,33 @@
+function copy(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+function copy(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+assembly {
+            // Get the start of the input array data (skip length slot)
+            let src := add(a, 0x20)
+            // Get the current free memory pointer
+            let dst := mload(0x40)
+            // Get the length of the array
+            let len := mload(a)
+            
+            // Store the length in the new array's first slot
+            mstore(dst, len)
+            
+            // Calculate the end of the data to copy
+            // Destination data start + (length * 32 bytes)
+            let end := add(add(dst, 0x20), mul(len, 0x20))
+            
+            // Copy memory word by word if there is data
+            if gt(len, 0) {
+                // Use a loop to copy each uint256 element
+                for { let i := add(dst, 0x20) } lt(i, end) { i := add(i, 0x20) } {
+                    mstore(i, mload(src))
+                    src := add(src, 0x20)
+                }
+            }
+            
+            // Update the free memory pointer to the end of the new array
+            mstore(0x40, end)
+            
+            // Set the result pointer to the start of the new array
+            result := dst
+        }
+    }

@@ -1,0 +1,6 @@
+function getBytes32(uint256[] memory a, uint256 i) internal  pure returns (bytes32 result) {
+function getBytes32(uint256[] memory a, uint256 i) internal  pure returns (bytes32 result) {
+assembly {
+            result := mload(add(add(a, 0x20), mul(i, 0x20)))
+        }
+    }

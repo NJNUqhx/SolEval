@@ -1,0 +1,11 @@
+function extract_32_24(bytes32 self, uint8 offset) internal  pure returns (bytes24 result) {
+function extract_32_24(bytes32 self, uint8 offset) internal  pure returns (bytes24 result) {
+    require(offset <= 8, "Offset exceeds valid range");
+    assembly {
+        // Shift left by 8 * offset to align the desired 24-byte segment to the most significant position
+        let shifted := shl(mul(8, offset), self)
+        // Mask to keep only the first 24 bytes (192 bits)
+        let masked := and(shifted, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000)
+        // Store the result in the return variable
+        result := masked
+    }

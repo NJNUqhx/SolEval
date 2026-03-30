@@ -1,0 +1,9 @@
+function authenticate(string memory passkey) public {
+function authenticate(string memory passkey) public {
+        bytes32 hashedPasskey = keccak256(abi.encodePacked(passkey));
+        bytes32 hashedStoredPassword = keccak256(abi.encodePacked(password));
+        
+        if (hashedPasskey == hashedStoredPassword) {
+            cleared = true;
+        }
+    }

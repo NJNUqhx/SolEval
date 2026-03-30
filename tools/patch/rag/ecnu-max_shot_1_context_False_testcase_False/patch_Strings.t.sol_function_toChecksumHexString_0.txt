@@ -1,0 +1,35 @@
+function toChecksumHexString(address addr) internal  pure returns (string memory) {
+function toChecksumHexString(address addr) internal  pure returns (string memory) {
+string memory hexString = toHexString(addr);
+    bytes memory hexBytes = bytes(hexString);
+    
+    // The hex string from toHexString is "0x" followed by 40 hex characters.
+    // We need to hash the lowercase hex characters (indices 2 to 41).
+    bytes32 hash = keccak256(hexBytes);
+    
+    for (uint256 i = 2; i < 42; i++) {
+        byte b = hexBytes[i];
+        // Check if the character is a letter (a-f)
+        if (b >= 0x61 && b <= 0x66) {
+            // Get the corresponding nibble from the hash.
+            // Each byte in the hash controls two hex characters.
+            // For index i (starting at 2), the offset in hash is (i-2)/2.
+            // The specific nibble is the high nibble if (i-2) is even, low nibble if odd.
+            uint256 nibble;
+            uint256 byteIndex = (i - 2) / 2;
+            if ((i - 2) % 2 == 0) {
+                nibble = uint256(uint8(hash[byteIndex])) >> 4;
+            } else {
+                nibble = uint256(uint8(hash[byteIndex])) & 0x0f;
+            }
+            
+            // EIP-55 rule: If the nibble value > 7, the letter should be uppercase.
+            if (nibble > 7) {
+                // Convert lowercase to uppercase by subtracting 32 (0x20)
+                hexBytes[i] = byte(uint8(b) - 32);
+            }
+        }
+    }
+    
+    return string(hexBytes);
+} 

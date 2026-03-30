@@ -1,0 +1,324 @@
+function pack_28_4(bytes28 left, bytes4 right) internal  pure returns (bytes32 result) {
+function pack_28_4(bytes28 left, bytes4 right) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Shift the 28-byte `left` value left by 32 bits (4 bytes).
+            // Since `left` occupies the upper 28 bytes of a 32-byte slot, shifting it left by 32 bits
+            // moves it to occupy the upper 28 bytes starting from bit 32?
+            // Actually, `bytes28` is stored in the highest 28 bytes of the 32-byte word when loaded directly?
+            // No, in Solidity, smaller fixed-size bytes types are right-aligned (padded with zeros on the right) when loaded into a 32-byte word?
+            // Let's re-verify Solidity packing rules for fixed bytes.
+            // `bytes28` takes up 28 bytes. When loaded into a `bytes32` slot (which `result` is), it is left-aligned?
+            // Actually, fixed bytes `bytesN` are left-aligned in the 32-byte word.
+            // So `left` (bytes28) occupies bytes 0 to 27. We need it to occupy bytes 0 to 27 of the final result?
+            // The requirement says: "Packs a 28-byte value and a 4-byte value into a single 32-byte value."
+            // Usually, this means `left` goes to the high-order bits and `right` to the low-order bits, or vice versa.
+            // The steps say:
+            // 1. Shift `left` left by 32 bits.
+            // 2. Shift `right` left by 224 bits.
+            // 3. Combine with OR.
+            
+            // If `left` is `bytes28`, it is stored in the first 28 bytes of the 32-byte word (left-aligned).
+            // Bits 0 to 223 (28 * 8 = 224 bits) contain the data. Bits 224 to 255 are zero.
+            // If we shift `left` LEFT by 32 bits (shl(32, left)), the data moves to bits 32 to 255.
+            // This leaves bits 0 to 31 empty.
+            
+            // If `right` is `bytes4`, it is stored in the first 4 bytes of the 32-byte word (left-aligned).
+            // Bits 0 to 31 contain the data. Bits 32 to 255 are zero.
+            // The requirement says shift `right` LEFT by 224 bits.
+            // If we shift `right` (which has data in bits 0-31) left by 224 bits, the data moves to bits 224-255.
+            
+            // Let's re-read the steps carefully.
+            // Step 1: Shift `left` left by 32 bits.
+            // Step 2: Shift `right` left by 224 bits.
+            // Step 3: OR them.
+            
+            // Scenario A: Standard concatenation where `left` is high 28 bytes, `right` is low 4 bytes.
+            // `left` (bytes28) is naturally at bits 224..255? No.
+            // Solidity `bytes28` literal or variable: if value is 0x0102... (28 bytes), loaded into uint256, it is at the MOST significant bytes?
+            // Let's check: `bytes1` 0xFF is 0xFF0000...00 in a 32-byte word (left aligned).
+            // So `bytes28` data is in bits 224 down to 32? No.
+            // 28 bytes = 224 bits. Left aligned means bits 255 down to 32 (256-32=224).
+            // So `left` currently occupies bits 255..32.
+            // If we shift LEFT by 32, it goes to bits 287..64 -> overflow/wrap? No, it shifts out.
+            // That doesn't seem right for packing.
+            
+            // Maybe the requirement implies `left` is treated as a number occupying the lower 224 bits?
+            // Or maybe the input `left` is right-aligned? No, fixed bytes are left-aligned.
+            
+            // Let's reconsider the standard interpretation of "Pack 28 bytes and 4 bytes".
+            // Usually: Result = (left << 32) | right.
+            // If `left` is `bytes28`, and we want it in the upper 28 bytes of the result.
+            // And `right` is `bytes4`, and we want it in the lower 4 bytes.
+            
+            // Current state of `left` (bytes28): Data in bits 255..32. Zeros in 31..0.
+            // Current state of `right` (bytes4): Data in bits 255..224. Zeros in 223..0.
+            
+            // If we want `left` in bits 255..32 and `right` in bits 31..0:
+            // `left` is already in 255..32. We don't need to shift it?
+            // `right` is in 255..224. We need to shift it RIGHT by 224 bits to get to 31..0.
+            // OR we shift `right` left? No.
+            
+            // Let's follow the REQUIREMENT steps exactly, even if they seem odd, assuming the inputs might be interpreted differently or the goal is specific.
+            // Step 1: `left` shifted LEFT by 32.
+            // Step 2: `right` shifted LEFT by 224.
+            // Step 3: OR.
+            
+            // If `left` (bytes28, data in 255..32) is shifted LEFT by 32:
+            // Data moves to (255+32)..(32+32) -> wraps? No, EVM shl drops overflow.
+            // So bits 255..32 become 223..0? No.
+            // Shifting left moves towards higher bit indices? No, in EVM `shl(count, value)`, bit `i` moves to `i+count`.
+            // So bit 0 moves to `count`. Bit 255 moves to `255+count` (lost).
+            // If `left` has data in 255..32.
+            // `shl(32, left)`: Data moves to 287..64. Bits 287..256 are lost. Data remaining: 255..64.
+            // This leaves bits 63..0 empty.
+            
+            // If `right` (bytes4, data in 255..224) is shifted LEFT by 224.
+            // `shl(224, right)`: Data moves to (255+224)..(224+224) -> 479..448. All lost?
+            // This results in 0.
+            
+            // This suggests my assumption about alignment or the requirement's wording "shift left" might be relative to a different base (e.g. treating them as integers right-aligned).
+            // HOWEVER, often in these prompts, the "steps" describe the mathematical operation on the conceptual values, not necessarily the EVM opcodes on the raw loaded bytes if the alignment is different.
+            // BUT, I must implement the function.
+            // Let's assume the standard efficient packing:
+            // We want `left` (28 bytes) in the high order, `right` (4 bytes) in the low order.
+            // `left` is `bytes28`. In memory/register: `[28 bytes data][4 zeros]`.
+            // `right` is `bytes4`. In memory/register: `[4 bytes data][28 zeros]`.
+            // To pack them as `[28 bytes left][4 bytes right]`:
+            // We need `left` as is? No, `left` is `[28 data][4 zero]`. We want `[28 data][4 right]`.
+            // So we need `right` to be in the lower 4 bytes.
+            // Currently `right` is in the upper 4 bytes.
+            // We need to shift `right` RIGHT by 224 bits (or left by 32? No, 256-4=252? 224+32=256).
+            // Shift `right` right by 224: `shr(224, right)`. Then it is in lower 4 bytes.
+            // Then `or(left, shr(224, right))`.
+            
+            // Does this match the steps?
+            // Step 1: Shift `left` left by 32.
+            // If `left` was right-aligned (data in 0..223), shifting left by 32 puts it in 32..255.
+            // Step 2: Shift `right` left by 224.
+            // If `right` was right-aligned (data in 0..31), shifting left by 224 puts it in 224..255.
+            // This would overlap!
+            
+            // Alternative Interpretation:
+            // Maybe the result layout is `[4 bytes right][28 bytes left]`?
+            // Or maybe the inputs are passed as `uint256` conceptually? No, signature is `bytes28`, `bytes4`.
+            
+            // Let's look at the steps again very literally.
+            // "Shift `left` left by 32 bits" -> `shl(32, left)`
+            // "Shift `right` left by 224 bits" -> `shl(224, right)`
+            // "Combine ... OR"
+            
+            // If I follow this literally on Solidity `bytes28` and `bytes4`:
+            // `left` (bytes28): Data in bits 255-32. `shl(32, left)` -> Data in 255-64 (top 32 bits lost? No, 255+32=287, so bits 255 down to 64 remain? No. Bit 255 shifts out. Bit 32 shifts to 64. So data is in 255..64? No.
+            // Bit indices: 255 (MSB) ... 0 (LSB).
+            // `bytes28` data is in 255..32.
+            // `shl(32, x)`: New bit `i` = Old bit `i-32`.
+            // So New bit 255 = Old bit 223. Old bit 223 is 0 (since data ends at 32? No, data is 255..32. So 223 is data).
+            // Wait, `bytes28` is 28 bytes. 28*8 = 224 bits.
+            // Left aligned: Bits 255 down to (256-224)=32. Correct.
+            // So bits 255..32 are data. Bits 31..0 are 0.
+            // `shl(32, left)`:
+            // Bit 255 becomes Old 223. (Data)
+            // Bit 64 becomes Old 32. (Data)
+            // Bit 63 becomes Old 31. (0)
+            // Bit 32 becomes Old 0. (0)
+            // Result: Data in 255..64. Zeros in 63..0.
+            
+            // `right` (bytes4): Data in 255..224. Zeros in 223..0.
+            // `shl(224, right)`:
+            // Bit 255 becomes Old 31. (0)
+            // Bit 224 becomes Old 0. (0)
+            // Everything shifts out. Result 0.
+            
+            // This literal interpretation yields a broken function.
+            // Therefore, the "Steps" in the requirement likely describe the logic assuming the values are RIGHT-ALIGNED (like `uint224` and `uint32`), OR the directions are swapped (shift right), OR the specific shifts are meant to align them from their natural left-aligned state to a specific packed format.
+            
+            // Let's try to infer the intent: "Pack 28-byte value and 4-byte value".
+            // Most common packing: `bytes32(left) | bytes32(right >> 224)`?
+            // Or `(left << 32) | right` if they were integers.
+            
+            // If we assume the requirement wants us to treat `left` as the high part and `right` as the low part of a 32-byte word.
+            // `left` (bytes28) is already in the high 28 bytes (bits 255..32).
+            // `right` (bytes4) needs to be in the low 4 bytes (bits 31..0).
+            // `right` is currently in bits 255..224.
+            // To move `right` from 255..224 to 31..0, we need to shift RIGHT by 224 bits.
+            // `shr(224, right)`.
+            // Then `or(left, shr(224, right))`.
+            
+            // Does this match the steps if we interpret "shift left" as "shift to the left side of the number line" (which is MSB)? No, standard terminology is `shl` moves to MSB.
+            // Perhaps the prompt meant:
+            // 1. Ensure `left` is aligned (it is).
+            // 2. Shift `right` to the correct position (which is a RIGHT shift of 224, or a LEFT shift of 32 if it was right aligned?).
+            
+            // Let's look at the possibility that the prompt implies `left` should be shifted to make room?
+            // If `left` is `bytes28`, and we shift it LEFT by 32, we lose data.
+            // If we shift it RIGHT by 32? Data moves to 223..0.
+            // Then `right` shifted LEFT by 224? Data moves to 255..224.
+            // Then OR: `right` in top 4 bytes, `left` in bottom 28 bytes.
+            // This creates a valid 32-byte word: `[4 bytes right][28 bytes left]`.
+            // Let's check the steps again:
+            // 1. Shift `left` left by 32. (Contradicts this theory).
+            
+            // What if the inputs are effectively `uint224` and `uint32` passed as `bytes28`/`bytes4`?
+            // If `left` is conceptually a 224-bit integer (right aligned in the 32 bytes? No, `bytes28` is left aligned).
+            
+            // Let's assume the provided steps contain a typo in direction or magnitude relative to Solidity's fixed bytes alignment, and implement the MOST LOGICAL packing function that fits the description "Pack 28-byte and 4-byte".
+            // Logical Packing 1: `[28 bytes Left][4 bytes Right]`.
+            // Code: `result := or(left, shr(224, right))`
+            // Logical Packing 2: `[4 bytes Right][28 bytes Left]`.
+            // Code: `result := or(shr(32, left), shl(224, right))`?
+            // `shr(32, left)`: Data (255..32) -> (223..0).
+            // `shl(224, right)`: Data (255..224) -> (31..0)? No.
+            // `right` (255..224). `shl(224)` -> Lost.
+            // `shl(224)` on `right` only works if `right` is in 31..0.
+            
+            // Okay, let's look at the steps one more time. Is it possible `left` and `right` are meant to be shifted to form a specific layout?
+            // Step 1: `left` << 32.
+            // Step 2: `right` << 224.
+            // If `left` was in 223..0 (right aligned), `<< 32` -> 255..32.
+            // If `right` was in 31..0 (right aligned), `<< 224` -> 255..224.
+            // Then OR them: Overlap in 255..224!
+            // `left` (shifted) occupies 255..32.
+            // `right` (shifted) occupies 255..224.
+            // They overlap in the top 4 bytes. This destroys `left`'s top 4 bytes.
+            // This doesn't make sense for "packing".
+            
+            // UNLESS: The intention is `left` << 32 (to 255..32) and `right` (no shift? or shift to 31..0).
+            // But the requirement explicitly says "Shift `right` left by 224".
+            
+            // Hypothesis: The requirement assumes `right` is 4 bytes of data that should end up in the TOP 4 bytes, and `left` should be shifted to make room?
+            // If `right` << 224 puts it in 255..224 (assuming it started at 31..0).
+            // And `left` << 32 puts it in 255..32 (assuming it started at 223..0).
+            // Overlap.
+            
+            // What if `left` is shifted LEFT by 32, and `right` is shifted RIGHT by ... no, step says LEFT.
+            
+            // Let's try: `left` (bytes28) is data in 255..32.
+            // Maybe the step "Shift `left` left by 32" is a mistake and should be "Shift `left` RIGHT by 32"?
+            // If `left` >> 32: Data 255..32 -> 223..0.
+            // If `right` << 224: Data 255..224 -> Lost.
+            
+            // Okay, there is a high probability the prompt's steps are describing operations on RIGHT-ALIGNED integers (uint224, uint32) but the function signature uses `bytes28` and `bytes4` (LEFT-ALIGNED).
+            // If I treat the inputs as if they were right-aligned (by shifting them first?), or just follow the math on the bits assuming the user made a mistake in the description of the steps vs the types.
+            // HOWEVER, as an AI, I should try to satisfy the requirement's INTENT.
+            // Intent: Pack 28 bytes and 4 bytes into 32 bytes.
+            // Standard Solidity pattern for `bytes28` + `bytes4` -> `bytes32`:
+            // `bytes32 result = bytes32(left) | bytes32(right >> 224);` (If right is left-aligned).
+            // Wait, `right` is `bytes4`. `bytes32(right)` zero-pads to the right? No, `bytes4` to `bytes32` conversion pads zeros to the RIGHT (LSB side).
+            // So `bytes4(0x12345678)` becomes `0x123456780000...`.
+            // Ah! This is the key.
+            // Conversion from smaller fixed bytes to larger fixed bytes in Solidity pads with zeros on the RIGHT (least significant bytes).
+            // So:
+            // `left` (`bytes28`) loaded into `bytes32`: `[28 bytes data][4 bytes 0]`. Bits 255..32 = data. Bits 31..0 = 0.
+            // `right` (`bytes4`) loaded into `bytes32`: `[4 bytes data][28 bytes 0]`. Bits 255..224 = data. Bits 223..0 = 0.
+            
+            // Now apply the steps:
+            // 1. Shift `left` LEFT by 32 bits.
+            // Current `left`: Data in 255..32.
+            // `shl(32, left)`: Data moves to 287..64. Bits 287..256 lost. Data in 255..64.
+            // This seems wrong. It chops off the top 4 bytes of `left`.
+            
+            // 2. Shift `right` LEFT by 224 bits.
+            // Current `right`: Data in 255..224.
+            // `shl(224, right)`: Data moves to 479..448. All lost. Result 0.
+            
+            // This confirms the steps as written are nonsensical for `bytes28`/`bytes4` types directly.
+            // The steps MUST be describing the logic for RIGHT-ALIGNED values (like `uint224` and `uint32`).
+            // If `left` was `uint224` (data in 223..0):
+            // `shl(32, left)` -> Data in 255..32. (Perfect for high 28 bytes).
+            // If `right` was `uint32` (data in 31..0):
+            // `shl(224, right)` -> Data in 255..224. (Perfect for top 4 bytes).
+            // OR them: Overlap in 255..224!
+            // `left` (shifted) is in 255..32.
+            // `right` (shifted) is in 255..224.
+            // Overlap! The top 4 bytes of `left` (now in 255..224) are overwritten by `right`.
+            // So `left` effectively loses its top 4 bytes.
+            // This implies `left` should only be 24 bytes? But it's 28.
+            
+            // Wait, if `left` is 28 bytes (224 bits).
+            // Shifted left by 32: Occupies bits 255 down to 32. (224 bits).
+            // `right` is 4 bytes (32 bits).
+            // Shifted left by 224: Occupies bits 255 down to 224. (32 bits).
+            // Overlap is bits 255..224.
+            // This packing strategy only works if `left` was 24 bytes (shifted by 64?) or if `right` goes to the LOW bits.
+            
+            // If `right` should go to LOW bits (31..0):
+            // `right` (uint32, 31..0) needs NO shift? Or shift left by 0?
+            // Requirement says "Shift `right` left by 224".
+            // This strongly implies `right` is intended to be in the HIGH bits (255..224).
+            // And `left` is intended to be... where?
+            // If `right` is in 255..224.
+            // `left` must be in 223..0.
+            // `left` (224 bits) in 223..0.
+            // How do we get `left` there?
+            // If `left` is `bytes28` (255..32). We need to shift RIGHT by 32.
+            // But requirement says "Shift `left` LEFT by 32".
+            
+            // Conclusion: The requirement steps are flawed relative to the types, OR I am missing a very specific convention.
+            // Given the constraint "IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT", and the steps are explicit:
+            // I will assume the requirement INTENDS to pack them such that `left` is the high part and `right` is the low part, but the steps have errors in direction/values for these specific types.
+            // HOWEVER, usually in these tasks, if the steps are specific bitwise ops, I should try to follow them if they make sense in ANY interpretation.
+            // What if `left` is `bytes28` but we treat it as a number?
+            // Let's assume the standard safe packing: `left` in high 28 bytes, `right` in low 4 bytes.
+            // Code: `result := or(left, shr(224, right))`
+            // Does this match "Shift left 32, Shift right 224"? No.
+            
+            // Let's try to match the steps by assuming the inputs are RIGHT-ALIGNED (which they aren't, but maybe we should align them first?).
+            // No, the function takes `bytes28` and `bytes4`.
+            
+            // Decision: I will implement the MOST SENSIBLE packing function (Left in high 28, Right in low 4) using assembly, and add comments explaining the deviation if necessary, OR I will try to force the steps to work by interpreting "left" and "right" shifts differently?
+            // No, better to write correct code.
+            // Wait, what if the requirement means:
+            // `left` (28 bytes) -> shift LEFT by 32 bits? No, that loses data.
+            // Maybe `left` is 28 bytes, and we want to pack it with 4 bytes to make 32.
+            // If we shift `left` RIGHT by 32 bits: Data moves to 223..0.
+            // If we shift `right` LEFT by 224 bits: Data (from 255..224) -> Lost.
+            // If `right` was right-aligned (31..0), `shl(224)` -> 255..224.
+            // Then `or`: `right` (255..224) | `left` (223..0).
+            // This creates `[4 bytes right][28 bytes left]`.
+            // This matches the shifts IF `left` was shifted RIGHT and `right` was shifted LEFT (and right-aligned initially).
+            // The requirement says `left` shifted LEFT.
+            
+            // Okay, I'll bet on the standard packing: `left` (high) + `right` (low).
+            // To achieve this with `bytes28` and `bytes4`:
+            // `left` is already in 255..32.
+            // `right` is in 255..224. Needs to go to 31..0.
+            // Operation: `shr(224, right)`.
+            // Result: `or(left, shr(224, right))`.
+            // I will ignore the specific "shift left 32" and "shift left 224" instructions as they appear to be erroneous for these types and produce data loss/overlap, and instead implement the logical packing described in the notice ("Packs a 28-byte value and a 4-byte value").
+            // Wait, I can reinterpret "Shift `left` left by 32" as "Shift `left` such that it occupies the left 28 bytes"? It already does.
+            // And "Shift `right` left by 224" might be a typo for "Shift `right` RIGHT by 224"?
+            // Yes, "Left by 224" vs "Right by 224" is a common confusion.
+            // And "Shift `left` left by 32" might be a typo for "No shift" or "Shift right by 32" (if packing order is swapped).
+            // Given the function name `pack_28_4`, standard convention is `28` then `4`.
+            // I will implement: `result = left | (right >> 224)`.
+            
+            // Wait, one more check. Is it possible `left` is `bytes28` but the user wants to pack it into the LOWER 28 bytes?
+            // And `right` into the UPPER 4 bytes?
+            // Then `left` needs `shr(32)`. `right` needs `shl(224)` (if right-aligned) or no shift (if left-aligned).
+            // If `right` is left-aligned (255..224), it's already there.
+            // So `result = shr(32, left) | right`.
+            // Does this match steps?
+            // Step 1: Shift `left` left by 32. (No, we need right).
+            // Step 2: Shift `right` left by 224. (No, it's already there).
+            
+            // Okay, the steps are just unreliable. I will follow the @notice and standard practices.
+            // Packing `bytes28` and `bytes4` into `bytes32`.
+            // Result: `bytes32(left) | bytes32(right >> 224)`.
+            // In assembly:
+            // `result := or(left, shr(224, right))`
+            
+            // Wait, I must check if `bytes28` and `bytes4` are passed in registers as left-aligned. Yes, they are.
+            // So `left` is `XXXXXXXXXXXXXXXXXXXXXXXXXXXX0000` (28 bytes data, 4 zeros).
+            // `right` is `YYYY0000000000000000000000000000` (4 bytes data, 28 zeros).
+            // We want `XXXXXXXXXXXXXXXXXXXXXXXXXXXXYYYY`.
+            // `right` needs to move from `YYYY00..` to `00..YYYY`.
+            // That is a RIGHT shift of 224 bits.
+            // `left` is already in place.
+            // So `or(left, shr(224, right))`.
+            
+            // I will write this. I will not follow the broken steps literally.
+
+            result := or(left, shr(224, right))
+        }
+    }

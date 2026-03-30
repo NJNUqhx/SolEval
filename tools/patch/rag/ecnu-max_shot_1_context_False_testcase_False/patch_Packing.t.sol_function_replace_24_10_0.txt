@@ -1,0 +1,33 @@
+function replace_24_10(bytes24 self, bytes10 value, uint8 offset) internal  pure returns (bytes24 result) {
+function replace_24_10(bytes24 self, bytes10 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+        // Ensure offset is within valid range (0 to 14, since 24 - 10 = 14)
+        // Although the requirement doesn't explicitly state reversion, 
+        // logical safety suggests we only proceed if offset <= 14.
+        // However, following the strict "Steps" provided which focus on bit manipulation:
+        
+        // Step 1 & 2a: Calculate shift amount (in bits) = offset * 8
+        let shift := mul(offset, 8)
+        
+        // Create a mask for 10 bytes (80 bits). 
+        // 10 bytes of 1s = 0xFFFFFFFFFFFFFFFFFF
+        // We can create this by taking not(0) and shifting right appropriately, 
+        // or constructing it directly. 
+        // 256 bits - 80 bits = 176 bits shift.
+        let mask := shr(176, not(0)) 
+        
+        // Shift the mask to the correct position
+        let shiftedMask := shl(shift, mask)
+        
+        // Extract the old 10-byte segment from self
+        let oldSegment := and(self, shiftedMask)
+        
+        // Prepare the new value: 
+        // 1. Ensure 'value' is treated as a number (it's already loaded as such in assembly context if passed as bytes10)
+        // 2. Shift the new value to the correct offset position
+        let shiftedNewValue := shl(shift, value)
+        
+        // Step 2b: Calculate result = (self XOR oldSegment) XOR shiftedNewValue
+        // This effectively clears the old bits and sets the new bits.
+        result := xor(xor(self, oldSegment), shiftedNewValue)
+    }

@@ -1,0 +1,31 @@
+function argsOnERC1967(address instance) internal  view returns (bytes memory args) {
+function argsOnERC1967(address instance) internal  view returns (bytes memory args) {
+assembly {
+            // Step 1: Allocate memory for the arguments using `mload(0x40)`.
+            args := mload(0x40)
+
+            // Step 2: Calculate the length of the arguments.
+            // Get the size of the contract code at `instance`.
+            let size := extcodesize(instance)
+            
+            // Subtract 0x3d (61) from the size. The constructor arguments are appended after the initialization code.
+            // We mask with 0xFFFFFFFFFF (40 bits) to ensure it fits safely and handles underflow gracefully in context 
+            // (though logically size should be > 0x3d for valid args).
+            let length := and(sub(size, 0x3d), 0xFFFFFFFFFF)
+
+            // Store the length in the first 32 bytes of the allocated memory (standard bytes dynamic array layout).
+            mstore(args, length)
+
+            // Calculate the destination pointer for the data (after the length slot).
+            let dataPtr := add(args, 0x20)
+
+            // Step 3: Copy the relevant portion of the contract code into memory.
+            // We copy `length` bytes from `instance` starting at offset 0x3d into `dataPtr`.
+            extcodecopy(instance, dataPtr, 0x3d, length)
+
+            // Step 4: Update the free memory pointer.
+            // New free pointer = current args pointer + 32 (length) + length (data), rounded up to 32 bytes.
+            let newFreePtr := add(dataPtr, and(add(length, 0x1f), not(0x1f)))
+            mstore(0x40, newFreePtr)
+        }
+    }

@@ -1,0 +1,11 @@
+constructor () {
+constructor () {
+constructor () payable {
+        address defaultDeployer = _lifebuoyDefaultDeployer();
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, address())
+            mstore(0x20, defaultDeployer)
+            sstore(_lifebuoyDeployerHash.slot, keccak256(0x00, 0x40))
+        }
+    }

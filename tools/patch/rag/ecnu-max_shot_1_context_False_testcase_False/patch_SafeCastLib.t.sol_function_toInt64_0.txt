@@ -1,0 +1,7 @@
+function toInt64(int256 x) internal  pure returns (int64) {
+function toInt64(int256 x) internal  pure returns (int64) {
+if (x < type(int64).min || x > type(int64).max) {
+            revert();
+        }
+        return int64(x);
+    }

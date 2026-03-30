@@ -1,0 +1,14 @@
+function extract_24_22(bytes24 self, uint8 offset) internal  pure returns (bytes22 result) {
+function extract_24_22(bytes24 self, uint8 offset) internal  pure returns (bytes22 result) {
+if (offset > 2) {
+    revert OutOfRangeAccess();
+}
+
+/// @solidity memory-safe-assembly
+assembly {
+    // Shift left by (8 * offset) bits to align the desired 22-byte segment to the left
+    let shifted := shl(mul(8, offset), self)
+    // Mask to keep only the upper 22 bytes (176 bits), clearing the lower 8 bytes (64 bits)
+    // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000
+    let mask := shl(64, not(0))
+    result := and(shifted, mask)

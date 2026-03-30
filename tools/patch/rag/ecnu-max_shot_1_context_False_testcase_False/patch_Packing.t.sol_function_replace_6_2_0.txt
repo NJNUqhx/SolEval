@@ -1,0 +1,36 @@
+function replace_6_2(bytes6 self, bytes2 value, uint8 offset) internal  pure returns (bytes6 result) {
+function replace_6_2(bytes6 self, bytes2 value, uint8 offset) internal  pure returns (bytes6 result) {
+assembly {
+            // Extract the existing 2-byte value at the specified offset.
+            // We shift self right by (4 - offset) * 8 bits to align the target 2 bytes to the least significant position,
+            // then mask with 0xFFFF to isolate them.
+            let oldVal := shr(mul(sub(4, offset), 8), self)
+            oldVal := and(oldVal, 0xFFFF)
+
+            // Mask the new value to ensure it is only 2 bytes (in case input has higher bits set in the lower 2 bytes of the word).
+            let newVal := and(value, 0xFFFF)
+
+            // Calculate the shift amount for the replacement position.
+            // The 6-byte value is stored in the lower 48 bits of a 256-bit word.
+            // Offset 0 corresponds to the most significant 2 bytes of the 6-byte sequence relative to the 48-bit block?
+            // Actually, standard bytesN alignment: bytes6 is left-aligned in the 32-byte slot? No, Solidity bytesN are right-aligned (padded on the left with zeros if viewed as integers, but logically the first byte is the most significant of the N bytes).
+            // Wait, Solidity `bytes6` stores data in the *least* significant 6 bytes of the 32-byte word?
+            // Let's verify: `bytes6 b = 0x010203040506`. In assembly, `b` holds `0x...0000010203040506`.
+            // Byte 0 is `01`, Byte 5 is `06`.
+            // To access Byte `offset`, we need to shift right by `(5 - offset) * 8`.
+            // To replace 2 bytes starting at `offset`, we target bits corresponding to `offset` and `offset+1`.
+            // The shift for the LSB of the 2-byte segment is `(5 - (offset + 1)) * 8` = `(4 - offset) * 8`.
+            
+            let shiftAmt := mul(sub(4, offset), 8)
+
+            // Construct the result:
+            // 1. Clear the old 2-byte segment from `self`: XOR `self` with (`oldVal` shifted to position).
+            // 2. Set the new 2-byte segment: XOR the result with (`newVal` shifted to position).
+            // Effectively: result = self ^ (oldVal << shift) ^ (newVal << shift)
+            
+            let maskOld := shl(shiftAmt, oldVal)
+            let maskNew := shl(shiftAmt, newVal)
+
+            result := xor(xor(self, maskOld), maskNew)
+        }
+    }

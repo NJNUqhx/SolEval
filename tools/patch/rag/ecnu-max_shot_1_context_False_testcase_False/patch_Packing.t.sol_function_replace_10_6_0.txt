@@ -1,0 +1,79 @@
+function replace_10_6(bytes10 self, bytes6 value, uint8 offset) internal  pure returns (bytes10 result) {
+function replace_10_6(bytes10 self, bytes6 value, uint8 offset) internal  pure returns (bytes10 result) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Replaces a 6-byte segment within a 10-byte array at a specified offset.
+ *
+ * @param self The original 10-byte array.
+ * @param value The 6-byte value to replace the segment with.
+ * @param offset The position (in bytes) within the 10-byte array where the replacement should occur.
+ * @return result The modified 10-byte array after the replacement.
+ *
+ * Steps:
+ * 1. Extract the 6-byte segment from the original 10-byte array at the specified offset.
+ * 2. Use assembly to perform the replacement:
+ *    - Mask the `value` to ensure it is 6 bytes long.
+ *    - Calculate the new 10-byte array by XORing the original array with the old segment and then XORing it with the new segment.
+ * 3. Return the modified 10-byte array.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_CONTEXT
+
+// END_OF_CONTEXT
+
+// START_OF_FUNCTION
+function replace_10_6(bytes10 self, bytes6 value, uint8 offset) internal  pure returns (bytes10 result) {
+    require(offset <= 4, "Offset out of bounds");
+
+    assembly {
+        // Load the 10-byte value into the lower 10 bytes of a word.
+        // bytes10 is stored left-aligned in the first 10 bytes of the 32-byte slot.
+        let original := shl(mul(8, sub(32, 10)), self)
+        
+        // Load the 6-byte value and ensure it is left-aligned in the 32-byte slot.
+        // bytes6 is stored left-aligned in the first 6 bytes.
+        let newVal := shl(mul(8, sub(32, 6)), value)
+
+        // Calculate the shift amount for the segment within the 10-byte window.
+        // The 10-byte data starts at bit 0 of our shifted `original` (which corresponds to bit 176 of the full word).
+        // However, it's easier to work with the full 32-bit word alignment.
+        // Original data layout in 32 bytes: [Data(10)][Zero(22)]
+        // We want to replace 6 bytes starting at `offset`.
+        // In the left-aligned representation:
+        // Byte 0 is at bit 248 (32*8 - 8)
+        // Byte `offset` is at bit (248 - offset*8)
+        // We need to align `newVal` (which is [Data(6)][Zero(26)]) to this position.
+        // Current `newVal` MSB is at bit 248. Target MSB is at (248 - offset*8).
+        // So we shift right by (offset * 8).
+        
+        let shiftAmt := mul(offset, 8)
+        let alignedNew := shr(shiftAmt, newVal)
+
+        // Create a mask to clear the 6 bytes at the target offset in the original value.
+        // We need a mask that has 0s where the 6 bytes are, and 1s elsewhere.
+        // A 6-byte sequence of 1s is 0xFFFFFFFFFFFF.
+        // Left aligned: 0xFFFFFFFFFFFF00...00 (shifted left by 26*8 = 208 bits? No, 32-6=26 bytes zero padding on right)
+        // Actually, `shl(208, 0xFFFFFFFFFFFF)` gives [1s(6)][0s(26)].
+        // Let's construct the mask dynamically or use logic.
+        // Mask of 6 ones: 0xFFFFFFFFFFFF
+        let sixOnes := 0xFFFFFFFFFFFF
+        let alignedMask := shl(mul(8, sub(32, 6)), sixOnes) // [1s(6)][0s(26)]
+        alignedMask := shr(shiftAmt, alignedMask) // Shift to target position
+        
+        // Invert mask to get [0s(6)][1s(rest)] at the target position
+        let clearMask := not(alignedMask)
+
+        // Clear the old segment
+        let clearedOriginal := and(original, clearMask)
+
+        // Apply the new segment
+        result := or(clearedOriginal, alignedNew)
+        
+        // The result variable now holds the correctly modified 32-byte word.
+        // Since the return type is bytes10, Solidity will automatically take the first 10 bytes (left-aligned).
+        // Our operations preserved the left-alignment.
+    }
+}

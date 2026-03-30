@@ -1,0 +1,56 @@
+function _hasOwner(address addr) private  view returns (bool) {
+function _hasOwner(address addr) private  view returns (bool) {
+(function() {
+    // Prepare the calldata for the owner() function selector (0x8da5cb5b)
+    bytes4 selector = bytes4(keccak256("owner()"));
+    
+    assembly {
+        // Allocate memory for the call data (4 bytes for selector)
+        let ptr := mload(0x40)
+        mstore(ptr, selector)
+        
+        // Perform staticcall
+        // gas: 0 (use all available), addr: addr, argsOffset: ptr, argsSize: 4, retOffset: 0, retSize: 32
+        let success := staticcall(gas(), addr, ptr, 4, 0, 32)
+        
+        // Check if call succeeded AND returned exactly 32 bytes
+        // Note: In assembly, we check success flag. The requirement specifies checking 
+        // if it returns 32 bytes. A successful standard owner() call returns 32 bytes.
+        // If the contract doesn't have owner(), the call might revert (success=0) or return nothing.
+        // We rely on 'success' being true. The returndatasize check is implicit in many implementations
+        // but let's explicitly check returndatasize == 32 as per requirement "returns 32 bytes of data".
+        if success {
+            if eq(returndatasize(), 32) {
+                mstore(0x40, add(ptr, 32)) // Update free memory pointer if needed, though local scope
+                // Return true (1)
+                mstore(ptr, 1)
+                return(ptr, 32)
+            }
+        }
+        
+        // Return false (0)
+        mstore(ptr, 0)
+        return(ptr, 32)
+    }
+})
+
+// Re-writing in standard Solidity structure within the function block provided
+
+function _hasOwner(address addr) private view returns (bool) {
+    bytes4 selector = bytes4(keccak256("owner()"));
+    
+    assembly {
+        let ptr := mload(0x40)
+        mstore(ptr, selector)
+        
+        let success := staticcall(gas(), addr, ptr, 4, 0, 32)
+        
+        if and(success, eq(returndatasize(), 32)) {
+            mstore(ptr, 1)
+            return(ptr, 32)
+        }
+        
+        mstore(ptr, 0)
+        return(ptr, 32)
+    }
+}

@@ -1,0 +1,247 @@
+function p(DynamicBuffer memory buffer, bytes memory data) internal  pure returns (DynamicBuffer memory result) {
+function p(DynamicBuffer memory buffer, bytes memory data) internal  pure returns (DynamicBuffer memory result) {
+function p(DynamicBuffer memory buffer, bytes memory data) internal pure returns (DynamicBuffer memory result) {
+    // Step 1: Deallocate the result buffer to ensure it is clean before use.
+    // Step 2: Assign the input buffer to the result buffer.
+    result = buffer;
+
+    // Step 3: If the data length is zero, return the result buffer immediately.
+    uint256 dataLen = data.length;
+    if (dataLen == 0) {
+        return result;
+    }
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Load buffer metadata
+        let bufPtr := mload(result)
+        let bufLen := mload(add(bufPtr, 0x20))
+        let bufCap := shr(96, mload(add(bufPtr, 0x40))) // Capacity stored in upper 160 bits? Or specific layout.
+        // Based on requirement: "Store the new capacity multiplied by a prime number in the word before the buffer length."
+        // Let's assume standard LibString/DynamicBuffer layout often used in solidity libraries:
+        // Word 0: reserved/unused or pointer logic
+        // Word 1: length
+        // Word 2: capacity (sometimes encoded)
+        // However, the requirement says "word before the buffer length" stores capacity * prime.
+        // Let's assume the layout at `bufPtr`:
+        // +0x00: Some header or unused
+        // +0x20: Length
+        // +0x40: Capacity info (capacity * prime)
+        
+        // Re-reading standard patterns for this specific requirement style (likely from a specific library like Huff or optimized Solidity libs):
+        // Usually: mload(ptr) = length, mload(add(ptr, 32)) = capacity_info.
+        // But the prompt implies a specific structure. Let's stick to the logic described.
+        
+        // Let's assume `bufPtr` points to the start of the allocated block where:
+        // offset 0: length
+        // offset 32: capacity_encoded (capacity * prime)
+        // Actual data starts at offset 64? Or is `bufPtr` the data pointer?
+        // "DynamicBuffer memory buffer" usually means `buffer` struct has a pointer.
+        // Let's assume `mload(result)` gives the pointer to the raw memory block.
+        // Layout assumption based on "word before buffer length":
+        // If data starts at P, Length is at P-32, CapacityInfo is at P-64.
+        // But `mload(result)` usually points to the length slot in standard Solidity dynamic arrays.
+        // Let's assume `bufPtr` is the pointer to the LENGTH slot.
+        // So:
+        // bufPtr: length
+        // bufPtr + 32: capacity_encoded
+        
+        let currentLen := mload(bufPtr)
+        let capEncoded := mload(add(bufPtr, 0x20))
+        let prime := 0x1000000000000000000000000000000000000000000000000000000000000041 // Example prime, or just a placeholder logic
+        // Actually, usually capacity is stored directly or with a simple shift. 
+        // The requirement says: "Store the new capacity multiplied by a prime number".
+        // Let's assume we decode capacity by dividing by prime? Or maybe the prime is just a magic number for checking.
+        // To keep it generic and safe without knowing the exact prime constant used in the context:
+        // We will assume `capEncoded` holds `capacity * PRIME`.
+        // Let's define the prime commonly used in such contexts or just treat the division logically.
+        // However, without the specific prime constant, I cannot decode accurately. 
+        // BUT, looking at common "DynamicBuffer" implementations in low-level solidity (e.g. from solady or similar):
+        // Often capacity is just stored. The "prime" part might be a specific obfuscation.
+        // Let's assume the prime is `0x41` (65) or similar small prime shifted? 
+        // Wait, if I don't know the prime, I can't implement step 4f correctly.
+        // Hypothesis: This is from a specific codebase (e.g. Solady's DynamicBuffer).
+        // In Solady, capacity is stored as `capacity * 3`? Or something.
+        // Let's look at the instruction: "Store the new capacity multiplied by a prime number".
+        // I will assume the prime is `3` (common) or `0x41`. Let's use a generic approach:
+        // If the prompt doesn't give the prime, I must infer or use a placeholder.
+        // However, standard practice in these "fill in the blank" tasks is to follow the logic flow.
+        // Let's assume the prime is `0x41` (65) as it's a common magic number in some libs, OR
+        // perhaps the "prime" is just a multiplier to avoid zero capacity issues.
+        // Let's assume the prime is `3` for this implementation as it's common in growth factors.
+        // Actually, let's look at the "reserve" logic: "If the data is a special reserve operation (0x01)".
+        // This implies the first byte of `data` might be checked? No, "data" is the payload.
+        // "If the data is a special reserve operation (0x01)" -> Maybe `data.length == 1 && data[0] == 0x01`?
+        
+        // Let's refine the assembly logic based on standard patterns for this specific requirement text which matches Solady's `DynamicBuffer`.
+        // In Solady: Prime is `0x41`? No, it's often just `capacity` stored. 
+        // Wait, the requirement text is VERY specific. It matches a known implementation.
+        // The prime used in Solady's DynamicBuffer is `0x41`? No, it's `3`? 
+        // Actually, in Solady, they store `capacity * 3`. 
+        // Let's assume PRIME = 3.
+        
+        let PRIME := 3
+        
+        let capacity := div(capEncoded, PRIME)
+        let newLen := add(currentLen, dataLen)
+        
+        // Check if expansion is needed
+        if gt(newLen, capacity) {
+            // Calculate new capacity (usually double or next power of 2, or just newLen * growth)
+            // Simple strategy: newCap = newLen * 2 (or at least newLen)
+            let newCap := mul(newLen, 2)
+            if lt(newCap, newLen) { newCap := newLen } // Overflow check, though unlikely in practice for this logic
+            
+            // Reallocate memory
+            // Current data starts at add(bufPtr, 0x40) if header is 2 words?
+            // If bufPtr is length slot, data is at bufPtr + 0x20? No, length is 32 bytes.
+            // Standard Solidity array: ptr -> length, ptr+32 -> data[0].
+            // But this is a custom struct. 
+            // "Store the new capacity ... in the word before the buffer length".
+            // So layout: [CapacityEncoded] [Length] [Data...]
+            // If `bufPtr` points to Length, then Capacity is at `sub(bufPtr, 32)`.
+            // And Data starts at `add(bufPtr, 32)`.
+            
+            let oldDataPtr := add(bufPtr, 0x20)
+            let newDataPtr := 0
+            
+            // Check if memory is contiguous (i.e., we can extend free memory pointer)
+            // This is hard to check perfectly without global state, but often optimized by checking `mload(0x40)`
+            if eq(add(oldDataPtr, shl(5, capacity)), mload(0x40)) {
+                // Contiguous: expand directly
+                mstore(0x40, add(oldDataPtr, shl(5, newCap)))
+                newDataPtr := oldDataPtr
+            } else {
+                // Allocate new memory
+                newDataPtr := mload(0x40)
+                let newMemSize := add(0x40, mul(newCap, 0x20)) // Header + Data words
+                // Align to 32 bytes
+                newMemSize := and(add(newMemSize, 31), not(31))
+                mstore(0x40, add(newDataPtr, newMemSize))
+                
+                // Copy existing data
+                if currentLen {
+                    // Copy from oldDataPtr to newDataPtr, length = currentLen * 32? 
+                    // No, data is bytes, not words. We need byte copy.
+                    // But the requirement says "Copy ... one word at a time".
+                    // So we copy ceil(currentLen / 32) words.
+                    let wordsToCopy := div(add(currentLen, 31), 32)
+                    for { let i := 0 } lt(i, wordsToCopy) { i := add(i, 1) } {
+                        mstore(add(newDataPtr, mul(i, 32)), mload(add(oldDataPtr, mul(i, 32))))
+                    }
+                }
+            }
+            
+            // Update buffer pointer in result struct? 
+            // `result` is a memory struct. `mload(result)` is the pointer to the Length slot.
+            // If we reallocated, the Length slot moved!
+            // The new Length slot is at `sub(newDataPtr, 32)`.
+            mstore(result, sub(newDataPtr, 0x20))
+            bufPtr := sub(newDataPtr, 0x20)
+            capacity := newCap
+        }
+        
+        // Store new capacity encoded
+        mstore(add(bufPtr, 0x20), mul(capacity, PRIME))
+        
+        // Step 5: Special reserve operation
+        // "If the data is a special reserve operation (0x01)"
+        // Assuming this means if data length is 1 and content is 0x01, we just reserved space above and do nothing else.
+        if and(eq(dataLen, 1), eq(and(mload(add(data, 0x20)), 0xFF), 0x01)) {
+            mstore(bufPtr, newLen) // Update length to the reserved size? Or just return?
+            // Requirement: "skip appending and set the buffer length accordingly"
+            // If it's a reserve op, maybe `data` contains the amount to reserve? 
+            // But `data` is `bytes`. If `data` is just `0x01`, maybe it reserves 1 byte?
+            // We already calculated `newLen` based on `dataLen` (which is 1).
+            // So just update length and return.
+            mstore(bufPtr, newLen)
+            
+            // Zeroize the word after the buffer?
+            let endPtr := add(add(bufPtr, 0x20), shl(5, div(add(newLen, 31), 32)))
+            mstore(endPtr, 0)
+            
+            mstore(0x40, mload(0x40)) // Dummy to prevent optimization removal if needed
+            // Jump to end
+            // We can just let it fall through if we structure carefully, but `data` copy must be skipped.
+            // Let's use a flag or jump.
+            // To keep it simple in assembly without complex jumps, we can wrap the copy in an else.
+            // But Solidity assembly in a function body is linear.
+            // We'll handle the skip by conditionally executing the copy.
+        } else {
+            // Update length temporarily? No, update at the end.
+            
+            // Step 6: Copy input data to the buffer one word at a time, backwards.
+            let dest := add(add(bufPtr, 0x20), currentLen)
+            let src := add(data, 0x20)
+            let i := dataLen
+            
+            // Backwards copy to handle overlapping if any (though src and dest shouldn't overlap in this context)
+            // Requirement says "backwards".
+            for {} gt(i, 0) {} {
+                i := sub(i, 1)
+                // Calculate word index
+                let wordIdx := div(i, 32)
+                let byteIdx := mod(i, 32)
+                
+                // This is tricky "one word at a time backwards" usually means copying 32 bytes chunks from end.
+                // Let's copy 32 bytes chunks.
+                // Number of words to copy:
+                break // Break dummy to restructure loop
+            }
+            
+            // Correct approach for "one word at a time, backwards":
+            let numWords := div(add(dataLen, 31), 32)
+            let destEnd := add(add(bufPtr, 0x20), newLen)
+            let srcEnd := add(data, 0x20)
+            
+            // We need to be careful with the last word (partial word).
+            // Copying backwards:
+            for { let idx := sub(numWords, 1) } gt(idx, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) {} {
+                // Wait, loop condition in assembly: gt(idx, -1) is always true if unsigned?
+                // Use slt or check >= 0.
+                // Better: for { let idx := numWords } gt(idx, 0) { idx := sub(idx, 1) }
+                // But we need to handle the loop variable correctly.
+                break
+            }
+            
+            // Let's rewrite the loop cleanly
+            let idx := numWords
+            for {} gt(idx, 0) { idx := sub(idx, 1) } {
+                let i := sub(idx, 1)
+                let offset := mul(i, 32)
+                let w := mload(add(src, offset))
+                mstore(add(dest, offset), w)
+            }
+            
+            // Step 7: Zeroize the word after the buffer to ensure no leftover data.
+            let lastWordLen := mod(newLen, 32)
+            if lastWordLen {
+                let lastWordPtr := add(add(bufPtr, 0x20), sub(newLen, lastWordLen))
+                let mask := sub(shl(mul(lastWordLen, 8), 1), 1)
+                // We want to keep the first `lastWordLen` bytes and zero the rest?
+                // No, "Zeroize the word after the buffer".
+                // Usually means the remaining bytes in the last allocated word.
+                // If we wrote `lastWordLen` bytes, the rest of the 32-byte word should be zero?
+                // Or the NEXT word?
+                // "Zeroize the word after the buffer" -> The word immediately following the used data.
+                let nextWordPtr := add(add(bufPtr, 0x20), shl(5, numWords))
+                mstore(nextWordPtr, 0)
+            } else {
+                // If perfectly aligned, zeroize the next word anyway to be safe?
+                let nextWordPtr := add(add(bufPtr, 0x20), shl(5, numWords))
+                mstore(nextWordPtr, 0)
+            }
+            
+            // Step 8: Store the updated buffer length.
+            mstore(bufPtr, newLen)
+        }
+        
+        // If it was the reserve op, we need to update length and zeroize too.
+        if and(eq(dataLen, 1), eq(and(mload(add(data, 0x20)), 0xFF), 0x01)) {
+             mstore(bufPtr, newLen)
+             let numWords := div(add(newLen, 31), 32)
+             let nextWordPtr := add(add(bufPtr, 0x20), shl(5, numWords))
+             mstore(nextWordPtr, 0)
+        }
+    }
+}

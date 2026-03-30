@@ -1,0 +1,28 @@
+function extract_24_2(bytes24 self, uint8 offset) internal  pure returns (bytes2 result) {
+function extract_24_2(bytes24 self, uint8 offset) internal  pure returns (bytes2 result) {
+if (offset > 22) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift the 24-byte value left by (8 * offset) to align the desired segment to the top.
+            // Then shift right by (22 * 8) = 176 bits to move the 2-byte segment to the lowest position.
+            // Total shift amount for a 256-bit word: (256 - 16) - (8 * offset) = 240 - (8 * offset).
+            // However, since `self` is only 24 bytes, we treat it as occupying the lower 192 bits.
+            // To extract 2 bytes starting at `offset`:
+            // 1. Shift left by (8 * offset) to move the target bytes to the most significant position of the 24-byte block.
+            // 2. The 24-byte block ends at bit 192. We want the result in the lowest 2 bytes (bits 0-15).
+            // So we need to shift right by (192 - 16 - 8*offset) = (176 - 8*offset) after the left shift?
+            // Actually, simpler approach:
+            // Move the desired 2 bytes to the least significant position directly.
+            // The value is in the lower 192 bits. The byte at `offset` is at bit (8 * offset) from the LSB of the 24-byte chunk.
+            // We want to shift right by (8 * offset) to bring the start of the segment to LSB, then mask 2 bytes.
+            // But wait, `bytes24` is stored in the lower 192 bits of the 256-bit slot.
+            // If we shift right by (8 * offset), the byte at `offset` becomes the LSB.
+            // Then we mask with 0xFFFF to get 2 bytes.
+            
+            let val := self
+            let shifted := shr(mul(8, offset), val)
+            result := and(shifted, 0xFFFF)
+        }
+    }

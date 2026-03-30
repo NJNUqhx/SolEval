@@ -1,0 +1,34 @@
+function intersection(uint256[] memory a, uint256[] memory b) internal  pure returns (uint256[] memory c) {
+function intersection(uint256[] memory a, uint256[] memory b) internal  pure returns (uint256[] memory c) {
+        c = _intersection(a, b, 0);
+    }
+
+    // Helper function to compute intersection recursively or iteratively based on index
+    function _intersection(uint256[] memory a, uint256[] memory b, uint256 index) private pure returns (uint256[] memory result) {
+        // Temporary dynamic array to store common elements
+        uint256[] memory temp = new uint256[](a.length);
+        uint256 count = 0;
+
+        // Iterate through array 'a'
+        for (uint256 i = 0; i < a.length; i++) {
+            // Check if a[i] exists in array 'b'
+            for (uint256 j = 0; j < b.length; j++) {
+                if (a[i] == b[j]) {
+                    // Avoid duplicates in the result (optional depending on specific requirements, 
+                    // but standard intersection usually implies unique set or multiset. 
+                    // Here we assume simple multiset intersection without duplicate checks against 'temp' for performance 
+                    // unless specified otherwise. If strict set intersection is needed, an extra check against 'temp' would be added).
+                    temp[count] = a[i];
+                    count++;
+                    break; // Move to next element in 'a' once found in 'b'
+                }
+            }
+        }
+
+        // Resize the result array to the actual number of common elements
+        assembly {
+            mstore(temp, count)
+        }
+        
+        return temp;
+    }

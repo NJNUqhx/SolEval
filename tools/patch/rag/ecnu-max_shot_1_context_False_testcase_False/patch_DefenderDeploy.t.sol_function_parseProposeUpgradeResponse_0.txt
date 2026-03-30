@@ -1,0 +1,75 @@
+function parseProposeUpgradeResponse(string memory stdout) internal  pure returns (ProposeUpgradeResponse memory) {
+function parseProposeUpgradeResponse(string memory stdout) internal  pure returns (ProposeUpgradeResponse memory) {
+function parseProposeUpgradeResponse(string memory stdout) internal  pure returns (ProposeUpgradeResponse memory) {
+        ProposeUpgradeResponse memory response;
+        bytes memory data = bytes(stdout);
+        uint256 len = data.length;
+
+        // Parse Proposal ID
+        bytes memory prefixId = bytes("Proposal ID: ");
+        uint256 prefixIdLen = prefixId.length;
+        for (uint256 i = 0; i <= len - prefixIdLen; i++) {
+            bool match = true;
+            for (uint256 j = 0; j < prefixIdLen; j++) {
+                if (data[i + j] != prefixId[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                uint256 start = i + prefixIdLen;
+                uint256 end = start;
+                // Find end of line or end of string
+                while (end < len && data[end] != 0x0a && data[end] != 0x0d) {
+                    end++;
+                }
+                // Trim whitespace
+                while (end > start && (data[end - 1] == 0x20 || data[end - 1] == 0x09)) {
+                    end--;
+                }
+                if (end > start) {
+                    bytes memory idBytes = new bytes(end - start);
+                    for (uint256 k = 0; k < end - start; k++) {
+                        idBytes[k] = data[start + k];
+                    }
+                    response.proposalId = string(idBytes);
+                }
+                break;
+            }
+        }
+
+        // Parse Proposal URL
+        bytes memory prefixUrl = bytes("Proposal URL: ");
+        uint256 prefixUrlLen = prefixUrl.length;
+        for (uint256 i = 0; i <= len - prefixUrlLen; i++) {
+            bool match = true;
+            for (uint256 j = 0; j < prefixUrlLen; j++) {
+                if (data[i + j] != prefixUrl[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                uint256 start = i + prefixUrlLen;
+                uint256 end = start;
+                // Find end of line or end of string
+                while (end < len && data[end] != 0x0a && data[end] != 0x0d) {
+                    end++;
+                }
+                // Trim whitespace
+                while (end > start && (data[end - 1] == 0x20 || data[end - 1] == 0x09)) {
+                    end--;
+                }
+                if (end > start) {
+                    bytes memory urlBytes = new bytes(end - start);
+                    for (uint256 k = 0; k < end - start; k++) {
+                        urlBytes[k] = data[start + k];
+                    }
+                    response.proposalUrl = string(urlBytes);
+                }
+                break;
+            }
+        }
+
+        return response;
+    }

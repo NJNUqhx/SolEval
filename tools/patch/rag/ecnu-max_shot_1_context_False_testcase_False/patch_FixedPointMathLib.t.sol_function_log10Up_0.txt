@@ -1,0 +1,38 @@
+function log10Up(uint256 x) internal  pure returns (uint256 r) {
+function log10Up(uint256 x) internal  pure returns (uint256 r) {
+    r = log10(x);
+    assembly {
+        // Check if 10^r < x
+        // We need to compute 10^r. Since r is small (max ~78 for uint256), we can do this safely.
+        // However, to avoid complex loops in assembly for power, we can rely on the property:
+        // if x > 10^r, then we need r+1.
+        // A more efficient way in assembly without a loop for power is to compare x against powers of 10 directly?
+        // No, r is dynamic.
+        // Let's stick to the requirement: "Use inline assembly to check if 10^r is less than x".
+        
+        // We will implement a small power loop in assembly or use a helper. 
+        // But standard Solidity inline assembly doesn't have a pow function.
+        // Given the constraint of "Use inline assembly to check", we can perform the multiplication loop in assembly.
+        
+        let power := 1
+        let base := 10
+        let exp := r
+        let valid := 1
+        
+        // Compute 10^r in assembly
+        for { let i := 0 } lt(i, exp) { i := add(i, 1) } {
+            power := mul(power, base)
+            // Overflow check: if power becomes 0 or wraps around (though 10^78 fits in uint256, 10^79 overflows)
+            // max uint256 is ~1.15e77, so 10^77 is safe, 10^78 overflows. 
+            // log10(max uint256) is 77. So r will be at most 77. 10^77 fits.
+            if iszero(power) {
+                valid := 0
+                break
+            }
+        }
+        
+        if and(valid, lt(power, x)) {
+            r := add(r, 1)
+        }
+    }
+} 

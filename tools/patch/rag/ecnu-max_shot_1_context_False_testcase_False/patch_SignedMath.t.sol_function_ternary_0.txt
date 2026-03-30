@@ -1,0 +1,20 @@
+function ternary(bool condition, int256 a, int256 b) internal  pure returns (int256) {
+function ternary(bool condition, int256 a, int256 b) internal  pure returns (int256) {
+    // Use bitwise operations to perform a branchless ternary operation.
+    // Convert the boolean condition to a mask: 1 if true, 0 if false.
+    // In Solidity assembly or pure math, we can achieve this via casting or arithmetic.
+    // However, sticking to the requirement's logic using XOR and multiplication:
+    // result = b ^ ((a ^ b) * (condition ? 1 : 0))
+    
+    // Convert bool to uint256 (1 or 0) safely.
+    uint256 mask = condition ? 1 : 0;
+    
+    // Perform the calculation in an unchecked block as per requirements.
+    // Cast to int256 for the multiplication with the difference.
+    unchecked {
+        int256 diff = a ^ b;
+        // Multiply diff by mask (0 or 1). Since diff is int256 and mask is uint256,
+        // we cast mask to int256.
+        int256 weightedDiff = diff * int256(mask);
+        return b ^ weightedDiff;
+    }

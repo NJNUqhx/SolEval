@@ -1,0 +1,22 @@
+function extract_24_12(bytes24 self, uint8 offset) internal  pure returns (bytes12 result) {
+function extract_24_12(bytes24 self, uint8 offset) internal  pure returns (bytes12 result) {
+if (offset > 12) {
+    revert OutOfRangeAccess();
+}
+
+assembly {
+    // Shift left by (offset * 8) bits to move the desired segment to the most significant position
+    let shifted := shl(mul(offset, 8), self)
+    // Mask to keep only the first 12 bytes (96 bits).
+    // The mask is 0xFFFFFFFFFFFFFFFFFFFFFFFF followed by 96 zeros.
+    // In a 256-bit word, this is equivalent to shifting 0xFFFFFFFFFFFFFFFFFFFFFFFF left by 160 bits (20 bytes).
+    // However, since `self` is bytes24, after shifting, the relevant 12 bytes are at the top.
+    // We want to isolate the top 12 bytes of the 256-bit word.
+    // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000 (12 bytes of 1s, then 20 bytes of 0s)
+    // Actually, simpler logic: We want the top 12 bytes of the 256-bit register.
+    // 12 bytes = 96 bits. So we need to clear the lower (256 - 96) = 160 bits.
+    // Mask = not(0) << 160
+    let mask := not(shl(160, 0))
+    
+    result := and(shifted, mask)
+}

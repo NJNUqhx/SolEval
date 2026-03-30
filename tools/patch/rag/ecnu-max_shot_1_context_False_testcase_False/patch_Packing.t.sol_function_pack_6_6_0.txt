@@ -1,0 +1,12 @@
+function pack_6_6(bytes6 left, bytes6 right) internal  pure returns (bytes12 result) {
+function pack_6_6(bytes6 left, bytes6 right) internal  pure returns (bytes12 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear upper 208 bits of left (keep lower 48 bits)
+            left := and(left, 0xffffffffffff)
+            // Clear upper 208 bits of right (keep lower 48 bits)
+            right := and(right, 0xffffffffffff)
+            // Shift right by 48 bits and combine with left
+            result := or(left, shl(48, right))
+        }
+    }

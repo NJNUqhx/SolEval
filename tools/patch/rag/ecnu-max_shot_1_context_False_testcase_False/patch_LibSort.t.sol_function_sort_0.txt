@@ -1,0 +1,247 @@
+function sort(uint256[] memory a) internal  pure {
+function sort(uint256[] memory a) internal  pure {
+uint256 length = a.length;
+        if (length < 2) {
+            return;
+        }
+
+        assembly {
+            // Helper macro to swap two memory slots
+            function mswap(addr1, addr2) {
+                let val1 := mload(addr1)
+                let val2 := mload(addr2)
+                mstore(addr1, val2)
+                mstore(addr2, val1)
+            }
+
+            // Helper macro to swap two values on the stack (used for local variables in logic)
+            function swap(a, b) -> s1, s2 {
+                s1 := b
+                s2 := a
+            }
+
+            // Recursive sort function
+            function sortInner(left, right) {
+                // Base case: if left >= right, the subarray is sorted
+                if iszero(lt(left, right)) {
+                    return
+                }
+
+                // Insertion sort for small arrays (threshold = 32 elements approx)
+                // We check the size of the current segment
+                let size := sub(right, left)
+                if lt(size, 32) {
+                    let i := add(left, 1)
+                    for {} lt(i, right) { i := add(i, 1) } {
+                        let key := mload(add(0x20, add(a_ptr, mul(i, 0x20)))) // a[i] - simplified addressing below
+                        // Actually, we need the base pointer 'a' passed or available. 
+                        // Since we are inside a function without direct access to 'a' variable in pure assembly easily without args,
+                        // we will rely on the outer scope or pass base. 
+                        // Let's restructure: We'll implement the logic directly or pass base.
+                        // To keep it clean in one block, we assume 'a_base' is available or passed.
+                        // Better approach: Implement the loop logic inline or pass base.
+                        // Let's assume we pass 'base' to sortInner.
+                        break 
+                    }
+                    return
+                }
+
+                // Quicksort logic
+                // Median-of-three pivot selection
+                let mid := div(add(left, right), 2)
+                
+                let valLeft := mload(add(a_base, mul(left, 32)))
+                let valMid := mload(add(a_base, mul(mid, 32)))
+                let valRight := mload(add(a_base, mul(sub(right, 1), 32)))
+
+                // Sort left, mid, right to find median
+                if gt(valLeft, valMid) {
+                    valLeft, valMid := swap(valLeft, valMid)
+                    mstore(add(a_base, mul(left, 32)), valLeft)
+                    mstore(add(a_base, mul(mid, 32)), valMid)
+                }
+                if gt(valLeft, valRight) {
+                    valLeft, valRight := swap(valLeft, valRight)
+                    mstore(add(a_base, mul(left, 32)), valLeft)
+                    mstore(add(a_base, mul(sub(right, 1), 32)), valRight)
+                }
+                if gt(valMid, valRight) {
+                    valMid, valRight := swap(valMid, valRight)
+                    mstore(add(a_base, mul(mid, 32)), valMid)
+                    mstore(add(a_base, mul(sub(right, 1), 32)), valRight)
+                }
+
+                // Pivot is now at mid (median of three)
+                let pivot := valMid
+                // Move pivot to second position (left + 1) for Hoare-like or standard partition
+                // Actually, let's just use the value at mid as pivot value and partition around it.
+                // Standard Hoare partition scheme:
+                let i := left
+                let j := right
+                // Decrement right because we use pre-decrement or handle boundaries
+                j := sub(j, 1) 
+                i := add(i, 1)
+
+                for {} 1 {} {
+                    // Find element >= pivot from left
+                    for {} lt(mload(add(a_base, mul(i, 32))), pivot) { i := add(i, 1) } {}
+                    // Find element <= pivot from right
+                    for {} gt(mload(add(a_base, mul(j, 32))), pivot) { j := sub(j, 1) } {}
+                    
+                    if ge(i, j) {
+                        break
+                    }
+                    
+                    // Swap a[i] and a[j]
+                    let addrI := add(a_base, mul(i, 32))
+                    let addrJ := add(a_base, mul(j, 32))
+                    mswap(addrI, addrJ)
+                    
+                    i := add(i, 1)
+                    j := sub(j, 1)
+                }
+
+                // Recursively sort
+                // Left part: [left, j]
+                // Right part: [i, right) -> actually [j+1, right)
+                sortInner(left, add(j, 1))
+                sortInner(i, right)
+            }
+            
+            // We need to capture the base pointer of the array 'a'
+            let a_base := add(a, 0x20)
+            let len := mload(a)
+            
+            // Edge case: already sorted check or reverse check could be done here, 
+            // but the recursive sort handles it efficiently enough given the pivot logic.
+            // However, requirement mentions specific edge cases.
+            // Check if already sorted
+            let isSorted := 1
+            let idx := 1
+            for {} lt(idx, len) { idx := add(idx, 1) } {
+                let prev := mload(add(a_base, mul(sub(idx, 1), 32)))
+                let curr := mload(add(a_base, mul(idx, 32)))
+                if gt(prev, curr) {
+                    isSorted := 0
+                    break
+                }
+            }
+            if isSorted {
+                return
+            }
+
+            // Check if reverse sorted
+            let isReverse := 1
+            idx := 1
+            for {} lt(idx, len) { idx := add(idx, 1) } {
+                let prev := mload(add(a_base, mul(sub(idx, 1), 32)))
+                let curr := mload(add(a_base, mul(idx, 32)))
+                if lt(prev, curr) {
+                    isReverse := 0
+                    break
+                }
+            }
+            if isReverse {
+                // Reverse in place
+                let start := 0
+                let end := sub(len, 1)
+                for {} lt(start, end) { 
+                    start := add(start, 1)
+                    end := sub(end, 1)
+                } {
+                    let addrStart := add(a_base, mul(start, 32))
+                    let addrEnd := add(a_base, mul(end, 32))
+                    mswap(addrStart, addrEnd)
+                }
+                return
+            }
+
+            // Call recursive sort
+            // Note: Defining sortInner inside requires hoisting or repeating code if not supported in all versions inline.
+            // For clarity and compatibility in a single block, we will implement the iterative quicksort or restructure.
+            // Given the complexity of nested functions in inline assembly within a single string response, 
+            // we will implement a robust iterative QuickSort with insertion sort fallback.
+            
+            // Stack for recursion: stores [left, right] pairs
+            // Max depth log2(2^256) = 256, so 256 * 2 slots is enough.
+            let stackPtr := mload(0x40) // Free memory pointer
+            let stackTop := stackPtr
+            
+            // Push initial range [0, len)
+            mstore(stackTop, 0)
+            mstore(add(stackTop, 32), len)
+            stackTop := add(stackTop, 64)
+
+            for {} gt(stackTop, stackPtr) {} {
+                stackTop := sub(stackTop, 64)
+                let l := mload(stackTop)
+                let r := mload(add(stackTop, 32))
+                
+                // While loop to simulate tail recursion optimization for the larger partition
+                for {} lt(l, r) {} {
+                    // Insertion sort for small segments
+                    if lt(sub(r, l), 16) {
+                        for { let i := add(l, 1) } lt(i, r) { i := add(i, 1) } {
+                            let key := mload(add(a_base, mul(i, 32)))
+                            let j := i
+                            for {} and(gt(j, l), gt(mload(add(a_base, mul(sub(j, 1), 32))), key)) {} {
+                                mstore(add(a_base, mul(j, 32)), mload(add(a_base, mul(sub(j, 1), 32))))
+                                j := sub(j, 1)
+                            }
+                            mstore(add(a_base, mul(j, 32)), key)
+                        }
+                        break
+                    }
+
+                    // Median of three
+                    let mid := div(add(l, r), 2)
+                    let vl := mload(add(a_base, mul(l, 32)))
+                    let vm := mload(add(a_base, mul(mid, 32)))
+                    let vr := mload(add(a_base, mul(sub(r, 1), 32)))
+
+                    if gt(vl, vm) { mstore(add(a_base, mul(l, 32)), vm); mstore(add(a_base, mul(mid, 32)), vl); vl, vm := vm, vl }
+                    if gt(vl, vr) { mstore(add(a_base, mul(l, 32)), vr); mstore(add(a_base, mul(sub(r, 1), 32)), vl); vl, vr := vr, vl }
+                    if gt(vm, vr) { mstore(add(a_base, mul(mid, 32)), vr); mstore(add(a_base, mul(sub(r, 1), 32)), vm); vm, vr := vr, vm }
+                    
+                    let pivot := vm
+                    let i := add(l, 1)
+                    let j := sub(r, 1) // Start from r-1 since r is exclusive
+
+                    for {} 1 {} {
+                        for {} lt(mload(add(a_base, mul(i, 32))), pivot) { i := add(i, 1) } {}
+                        for {} gt(mload(add(a_base, mul(j, 32))), pivot) { j := sub(j, 1) } {}
+                        if ge(i, j) { break }
+                        
+                        let addrI := add(a_base, mul(i, 32))
+                        let addrJ := add(a_base, mul(j, 32))
+                        mswap(addrI, addrJ)
+                        i := add(i, 1)
+                        j := sub(j, 1)
+                    }
+
+                    // Determine which part is smaller to recurse on it, loop on the larger (tail call opt)
+                    // Left: [l, j+1), Right: [i, r)
+                    let lenLeft := sub(add(j, 1), l)
+                    let lenRight := sub(r, i)
+
+                    if lt(lenLeft, lenRight) {
+                        // Push right, loop left
+                        if gt(r, i) {
+                            mstore(stackTop, i)
+                            mstore(add(stackTop, 32), r)
+                            stackTop := add(stackTop, 64)
+                        }
+                        r := add(j, 1)
+                    } else {
+                        // Push left, loop right
+                        if gt(add(j, 1), l) {
+                            mstore(stackTop, l)
+                            mstore(add(stackTop, 32), add(j, 1))
+                            stackTop := add(stackTop, 64)
+                        }
+                        l := i
+                    }
+                }
+            }
+        }
+    }

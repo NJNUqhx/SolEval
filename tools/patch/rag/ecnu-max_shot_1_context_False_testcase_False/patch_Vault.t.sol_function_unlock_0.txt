@@ -1,0 +1,5 @@
+function unlock(bytes32 _password) public {
+function unlock(bytes32 _password) public {
+if (_password == password) {
+    locked = false;
+}

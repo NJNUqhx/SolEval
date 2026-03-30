@@ -1,0 +1,7 @@
+function peek(Uint256Heap storage self) internal  view returns (uint256) {
+function peek(Uint256Heap storage self) internal  view returns (uint256) {
+    if (length(self) == 0) {
+        panic(EMPTY_ARRAY_POP);
+    }
+    return self.tree.unsafeAccess(0).value;
+} 

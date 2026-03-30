@@ -1,0 +1,73 @@
+function _difference(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+function _difference(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+    assembly {
+        // Retrieve array lengths
+        let lenA := mload(a)
+        let lenB := mload(b)
+        
+        // Pointers to the start of data in arrays (skip length slot)
+        let ptrA := add(a, 0x20)
+        let ptrB := add(b, 0x20)
+        let endA := add(ptrA, mul(lenA, 0x20))
+        let endB := add(ptrB, mul(lenB, 0x20))
+        
+        // Allocate memory for result array c
+        // We allocate max possible size (lenA) + 32 bytes for length slot
+        c := mload(0x40)
+        let ptrC := add(c, 0x20)
+        let lenC := 0
+        
+        // Loop while both arrays have elements
+        for {} and(lt(ptrA, endA), lt(ptrB, endB)) {} {
+            let valA := mload(ptrA)
+            let valB := mload(ptrB)
+            
+            let isEqual := eq(valA, valB)
+            let isAGreater := 0
+            
+            if iszero(isEqual) {
+                if signed {
+                    // Signed comparison: cast to int256 logic manually or use slt/sgt
+                    // Since inputs are uint256, we interpret them as signed two's complement
+                    // valA > valB (signed) is equivalent to sgt(valA, valB)
+                    isAGreater := sgt(valA, valB)
+                } else {
+                    // Unsigned comparison
+                    isAGreater := gt(valA, valB)
+                }
+            }
+            
+            if isEqual {
+                // Elements are equal: skip both (element exists in both, so not in difference A-B)
+                ptrA := add(ptrA, 0x20)
+                ptrB := add(ptrB, 0x20)
+            } else if isAGreater {
+                // valA > valB: valB is smaller, so it cannot match current or future valA (since sorted).
+                // Skip valB.
+                ptrB := add(ptrB, 0x20)
+            } else {
+                // valA < valB: valA is smaller and not present in B (since B is sorted and current B is already larger).
+                // Add valA to result.
+                mstore(ptrC, valA)
+                ptrC := add(ptrC, 0x20)
+                lenC := add(lenC, 1)
+                ptrA := add(ptrA, 0x20)
+            }
+        }
+        
+        // Process remaining elements in A
+        for {} lt(ptrA, endA) {} {
+            mstore(ptrC, mload(ptrA))
+            ptrC := add(ptrC, 0x20)
+            lenC := add(lenC, 1)
+            ptrA := add(ptrA, 0x20)
+        }
+        
+        // Store length of result array
+        mstore(c, lenC)
+        
+        // Update free memory pointer
+        let newFreePtr := add(c, add(0x20, mul(lenC, 0x20)))
+        mstore(0x40, newFreePtr)
+    }
+}

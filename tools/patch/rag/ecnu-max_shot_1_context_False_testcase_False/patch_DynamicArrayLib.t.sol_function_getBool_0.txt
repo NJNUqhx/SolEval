@@ -1,0 +1,15 @@
+function getBool(uint256[] memory a, uint256 i) internal  pure returns (bool result) {
+function getBool(uint256[] memory a, uint256 i) internal  pure returns (bool result) {
+assembly ("memory-safe") {
+            // Calculate the memory address of the element at index i.
+            // Array data starts at add(a, 0x20) because the first slot (a) holds the length.
+            // Each uint256 element occupies 0x20 (32) bytes.
+            let memPtr := add(add(a, 0x20), mul(i, 0x20))
+            
+            // Load the value from the calculated memory address.
+            let val := mload(memPtr)
+            
+            // Convert the loaded value to a boolean (non-zero is true, zero is false).
+            result := iszero(iszero(val))
+        }
+    } 

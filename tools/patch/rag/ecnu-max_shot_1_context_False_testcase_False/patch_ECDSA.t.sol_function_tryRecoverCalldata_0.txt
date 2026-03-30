@@ -1,0 +1,84 @@
+function tryRecoverCalldata(bytes32 hash, bytes calldata signature) internal  view returns (address result) {
+function tryRecoverCalldata(bytes32 hash, bytes calldata signature) internal  view returns (address result) {
+assembly {
+            let m := mload(0x40)
+            let sigLen := signature.length
+            let v := 0
+            let r := 0
+            let s := 0
+
+            if eq(sigLen, 64) {
+                // Signature format: r (32) + s (32), v is implicitly 27 or 28 based on high bit of s?
+                // Standard 64-byte often implies v=27/28 is encoded in the last byte of s or separate.
+                // However, usually 64 bytes means r+s, and v is assumed 27? Or last byte of s contains v?
+                // Let's assume standard EIP-2098 compact signature or similar where v is derived.
+                // But the requirement says "Extract v... adjust it".
+                // Common 64-byte format: r (32) + s (32). v is often 27 or 28.
+                // If the input is strictly 64 bytes, we might need to infer v.
+                // Let's look at the 65 case first to align logic.
+                
+                // Actually, many libraries treat 64 bytes as r+s, and assume v=27 or check parity.
+                // Let's assume the 64th byte (last byte of s) might hold v info or we default.
+                // Re-reading requirement: "Extract v from the signature and adjust it".
+                // In 64 bytes: bytes 0-31 are r, 32-63 are s.
+                // Often, the last byte of s has the recovery id mixed in for compact signatures.
+                // Let's assume standard parsing:
+                r := calldataload(signature.offset)
+                let sVal := calldataload(add(signature.offset, 32))
+                
+                // Check if compact signature (EIP-2098): high bit of s is set
+                if gt(sVal, 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
+                    v := sub(div(sVal, 0x8000000000000000000000000000000000000000000000000000000000000000), 27)
+                    s := and(sVal, 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0)
+                    v := add(v, 27)
+                } else {
+                    // If not compact, maybe v is missing? Or assumed 27?
+                    // The prompt implies extraction. Let's assume if 64 bytes, v is 27 by default 
+                    // OR the last byte of the 64-byte string is v? No, r and s are 32 bytes each.
+                    // Let's assume the standard case where 64 bytes means v=27 (or 28) is not present,
+                    // but often in these challenges, 64 bytes implies v is the last byte of the calldata?
+                    // No, 64 bytes = 32+32.
+                    // Let's assume the "adjust" part refers to EIP-2098 logic above.
+                    // If not EIP-2098, we can't recover without v. 
+                    // However, some formats put v in the last byte of the 64th byte? No.
+                    // Let's assume if it's 64 bytes and not compact, we try v=27.
+                    v := 27
+                    s := sVal
+                }
+            } else if eq(sigLen, 65) {
+                r := calldataload(signature.offset)
+                s := calldataload(add(signature.offset, 32))
+                v := byte(0, calldataload(add(signature.offset, 64)))
+            } else {
+                // Invalid length
+                mstore(0x40, m)
+                leave
+            }
+
+            // Adjust v to 27/28 if it's 0/1
+            if lt(v, 27) { v := add(v, 27) }
+            if gt(v, 28) {
+                mstore(0x40, m)
+                leave
+            }
+
+            mstore(0x00, hash)
+            mstore(0x20, v)
+            mstore(0x40, r)
+            mstore(0x60, s)
+
+            let success := staticcall(gas(), 0x01, 0x00, 0x80, 0x00, 0x20)
+            
+            if and(success, eq(returndatasize(), 32)) {
+                result := mload(0x00)
+            } else {
+                result := 0
+            }
+
+            mstore(0x00, 0)
+            mstore(0x20, 0)
+            mstore(0x40, 0)
+            mstore(0x60, 0)
+            mstore(0x40, m)
+        }
+    }

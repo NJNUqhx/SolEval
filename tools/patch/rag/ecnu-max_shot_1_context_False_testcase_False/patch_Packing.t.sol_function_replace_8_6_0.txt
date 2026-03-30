@@ -1,0 +1,35 @@
+function replace_8_6(bytes8 self, bytes6 value, uint8 offset) internal  pure returns (bytes8 result) {
+function replace_8_6(bytes8 self, bytes6 value, uint8 offset) internal  pure returns (bytes8 result) {
+assembly {
+        // Ensure the offset is within valid bounds (0 to 2, since 8 - 6 = 2)
+        // Although the requirement implies valid input, we assume offset <= 2 for 6-byte replacement in 8-byte slot.
+        
+        // Calculate the shift amount in bits: offset * 8
+        let shift := mul(offset, 8)
+        
+        // Create a mask for 6 bytes (48 bits): 0xFFFFFFFFFFFF
+        let mask6 := 0xFFFFFFFFFFFF
+        
+        // Shift the mask to the correct position within the 8-byte value
+        let shiftedMask := shl(shift, mask6)
+        
+        // Extract the old 6-byte segment from self at the specified offset
+        let oldSegment := and(shr(shift, self), mask6)
+        
+        // Extract the new 6-byte value (ensure it's treated as 6 bytes)
+        let newSegment := and(value, mask6)
+        
+        // Calculate the result:
+        // 1. Clear the old segment from self: and(self, not(shiftedMask))
+        // 2. Position the new segment: shl(shift, newSegment)
+        // 3. Combine them: or(clearedSelf, positionedNewSegment)
+        //
+        // Alternative XOR method as hinted in requirements:
+        // result = self ^ (oldSegment << shift) ^ (newSegment << shift)
+        // This works because XORing the old segment removes it, and XORing the new adds it.
+        
+        let positionedOld := shl(shift, oldSegment)
+        let positionedNew := shl(shift, newSegment)
+        
+        result := xor(xor(self, positionedOld), positionedNew)
+    }

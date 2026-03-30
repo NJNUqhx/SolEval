@@ -1,0 +1,6 @@
+function load(bytes memory a, uint256 offset) internal  pure returns (bytes32 result) {
+function load(bytes memory a, uint256 offset) internal  pure returns (bytes32 result) {
+assembly {
+            result := mload(add(add(a, 0x20), offset))
+        }
+    }

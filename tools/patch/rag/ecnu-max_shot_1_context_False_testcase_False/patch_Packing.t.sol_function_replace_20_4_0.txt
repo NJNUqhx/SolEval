@@ -1,0 +1,67 @@
+function replace_20_4(bytes20 self, bytes4 value, uint8 offset) internal  pure returns (bytes20 result) {
+function replace_20_4(bytes20 self, bytes4 value, uint8 offset) internal  pure returns (bytes20 result) {
+assembly {
+        // Load the 20-byte value and the 4-byte replacement value into registers.
+        // 'self' is at the first argument slot, 'value' at the second.
+        let original := mload(self)
+        let newValue := mload(value)
+
+        // Calculate the shift amount to align the 4-byte segment within the 32-byte word.
+        // Since we are working with a 20-byte value stored left-aligned in a 32-byte slot (standard for bytes20),
+        // the first byte is at bit 248 (32*8 - 8).
+        // The offset is in bytes from the start of the bytes20.
+        // Shift amount = (32 - 20) * 8 + offset * 8 = 96 + offset * 8.
+        // However, usually bytes20 is treated as right-aligned in memory when loaded via mload if it's a tight pack,
+        // but standard solidity `bytes20` in a variable is left-padded in a 32-byte word when loaded?
+        // Actually, `bytes20` stored in a variable occupies 32 bytes, with the data in the **most significant** 20 bytes.
+        // So byte 0 of the bytes20 is at bit 248 (32*8 - 8).
+        // Byte `offset` is at bit (248 - offset * 8).
+        // We need to shift the 4-byte value to this position.
+        // Shift right by (248 - offset * 8) - (248 - 32*8 + 32*8 - 4*8)?
+        // Let's simplify: The 4 bytes need to be placed starting at `offset`.
+        // Total bits = 256. Data starts at bit 256 - 160 = 96? No.
+        // bytes20: [0..19] are valid. In a 32-byte slot, they occupy bytes [12..31] (0-indexed 32-byte array).
+        // So byte 0 of bytes20 is at index 12 of the 32-byte word.
+        // Bit position of byte 0 = (31 - 12) * 8 = 19 * 8 = 152? No.
+        // Standard layout: The value is left-aligned.
+        // Byte 0 is the most significant byte of the 20 bytes.
+        // In a 32-byte word (256 bits), the 20 bytes occupy bits [255:16] (240 bits? No 20*8=160).
+        // Bits [255:96] contain the 20 bytes.
+        // Byte 0 is at bits [255:248].
+        // Byte `offset` is at bits [255 - offset*8 : 248 - offset*8].
+        // We want to replace 4 bytes starting at `offset`.
+        // The 4-byte `value` is loaded as a 32-byte word, left-aligned (bits [255:224]).
+        // We need to shift `newValue` right by `offset * 8`.
+        let shift := mul(offset, 8)
+        let alignedNew := shr(shift, newValue)
+
+        // Create a mask to clear the 4 bytes at the target location in the original value.
+        // We want a mask that has 0s in the 4-byte region and 1s elsewhere.
+        // 4 bytes = 32 bits.
+        // Mask of 32 ones: 0xFFFFFFFF
+        // Shifted to the position: shl(224 - shift, 0xFFFFFFFF) ?
+        // Let's construct the mask of 1s for the 4 bytes at the correct position.
+        // 0xFFFFFFFF is 32 bits. In a 256 bit word, it's at the least significant end.
+        // We need it at the position corresponding to `offset`.
+        // Position from right (LSB): The 20 bytes end at bit 16 (since 256-160=96? No).
+        // Let's re-verify the alignment.
+        // bytes20 x; x[0] is MSB.
+        // If x = 0x001122...99 (20 bytes), mload(x) = 0x001122...990000...00 (12 zero bytes at the end).
+        // So the data is in the high 20 bytes.
+        // Byte 0 is at bit 255..248.
+        // Byte `offset` starts at bit 255 - offset*8.
+        // The 4-byte segment ends at bit 255 - offset*8 - 31 = 224 - offset*8.
+        // We need a mask that covers these 32 bits.
+        // Start with 0xFFFFFFFF (32 bits at LSB).
+        // Shift left by (256 - 32) - offset*8 = 224 - offset*8.
+        let mask := shl(sub(224, shift), 0xFFFFFFFF)
+
+        // Clear the old 4 bytes in the original value.
+        let clearedOriginal := and(original, not(mask))
+
+        // Apply the new aligned value.
+        // Note: `alignedNew` was shifted right from the MSB position.
+        // Original newValue (from mload) is at MSB (bits 255..224).
+        // shr(shift, newValue) moves it to the correct position.
+        result := or(clearedOriginal, alignedNew)
+    }

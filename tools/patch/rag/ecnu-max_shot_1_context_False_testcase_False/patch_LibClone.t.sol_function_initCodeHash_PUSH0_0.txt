@@ -1,0 +1,26 @@
+function initCodeHash_PUSH0(address implementation) internal  pure returns (bytes32 hash) {
+function initCodeHash_PUSH0(address implementation) internal  pure returns (bytes32 hash) {
+assembly {
+            // Step 1: Store specific byte sequences in memory to construct the init code.
+            // The sequence corresponds to: PUSH0, PUSH0, PUSH0, PUSH20, <address>, STOP
+            // Opcode values: 0x5f (PUSH0), 0x73 (PUSH20), 0x00 (STOP)
+            // Layout in memory starting at offset 0:
+            // 0x00: 0x5f5f5f73 <20 bytes address> 00
+            mstore(0, 0x5f5f5f7300000000000000000000000000000000000000000000000000000000)
+            
+            // Step 2: Store the implementation address in memory at offset 4.
+            // We shift the address left by 96 bits (12 bytes) to align it after the 4-byte prefix.
+            mstore(4, shl(96, implementation))
+            
+            // Step 3: Compute the keccak256 hash of the constructed init code.
+            // Total size is 4 bytes (prefix) + 20 bytes (address) + 1 byte (STOP) = 25 bytes.
+            hash := keccak256(0, 25)
+            
+            // Step 4: Restore the overwritten part of the free memory pointer to avoid memory corruption.
+            // Since we wrote to slots 0 and 1 (up to byte 36), we must ensure slot 1 is cleared
+            // if the free memory pointer was within this range, or simply clear the scratch space used.
+            // Standard practice in pure inline assembly hashing is to clear the memory slots used.
+            mstore(0, 0)
+            mstore(32, 0)
+        }
+    }

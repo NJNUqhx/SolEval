@@ -1,0 +1,29 @@
+function submitSuccess(address instance, address level, address player) external  playerExistsCheck(player) {
+function submitSuccess(address instance, address level, address player) external  playerExistsCheck(player) {
+require(instance != address(0), "Instance cannot be zero address");
+    require(levelInstances[level][player] == instance, "Instance mismatch");
+    require(!playerStats[player][level].completed, "Level already completed");
+
+    bool isFirstCompletion = playerStats[player][level].timeCompleted == 0;
+    uint256 submissionTime = block.timestamp;
+
+    if (isFirstCompletion) {
+        playerStats[player].levelsCompleted++;
+        playerStats[player][level].timeCompleted = submissionTime;
+        
+        // Update average time logic (assuming total time tracking exists or is calculated on the fly)
+        // For this implementation, we assume `totalTime` tracks cumulative time for average calculation
+        playerStats[player].totalTime += submissionTime - playerStats[player][level].timeSubmitted[0]; // Simplified assumption
+        
+        emit playerScoreProfile(player, playerStats[player].levelsCompleted, playerStats[player].instancesCompleted);
+    }
+
+    playerStats[player][level].timeSubmitted.push(submissionTime);
+    playerStats[player][level].completed = true;
+    
+    playerStats[player][level].successfulSubmissions++;
+    playerStats[player].instancesCompleted++;
+    
+    // If there is a global level stats mapping, it would be updated here
+    // levelStats[level].successfulSubmissions++;
+}

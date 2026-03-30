@@ -1,0 +1,19 @@
+function verifyCalldata(bytes32[] calldata proof, bytes32 root, bytes32 leaf) internal  pure returns (bool isValid) {
+function verifyCalldata(bytes32[] calldata proof, bytes32 root, bytes32 leaf) internal  pure returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let end := add(proof.offset, shl(5, proof.length))
+            let offset := proof.offset
+            if proof.length {
+                for {} 1 {} {
+                    let pos := and(offset, 31)
+                    mstore(pos, leaf)
+                    mstore(add(pos, 0x20), calldataload(offset))
+                    leaf := keccak256(pos, 0x40)
+                    offset := add(offset, 0x20)
+                    if iszero(lt(offset, end)) { break }
+                }
+            }
+            isValid := eq(leaf, root)
+        }
+    }

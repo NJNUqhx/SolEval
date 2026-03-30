@@ -1,0 +1,14 @@
+function toInt160(int256 x) internal  pure returns (int160) {
+function toInt160(int256 x) internal  pure returns (int160) {
+    // Step 1: Check if the value of `x` can be safely represented as a 160-bit signed integer.
+    // We do this by casting to int160 and then back to int256. If the result matches the original,
+    // no overflow occurred. This is efficient and leverages Solidity's truncation behavior.
+    int160 result = int160(x);
+    
+    // Step 2 & 3: Verify the conversion and revert if out of range.
+    // If x was outside the int160 range, casting it to int160 and back to int256 will yield a different value.
+    if (int256(result) != x) {
+        revert("Overflow: int256 cannot be represented as int160");
+    }
+
+    return result;

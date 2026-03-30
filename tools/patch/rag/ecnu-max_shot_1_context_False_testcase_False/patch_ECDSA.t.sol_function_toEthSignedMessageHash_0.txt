@@ -1,0 +1,18 @@
+function toEthSignedMessageHash(bytes32 hash) internal  pure returns (bytes32 result) {
+function toEthSignedMessageHash(bytes32 hash) internal  pure returns (bytes32 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Store the original hash at position 0x20 (32 bytes)
+            mstore(0x20, hash)
+            // Store the Ethereum signed message prefix at position 0x00
+            // The prefix is: "\x19Ethereum Signed Message:\n32" (28 bytes)
+            // We write it as a full 32-byte word starting from offset 4 to align correctly
+            // The full 32-byte value including the 4 zero bytes at the start is:
+            // 0x0000000019457468657265756d205369676e6564204d6573736167653a0a3332
+            mstore(0x00, 0x19457468657265756d205369676e6564204d6573736167653a0a333200000000)
+            
+            // Compute keccak256 of the data starting from byte 0x04 (skipping the first 4 zero bytes of the prefix word)
+            // The total length is 28 (prefix) + 32 (hash) = 60 bytes (0x3c)
+            result := keccak256(0x04, 0x3c)
+        }
+    }

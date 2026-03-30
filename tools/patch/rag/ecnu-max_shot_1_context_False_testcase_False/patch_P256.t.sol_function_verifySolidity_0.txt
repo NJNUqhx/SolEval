@@ -1,0 +1,161 @@
+function verifySolidity(bytes32 h, bytes32 r, bytes32 s, bytes32 qx, bytes32 qy) internal  view returns (bool) {
+function verifySolidity(bytes32 h, bytes32 r, bytes32 s, bytes32 qx, bytes32 qy) internal  view returns (bool) {
+function verifySolidity(bytes32 h, bytes32 r, bytes32 s, bytes32 qx, bytes32 qy) internal  view returns (bool) {
+        // Step 1 & 2: Validate signature components and public key
+        if (!_isProperSignature(r, s) || !isValidPublicKey(qx, qy)) {
+            return false;
+        }
+
+        // Step 4: Precompute Jacobian points for the public key coordinates.
+        // We assume a precomputation table size of 16 (4-bit window) based on _jMultShamir usage.
+        // The public key Q = (qx, qy) is converted to Jacobian (qx, qy, 1).
+        JPoint[16] memory points;
+        points[0] = JPoint(0, 0, 0); // Point at infinity
+        JPoint memory base = JPoint(uint256(qx), uint256(qy), 1);
+        
+        // Fill the lookup table: base, 2*base, ..., 15*base
+        // Note: In a real optimized implementation, this might use a specific precomputation strategy.
+        // Here we simulate the table generation assuming sequential addition/doubling logic fits the context.
+        // However, since we don't have the full context of helper functions for table gen, 
+        // we assume the logic implies using the base point directly in a simplified manner 
+        // or that `_jMultShamir` expects a specific precomputed structure. 
+        // Given the constraints, we will populate the table using repeated addition/doubling logic 
+        // if helper functions like `_jAdd` and `_jDouble` are available (implied by previous function).
+        
+        points[1] = base;
+        JPoint memory current = base;
+        for (uint256 i = 2; i < 16; ++i) {
+            (uint256 nx, uint256 ny, uint256 nz) = _jAdd(current, base.x, base.y, base.z);
+            current = JPoint(nx, ny, nz);
+            points[i] = current;
+        }
+
+        // Step 5: Compute modular inverse of s modulo N
+        uint256 w = _modInv(uint256(s), N);
+
+        // Step 6: Calculate u1 = h * w mod N
+        uint256 u1 = _modMul(uint256(h), w, N);
+
+        // Step 7: Calculate u2 = r * w mod N
+        uint256 u2 = _modMul(uint256(r), w, N);
+
+        // Step 8: Use Shamir's trick to compute the point P = u1*G + u2*Q
+        // Note: The previous function `_jMultShamir` takes `points` (precomputed Q) and scalars u1, u2.
+        // However, standard Shamir trick usually involves G (generator) and Q.
+        // The provided `_jMultShamir` signature suggests it computes u1*G + u2*Q where `points` 
+        // represents the precomputed table for Q, and G is implicitly handled or the function 
+        // is specialized. 
+        // Re-reading the requirement: "Use the precomputed Jacobian points and u1, u2".
+        // The previous function `_jMultShamir` iterates 128 times (processing 2 bits per step for 256 bits? No, 128*2=256).
+        // It extracts bits from u1 and u2. 
+        // If `points` is the table for Q, where is G? 
+        // Usually, Shamir's trick with a table for Q and a table for G is needed.
+        // BUT, looking at the previous function `_jMultShamir`, it only takes ONE array `points`.
+        // This implies the `points` array might actually be the combined precomputation or the function
+        // is designed such that `u1` scales a fixed generator (perhaps hardcoded inside or `points` includes G logic).
+        // WAIT: The requirement says "Precompute Jacobian points for the public key coordinates".
+        // And then "Use the precomputed Jacobian points and u1, u2".
+        // If `_jMultShamir` only takes one table, it likely computes `u1 * G + u2 * Q` by having `G` 
+        // implicitly added or the `points` array is actually a table for `G + k*Q`? No, that's complex.
+        // Let's re-examine the previous function's logic:
+        // `pos = ((u1 >> 252) & 0xc) | ((u2 >> 254) & 0x3);`
+        // This combines 2 bits of u1 and 2 bits of u2 into a 4-bit index (0-15).
+        // This index selects a point from `points`.
+        // This implies `points` must contain precomputed values of `i*G + j*Q` for i,j in {0,1,2,3}?
+        // But the requirement says "Precompute ... for the public key coordinates".
+        // This is a contradiction unless the `points` array passed to `_jMultShamir` in the previous step 
+        // was intended to be the table for Q, and the function `_jMultShamir` actually handles G internally?
+        // No, the function signature is `_jMultShamir(JPoint[16] memory points, uint256 u1, uint256 u2)`.
+        // If it only has one table, it cannot do general Shamir trick for two independent bases unless one base is fixed and baked in.
+        // Hypothesis: The `points` array passed is actually the precomputed table for the operation `u1*G + u2*Q`.
+        // But we only computed points for Q above.
+        // Let's look closer at the bit extraction: `((u1 >> 252) & 0xc)` extracts 2 bits of u1 shifted to pos 2-3.
+        // `((u2 >> 254) & 0x3)` extracts 2 bits of u2 at pos 0-1.
+        // So `pos` ranges from 0 to 15.
+        // If this is standard Shamir, we need a table of `a*G + b*Q`.
+        // Since we can't change `_jMultShamir`, we must construct `points` such that `points[k]` corresponds to the correct combination.
+        // However, constructing a 16-element table for `a*G + b*Q` requires knowing G and Q.
+        // We have Q. G is the secp256k1 generator.
+        // Let's assume there are helper constants or functions for G, or we must construct the table manually here.
+        // Given the strict "Implement the functionality" prompt, I will assume we need to build the 16-point table
+        // representing `i*G + j*Q` where `i` comes from u1's 2 bits and `j` from u2's 2 bits.
+        // Wait, the mask `0xc` is 1100 binary. So bits 1,0 of u1 become bits 3,2 of pos.
+        // Mask `0x3` is 0011 binary. Bits 1,0 of u2 become bits 1,0 of pos.
+        // So `pos = 4*i + j` where `i` is the 2-bit chunk of u1, `j` is the 2-bit chunk of u2.
+        // We need `points[4*i + j] = i*G + j*Q`.
+        
+        // Let's define G (secp256k1 generator)
+        // Gx = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+        // Gy = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+        uint256 Gx = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798;
+        uint256 Gy = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8;
+        JPoint memory G = JPoint(Gx, Gy, 1);
+        JPoint memory Q = JPoint(uint256(qx), uint256(qy), 1);
+
+        // Build table: points[4*i + j] = i*G + j*Q for i,j in {0,1,2,3}
+        // i=0, j=0 -> 0 (infinity)
+        points[0] = JPoint(0, 0, 0);
+        
+        // Precompute multiples of G: G, 2G, 3G
+        JPoint memory G1 = G;
+        (uint256 g2x, uint256 g2y, uint256 g2z) = _jDouble(G1.x, G1.y, G1.z);
+        JPoint memory G2 = JPoint(g2x, g2y, g2z);
+        (uint256 g3x, uint256 g3y, uint256 g3z) = _jAdd(G2, G1.x, G1.y, G1.z);
+        JPoint memory G3 = JPoint(g3x, g3y, g3z);
+
+        // Precompute multiples of Q: Q, 2Q, 3Q
+        JPoint memory Q1 = Q;
+        (uint256 q2x, uint256 q2y, uint256 q2z) = _jDouble(Q1.x, Q1.y, Q1.z);
+        JPoint memory Q2 = JPoint(q2x, q2y, q2z);
+        (uint256 q3x, uint256 q3y, uint256 q3z) = _jAdd(Q2, Q1.x, Q1.y, Q1.z);
+        JPoint memory Q3 = JPoint(q3x, q3y, q3z);
+
+        // Now fill the table
+        // Row i=0 (0*G + j*Q)
+        points[1] = Q1; // 0*G + 1*Q
+        points[2] = Q2; // 0*G + 2*Q
+        points[3] = Q3; // 0*G + 3*Q
+
+        // Row i=1 (1*G + j*Q)
+        // 1*G + 0*Q = G
+        points[4] = G1;
+        // 1*G + 1*Q
+        (uint256 t1x, uint256 t1y, uint256 t1z) = _jAdd(G1, Q1.x, Q1.y, Q1.z);
+        points[5] = JPoint(t1x, t1y, t1z);
+        // 1*G + 2*Q
+        (uint256 t2x, uint256 t2y, uint256 t2z) = _jAdd(G1, Q2.x, Q2.y, Q2.z);
+        points[6] = JPoint(t2x, t2y, t2z);
+        // 1*G + 3*Q
+        (uint256 t3x, uint256 t3y, uint256 t3z) = _jAdd(G1, Q3.x, Q3.y, Q3.z);
+        points[7] = JPoint(t3x, t3y, t3z);
+
+        // Row i=2 (2*G + j*Q)
+        points[8] = G2; // 2*G + 0*Q
+        // 2*G + 1*Q
+        (uint256 t4x, uint256 t4y, uint256 t4z) = _jAdd(G2, Q1.x, Q1.y, Q1.z);
+        points[9] = JPoint(t4x, t4y, t4z);
+        // 2*G + 2*Q
+        (uint256 t5x, uint256 t5y, uint256 t5z) = _jAdd(G2, Q2.x, Q2.y, Q2.z);
+        points[10] = JPoint(t5x, t5y, t5z);
+        // 2*G + 3*Q
+        (uint256 t6x, uint256 t6y, uint256 t6z) = _jAdd(G2, Q3.x, Q3.y, Q3.z);
+        points[11] = JPoint(t6x, t6y, t6z);
+
+        // Row i=3 (3*G + j*Q)
+        points[12] = G3; // 3*G + 0*Q
+        // 3*G + 1*Q
+        (uint256 t7x, uint256 t7y, uint256 t7z) = _jAdd(G3, Q1.x, Q1.y, Q1.z);
+        points[13] = JPoint(t7x, t7y, t7z);
+        // 3*G + 2*Q
+        (uint256 t8x, uint256 t8y, uint256 t8z) = _jAdd(G3, Q2.x, Q2.y, Q2.z);
+        points[14] = JPoint(t8x, t8y, t8z);
+        // 3*G + 3*Q
+        (uint256 t9x, uint256 t9y, uint256 t9z) = _jAdd(G3, Q3.x, Q3.y, Q3.z);
+        points[15] = JPoint(t9x, t9y, t9z);
+
+        // Step 8 (continued): Call Shamir multiplication
+        (rx, ry) = _jMultShamir(points, u1, u2);
+
+        // Step 9: Compare rx mod N with r
+        return _modMul(rx, 1, N) == uint256(r);
+    }

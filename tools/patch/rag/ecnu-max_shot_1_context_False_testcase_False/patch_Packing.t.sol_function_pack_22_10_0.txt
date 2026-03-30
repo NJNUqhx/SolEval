@@ -1,0 +1,26 @@
+function pack_22_10(bytes22 left, bytes10 right) internal  pure returns (bytes32 result) {
+function pack_22_10(bytes22 left, bytes10 right) internal  pure returns (bytes32 result) {
+assembly {
+        // Clear the lower 80 bits of the `left` value (32 bytes - 22 bytes = 10 bytes = 80 bits)
+        // We shift left by 80 bits and then shift right by 80 bits to zero out the lower part.
+        let cleanedLeft := shr(80, shl(80, left))
+        
+        // Clear the lower 176 bits of the `right` value (32 bytes - 10 bytes = 22 bytes = 176 bits)
+        // We shift left by 176 bits and then shift right by 176 bits to zero out the lower part.
+        let cleanedRight := shr(176, shl(176, right))
+        
+        // Shift the cleaned left value to occupy the upper 22 bytes (shift left by 80 bits)
+        // Shift the cleaned right value to occupy the lower 10 bytes (no shift needed as it's already aligned to the end if we consider it placed at the end, 
+        // but logically we want left in high bits and right in low bits of the 32 byte word).
+        // Actually, standard packing for (22 bytes, 10 bytes) into 32 bytes:
+        // Left (22 bytes) goes to bits [255:80]
+        // Right (10 bytes) goes to bits [79:0]
+        
+        // cleanedLeft is already masked to 22 bytes. We need to shift it left by 80 bits to put it in the upper position.
+        let shiftedLeft := shl(80, cleanedLeft)
+        
+        // cleanedRight is already masked to 10 bytes. It stays in the lower position.
+        
+        // Combine using OR
+        result := or(shiftedLeft, cleanedRight)
+    }

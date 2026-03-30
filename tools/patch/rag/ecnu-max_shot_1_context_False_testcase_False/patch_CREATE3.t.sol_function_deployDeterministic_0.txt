@@ -1,0 +1,18 @@
+function deployDeterministic(bytes memory initCode, bytes32 salt) internal   returns (address deployed) {
+function deployDeterministic(bytes memory initCode, bytes32 salt) internal   returns (address deployed) {
+deployed = deployDeterministic(0, initCode, salt);
+    }
+
+    function deployDeterministic(uint256 value, bytes memory initCode, bytes32 salt) internal returns (address deployed) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let encoded_size := add(0x20, mload(initCode))
+            let encoded_data := add(0x20, initCode)
+            deployed := create2(value, encoded_data, mload(initCode), salt)
+            if iszero(deployed) {
+                let ptr := mload(0x40)
+                mstore(ptr, 0x96f4780400000000000000000000000000000000000000000000000000000000) // `DeploymentFailed()` selector
+                revert(ptr, 0x04)
+            }
+        }
+    }

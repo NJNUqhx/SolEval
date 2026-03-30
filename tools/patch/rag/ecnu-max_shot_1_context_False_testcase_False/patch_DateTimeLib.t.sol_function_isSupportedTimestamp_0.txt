@@ -1,0 +1,15 @@
+function isSupportedTimestamp(uint256 timestamp) internal  pure returns (bool result) {
+function isSupportedTimestamp(uint256 timestamp) internal  pure returns (bool result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Perform an unchecked operation to avoid overflow/underflow checks.
+            // Compare the provided timestamp against the maximum supported timestamp.
+            // Assuming MAX_SUPPORTED_TIMESTAMP is a constant or defined elsewhere.
+            // For the sake of this example, let's assume MAX_SUPPORTED_TIMESTAMP is 2^256 - 1 (uint256 max).
+            // If you have a specific constant, replace `sub(not(0), 0)` with that constant.
+            let maxSupportedTimestamp := sub(not(0), 0)
+            
+            // Return true if the timestamp is less than or equal to the maximum supported timestamp.
+            result := gt(add(maxSupportedTimestamp, 1), timestamp)
+        }
+    

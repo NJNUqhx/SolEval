@@ -1,0 +1,19 @@
+function malloc(uint256 n) internal  pure returns (uint256[] memory result) {
+function malloc(uint256 n) internal  pure returns (uint256[] memory result) {
+function malloc(uint256 n) internal  pure returns (uint256[] memory result) {
+        assembly ("memory-safe") {
+            // Step 1: Get the current free memory pointer
+            result := mload(0x40)
+            
+            // Step 2: Store the size of the array (n) at the allocated memory location
+            mstore(result, n)
+            
+            // Calculate the new free memory pointer:
+            // Current pointer + 32 bytes (for the length) + n * 32 bytes (for the elements)
+            // n * 32 is equivalent to shl(5, n)
+            let nextFree := add(add(result, 0x20), shl(5, n))
+            
+            // Step 3: Update the free memory pointer
+            mstore(0x40, nextFree)
+        }
+    }

@@ -1,0 +1,41 @@
+function isValidERC1271SignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+function isValidERC1271SignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+function isValidERC1271SignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+    if (signer == address(0)) return false;
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Get free memory pointer
+        let ptr := mload(0x40)
+        // Calculate total size needed: 4 (selector) + 32 (hash) + 32 (offset) + 32 (length) + length(signature)
+        // Round up to nearest 32 bytes for the signature part
+        let sigLen := mload(signature)
+        let sigData := add(signature, 0x20)
+        let totalSize := add(0x80, and(add(sigLen, 0x1f), not(0x1f)))
+        
+        // Update free memory pointer
+        mstore(0x40, add(ptr, totalSize))
+        
+        // Store selector: isValidSignature(bytes32,bytes) = 0x1626ba7e
+        mstore(ptr, 0x1626ba7e00000000000000000000000000000000000000000000000000000000)
+        // Store hash
+        mstore(add(ptr, 0x04), hash)
+        // Store offset to signature data (64 bytes from start of params)
+        mstore(add(ptr, 0x24), 0x40)
+        // Store signature length
+        mstore(add(ptr, 0x44), sigLen)
+        // Copy signature data
+        if sigLen {
+            pop(staticcall(gas(), signer, ptr, totalSize, ptr, 0x20))
+        } else {
+            pop(staticcall(gas(), signer, ptr, 0x60, ptr, 0x20))
+        }
+        
+        // Check return size and value
+        // Expected return is 0x1626ba7e (4 bytes), but staticcall writes 32 bytes to memory
+        // We check if returndatasize >= 32 and the first 4 bytes match the selector
+        isValid := and(
+            and(gt(returndatasize(), 0x1f), eq(shr(224, mload(ptr)), 0x1626ba7e)),
+            eq(returndatasize(), 0x20)
+        )
+    }
+}

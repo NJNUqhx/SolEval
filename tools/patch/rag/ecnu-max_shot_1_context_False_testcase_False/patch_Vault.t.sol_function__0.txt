@@ -1,0 +1,5 @@
+constructor (bytes32 _password) {
+constructor (bytes32 _password) {
+locked = true;
+        password = _password;
+    }

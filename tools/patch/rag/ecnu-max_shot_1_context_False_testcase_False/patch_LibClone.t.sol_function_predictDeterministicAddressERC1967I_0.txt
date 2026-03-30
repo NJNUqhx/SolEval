@@ -1,0 +1,5 @@
+function predictDeterministicAddressERC1967I(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+function predictDeterministicAddressERC1967I(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+bytes32 hash = initCodeHashERC1967(implementation);
+        predicted = predictDeterministicAddress(hash, salt, deployer);
+    }

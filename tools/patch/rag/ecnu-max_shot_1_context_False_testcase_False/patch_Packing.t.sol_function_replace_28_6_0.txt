@@ -1,0 +1,34 @@
+function replace_28_6(bytes28 self, bytes6 value, uint8 offset) internal  pure returns (bytes28 result) {
+function replace_28_6(bytes28 self, bytes6 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+        // Extract the existing 6-byte value at the specified offset.
+        // We assume extract_28_6 is available in the context or defined previously.
+        // If not, we implement the extraction logic inline for completeness based on typical patterns.
+        // Shift self right by (28 - offset - 6) * 8 bits to align the target 6 bytes to the least significant position.
+        let shiftRight := mul(sub(sub(28, offset), 6), 8)
+        let oldSegment := shr(shiftRight, self)
+        // Mask to ensure only 6 bytes (48 bits) are considered.
+        oldSegment := and(oldSegment, 0xFFFFFFFFFFFF)
+
+        // Mask the input value to ensure it is strictly 6 bytes.
+        let newSegment := and(value, 0xFFFFFFFFFFFF)
+
+        // If the segments are identical, no change is needed.
+        if eq(oldSegment, newSegment) {
+            result := self
+            leave
+        }
+
+        // Calculate the XOR difference: (oldSegment ^ newSegment).
+        // This gives us a mask with 1s where bits need to be flipped.
+        let diff := xor(oldSegment, newSegment)
+
+        // Shift the difference back to the original offset position.
+        let shiftedDiff := shl(shiftRight, diff)
+
+        // XOR the original self with the shifted difference to apply the replacement.
+        // self ^ (old ^ new) shifted = (self ^ old_shifted) ^ new_shifted
+        // Since self contained old_shifted at that position, self ^ old_shifted clears those bits,
+        // and ^ new_shifted sets the new bits.
+        result := xor(self, shiftedDiff)
+    }

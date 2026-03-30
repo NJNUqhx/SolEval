@@ -1,0 +1,4 @@
+function readSymbol(address target, uint256 limit, uint256 gasStipend) internal  view returns (string memory) {
+function readSymbol(address target, uint256 limit, uint256 gasStipend) internal  view returns (string memory) {
+return _string(target, 0x95d89b41, limit, gasStipend);
+    }

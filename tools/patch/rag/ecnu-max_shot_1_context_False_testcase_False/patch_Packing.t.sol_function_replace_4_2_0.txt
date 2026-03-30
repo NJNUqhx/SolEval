@@ -1,0 +1,36 @@
+function replace_4_2(bytes4 self, bytes2 value, uint8 offset) internal  pure returns (bytes4 result) {
+function replace_4_2(bytes4 self, bytes2 value, uint8 offset) internal  pure returns (bytes4 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Extract the existing 2-byte value at the specified offset.
+            // If offset is 0, we look at the lower 2 bytes (shifted right by 0? No, big-endian logic in bytes4).
+            // bytes4 layout: [0][1][2][3]. 
+            // offset 0 means replace bytes [0][1]. offset 1 means replace bytes [2][3].
+            // In integer representation (big-endian interpretation for bytesN):
+            // Value = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
+            // offset 0 targets (b0 << 16 | b1 << 8) -> shift right by 16 to isolate? 
+            // Actually, let's just use bitwise logic directly on the integer value.
+            
+            // Convert offset to shift amount. 
+            // If offset == 0, we want to modify the upper 2 bytes (bits 24-15). Shift = 16.
+            // If offset == 1, we want to modify the lower 2 bytes (bits 15-0). Shift = 0.
+            // Formula: shift = (1 - offset) * 16.
+            
+            let shift := shl(4, sub(1, offset)) // (1 - offset) * 16
+            
+            // Mask for 2 bytes: 0xFFFF
+            let mask := 0xFFFF
+            
+            // Extract old 2-byte segment: (self >> shift) & 0xFFFF
+            let oldSegment := and(shr(shift, self), mask)
+            
+            // Prepare new 2-byte segment: (value & 0xFFFF) << shift
+            // Ensure value is treated as integer and masked
+            let newSegment := shl(shift, and(value, mask))
+            
+            // Perform replacement using XOR:
+            // result = self ^ oldSegment ^ newSegment
+            // This clears the old bits and sets the new bits.
+            result := xor(xor(self, oldSegment), newSegment)
+        }
+    }

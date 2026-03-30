@@ -1,0 +1,49 @@
+function extract_6_2(bytes6 self, uint8 offset) internal  pure returns (bytes2 result) {
+function extract_6_2(bytes6 self, uint8 offset) internal  pure returns (bytes2 result) {
+if (offset > 4) {
+    revert("OutOfRangeAccess");
+}
+
+/// @solidity memory-safe-assembly
+assembly {
+    // Load the 6-byte value into a 32-bit word (it will be left-aligned in the 32-byte slot if loaded as bytes6, 
+    // but here we treat 'self' as a value directly).
+    // Since 'self' is bytes6, when passed to assembly, it occupies the lower 6 bytes of a 32-byte word if treated carefully,
+    // but typically Solidity passes fixed-size bytesN right-aligned in the stack slot for values < 32 bytes? 
+    // Actually, for bytes6, it is stored in the lower 6 bytes of the 32-byte slot (right-aligned) when used as a value in assembly?
+    // Let's verify: Solidity stores fixed-size bytesN in the least significant bytes (right-aligned) of the 32-byte word.
+    // So if self = 0x010203040506, in assembly it is 0x...0000010203040506.
+    
+    // We need to extract 2 bytes starting at 'offset'.
+    // Total bytes = 6. We want 2 bytes. Offset can be 0 to 4.
+    // If offset = 0, we want bytes at position 0 and 1 (most significant of the 6? or least?).
+    // In bytes6, index 0 is the most significant byte of the 6-byte sequence.
+    // Example: bytes6 b = hex"010203040506"; b[0] = 0x01, b[1] = 0x02, ..., b[5] = 0x06.
+    // In memory/stack representation (right-aligned): 0x0000000000000000000000000000000000000000000000000000010203040506
+    // The byte 0x01 is at bit position 40 (from right, 0-indexed), 0x06 is at bit position 0.
+    // Specifically:
+    // Byte 0 (0x01) is at bits 40-47.
+    // Byte 1 (0x02) is at bits 32-39.
+    // ...
+    // Byte 5 (0x06) is at bits 0-7.
+    
+    // We want to extract 2 bytes starting at 'offset'.
+    // If offset = 0, we want bytes 0 and 1 -> bits 40-47 and 32-39 -> combined 16 bits at 32-47.
+    // If offset = 4, we want bytes 4 and 5 -> bits 8-15 and 0-7 -> combined 16 bits at 0-15.
+    
+    // Formula:
+    // The starting bit position (from right) for byte 'offset' in a 6-byte number is: (5 - offset) * 8.
+    // But we want to extract 2 bytes. The 2-byte segment starts at byte 'offset'.
+    // The least significant byte of our 2-byte result should be the byte at (offset + 1).
+    // The most significant byte of our 2-byte result should be the byte at (offset).
+    
+    // Let's re-evaluate based on shifting.
+    // We have the value right-aligned: [0...0][B0][B1][B2][B3][B4][B5]
+    // We want [B_offset][B_offset+1].
+    // To get [B_offset][B_offset+1] to the least significant position (right-aligned for bytes2):
+    // We need to shift right by (5 - (offset + 1)) * 8 = (4 - offset) * 8 bits.
+    // Then mask with 0xFFFF to ensure only 2 bytes.
+    
+    let shifted := shr(mul(sub(4, offset), 8), self)
+    result := and(shifted, 0xFFFF)
+}

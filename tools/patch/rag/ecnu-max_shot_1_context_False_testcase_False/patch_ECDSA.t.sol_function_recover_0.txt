@@ -1,0 +1,49 @@
+function recover(bytes32 hash, bytes memory signature) internal  view returns (address result) {
+function recover(bytes32 hash, bytes memory signature) internal  view returns (address result) {
+assembly {
+            let len := mload(signature)
+            let v := 0
+            let r := 0
+            let s := 0
+
+            if eq(len, 64) {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+            } else if eq(len, 65) {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+                // Adjust v if it's 27 or 28 to 0 or 1 for ecrecover precompile
+                if gt(v, 1) { v := sub(v, 27) }
+            } else {
+                // Revert with "InvalidSignature"
+                mstore(0x00, 0x496e76616c69645369676e617475726500000000000000000000000000000000)
+                revert(0x00, 0x10)
+            }
+
+            // Prepare memory for ecrecover precompile (address 0x01)
+            // Slot 0: hash (32 bytes)
+            // Slot 1: v (32 bytes, padded)
+            // Slot 2: r (32 bytes)
+            // Slot 3: s (32 bytes)
+            mstore(0x00, hash)
+            mstore(0x20, v)
+            mstore(0x40, r)
+            mstore(0x60, s)
+
+            let success := staticcall(gas(), 0x01, 0x00, 0x80, 0x00, 0x20)
+            
+            if success {
+                result := mload(0x00)
+            } else {
+                result := address(0)
+            }
+
+            // Restore zero slot and free memory pointer to prevent dirty memory issues
+            mstore(0x00, 0)
+            mstore(0x20, 0)
+            mstore(0x40, 0)
+            mstore(0x60, 0)
+        }
+    }

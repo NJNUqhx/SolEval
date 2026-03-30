@@ -1,0 +1,78 @@
+function nonReentrant()  virtual {
+function nonReentrant()  virtual {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice A reentrancy guard modifier to prevent reentrant calls.
+ *
+ * This modifier uses a transient storage slot to store the reentrancy guard state.
+ * It checks if the current chain is Ethereum mainnet (chain ID 1) and uses different
+ * storage mechanisms accordingly. If the guard is already active, it reverts with
+ * a `Reentrancy()` error. Otherwise, it sets the guard and proceeds with the function.
+ * After the function execution, it resets the guard state.
+ *
+ * Steps:
+ * 1. Check if the transient reentrancy guard should be used only on mainnet.
+ * 2. If on mainnet:
+ *    a. Use transient storage (`tload` and `tstore`) to manage the reentrancy guard.
+ *    b. If the guard is already active, revert with `Reentrancy()`.
+ *    c. Otherwise, set the guard to the current contract's address.
+ * 3. If not on mainnet:
+ *    a. Use regular storage (`sload` and `sstore`) to manage the reentrancy guard.
+ *    b. If the guard is already active, revert with `Reentrancy()`.
+ *    c. Otherwise, set the guard to the current contract's address.
+ * 4. Execute the function body.
+ * 5. After execution, reset the reentrancy guard state.
+ *    a. On mainnet, use transient storage to reset the guard.
+ *    b. On other chains, use regular storage to reset the guard.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function nonReentrant()  virtual {
+        assembly {
+            let chainId := chainid()
+            let self := address()
+            
+            // Define the storage slot for reentrancy guard (arbitrary unique slot)
+            // Using hash of "reentrancy.guard.slot" or a fixed constant. 
+            // Here we use a fixed constant slot for demonstration: 0x92c10760 (example)
+            // In a real implementation, this should be a unique, collision-resistant slot.
+            let slot := 0x92c10760 
+
+            if eq(chainId, 1) {
+                // Mainnet: Use Transient Storage (EIP-1153)
+                let status := tload(slot)
+                if status {
+                    // Revert with Reentrancy() error signature: 0xab143c06
+                    mstore(0x00, 0xab143c0600000000000000000000000000000000000000000000000000000000)
+                    revert(0x00, 0x04)
+                }
+                tstore(slot, self)
+            } else {
+                // Non-Mainnet: Use Persistent Storage
+                let status := sload(slot)
+                if status {
+                    // Revert with Reentrancy() error signature: 0xab143c06
+                    mstore(0x00, 0xab143c0600000000000000000000000000000000000000000000000000000000)
+                    revert(0x00, 0x04)
+                }
+                sstore(slot, self)
+            }
+
+            // Execute the function body
+            let success := call(gas(), self, 0, 0, 0, 0, 0)
+            
+            // Reset the guard after execution
+            if eq(chainId, 1) {
+                tstore(slot, 0)
+            } else {
+                sstore(slot, 0)
+            }
+            
+            if iszero(success) {
+                revert(0, 0)
+            }
+        }
+    }

@@ -1,0 +1,9 @@
+function free(bytes32[] memory buffer) internal  pure {
+function free(bytes32[] memory buffer) internal  pure {
+uint256 len = buffer.length;
+    assembly {
+        let mptr := mload(0x40)
+        if and(iszero(len), eq(add(buffer, 0x20), mptr)) {
+            mstore(0x40, sub(mptr, mul(add(len, 1), 0x20)))
+        }
+    }

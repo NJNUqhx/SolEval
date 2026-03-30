@@ -9,103 +9,52 @@ import warnings
 from datetime import datetime
 import tiktoken
 import torch
+import requests
+import pickle
 from openai import OpenAI
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from utils.logger import MyLogger
 from utils.retrieve import init_bert_model, query
+from llm_call import call
 
+# 保存测试prompt
+prompt_idx = 0
+prompt_list = []
 
 def few_shot_generation(args, prompt, tokenizer, model, sample):
     output_list = []
-    if args.model == "DeepSeek-V3":
-        client = OpenAI(api_key="sk-03f8ceb10b22426bb235639e45aa1c91", base_url="https://api.deepseek.com/beta")
-        for _ in range(sample):
-            response = client.completions.create(
-                model="deepseek-chat",
-                prompt=prompt,
-                max_tokens=1024,
-                # top_p=args.p,
-                temperature=args.temperature,
-                suffix="// END_OF_FUNCTION",
-            )
-            output = response.choices[0].text
-            logger.info_blue(prompt + output)
-            logger.info_blue("=====================================")
-            output_list.append(output)
-    elif args.model == "gpt-4o-mini":
-        client = OpenAI(api_key="fk230647-IN0mMHTRLndX59NxjHI0FZ0zlvPtr39C",
-                        base_url="https://oa.api2d.net")
-        for _seed in range(sample):
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "developer",
-                     "content": "You are a professional Solidity engineer. Please continue to generate a function based on the provided requirement and function signature, NO need to repeat the signature. End your function with // END_OF_FUNCTION"},
+    
+    if args.model == "ecnu-max" or args.model.startswith("test"):
+        messages = [
+                    {"role": "system",
+                     "content": "You are a professional Solidity engineer. Please continue to generate a function based on the provided requirement and function signature, NO need to repeat the signature. End your function with // END_OF_FUNCTION. Never add any additional explanation or comments."},
                     {"role": "user", "content": prompt},
-                ],
-                max_tokens=512,
-                # n=10,
-                temperature=args.temperature,
-                seed=_seed
-
-            )
-            output = str(response.choices[0].message.content)
+                ]
+        logger.info_blue("--------------prompt(start)-----------------")
+        logger.info(prompt)
+        logger.info_blue("--------------prompt(end)-----------------")
+        
+        for idx in range(sample):
+            response = call(messages)
+            output = str(response)
             output = output[:output.rfind("// END_OF_FUNCTION")]
             output = output.replace("```solidity", "")
             output = function_full_sig.strip('\n') + '\n' + output.strip('\n')
+            
+            logger.info_blue("--------------function(start)-----------------")
             logger.info_blue(output)
-            # for idx, out in enumerate(output_list):
+            logger.info_blue("--------------function(end)-----------------")
             with open(
                     f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{idx}.txt",
                     'w') as f:
                 f.write(output)
-    elif args.model == "gpt-4o":
-        client = OpenAI(api_key="fk230647-IN0mMHTRLndX59NxjHI0FZ0zlvPtr39C",
-                        base_url="https://oa.api2d.net")
-        for _seed in range(sample):
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "developer",
-                     "content": "You are a professional Solidity engineer. Please continue to generate a function based on the provided requirement and function signature, NO need to repeat the signature. End your function with // END_OF_FUNCTION"},
-                    {"role": "user", "content": prompt},
-                ],
-                max_tokens=512,
-                # n=10,
-                temperature=args.temperature,
-                seed=_seed
-            )
-            output = str(response.choices[0].message.content)
-            output = output[:output.rfind("// END_OF_FUNCTION")]
-            output = output.replace("```solidity", "")
-            output = function_full_sig.strip('\n') + '\n' + output.strip('\n')
-            logger.info_blue(output)
-            with open(
-                    f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{idx}.txt",
-                    'w') as f:
-                f.write(output)
-    else:
-        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-        raw_outputs = model.generate(
-            **inputs,
-            max_new_tokens=512,
-            do_sample=True,
-            # top_p=args.p,
-            # top_k=args.k,
-            temperature=args.temperature,
-            eos_token_id=tokenizer.eos_token_id,
-            pad_token_id=tokenizer.eos_token_id,
-            num_return_sequences=sample
-        )
-        for raw_output in raw_outputs:
-            logger.info_blue(tokenizer.decode(raw_output))
-            output = tokenizer.decode(raw_output[len(inputs[0]):])
-            if output.find("// END_OF_FUNCTION"):
-                output = output[:output.find("// END_OF_FUNCTION")].rstrip()
-                output = output[:output.rfind("}") + 1]
-            output_list.append(output)
+            output_list.append(output)    
+            
+    elif args.model == "debug":
+        return []
+    
     return output_list
 
 
@@ -114,9 +63,10 @@ def num_tokens_from_string(string: str, encoding_name: str) -> int:
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
+# /root/contract2solidity/SolEval/data/example.json
 
 if __name__ == '__main__':
-    with open('data/dataset.json', 'r') as file:
+    with open('/root/contract2solidity/SolEval/data/dataset.json', 'r') as file:
         data = json.load(file)
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
     warnings.filterwarnings("ignore")
@@ -127,7 +77,7 @@ if __name__ == '__main__':
     parser.add_argument("--sample", type=int, default=10)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--model", type=str, default="CodeLlama_7b")
+    parser.add_argument("--model", type=str, default="debug")
     parser.add_argument('--k',
                         help='The number of highest probability vocabulary tokens to keep for top-k-filtering. '
                              'Only applies for sampling mode, with range from 1 to 100.',
@@ -145,105 +95,77 @@ if __name__ == '__main__':
     parser.add_argument('--context', action='store_true', default=False, help='Enable context for generation')
     parser.add_argument('--testcase', action='store_true', default=False, help='Enable testcase for generation')
     parser.add_argument('--shot', help='', type=int, default=2)
+    parser.add_argument('--filesize', help='测试文件数量', type=int, default=81)
+    parser.add_argument('--methodsize', help='测试方法数量', type=int, default=1125)
+    parser.add_argument("--overwrite", action='store_true', default=False, help='Whether to overwrite existing patch files')
+    
     args = parser.parse_args()
     embedding_list, original_document_list, func_list = init_bert_model()
     log_file = f"log_{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}_{current_time}.txt"
     logger = MyLogger(f"logs_patch/rag/{log_file}")
     total_token = 0
     token_tries = 0
-    if args.model == "DeepSeek-Coder-33B":
-        tokenizer = AutoTokenizer.from_pretrained('deepseek-ai/deepseek-coder-33b-instruct',
-                                                  use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained('deepseek-ai/deepseek-coder-33b-instruct',
-                                                     trust_remote_code=True, torch_dtype=torch.bfloat16,
-                                                     device_map='auto')
-    elif args.model == "CodeLlama_7b":
-        tokenizer = AutoTokenizer.from_pretrained('codellama/CodeLlama-7b-Instruct-hf', use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained('codellama/CodeLlama-7b-Instruct-hf',
-                                                     trust_remote_code=True,
-                                                     torch_dtype=torch.bfloat16, device_map='auto')
-    elif args.model == "CodeLlama-34B":
-        tokenizer = AutoTokenizer.from_pretrained('codellama/CodeLlama-34b-Instruct-hf', use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained('codellama/CodeLlama-34b-Instruct-hf',
-                                                     trust_remote_code=True, torch_dtype=torch.bfloat16,
-                                                     device_map='auto')
-    elif args.model == "Qwen-7B":
-        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-Coder-7B-Instruct", use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained('Qwen/Qwen2.5-Coder-7B-Instruct',
-                                                     trust_remote_code=True, torch_dtype=torch.bfloat16,
-                                                     device_map='auto')
-
-    elif args.model == "Qwen-32B":
-        tokenizer = AutoTokenizer.from_pretrained(
-            'Qwen/Qwen2.5-Coder-32B-Instruct',
-            use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained(
-            'Qwen/Qwen2.5-Coder-32B-Instruct',
-            trust_remote_code=True, torch_dtype=torch.bfloat16, device_map='auto')
-    elif args.model == "DeepSeek-Coder":
-        tokenizer = AutoTokenizer.from_pretrained(
-            'deepseek-ai/deepseek-coder-6.7b-instruct',
-            use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained(
-            'deepseek-ai/deepseek-coder-6.7b-instruct',
-            trust_remote_code=True, torch_dtype=torch.bfloat16, device_map='auto')
-    elif args.model == "CodeLlama":
-        tokenizer = AutoTokenizer.from_pretrained(
-            'codellama/CodeLlama-34b-Instruct-hf',
-            use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained(
-            'codellama/CodeLlama-34b-Instruct-hf',
-            trust_remote_code=True, torch_dtype=torch.bfloat16, device_map='auto')
-    elif args.model == "DeepSeek-Coder-V2":
-        tokenizer = AutoTokenizer.from_pretrained(
-            'deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct',
-            use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained(
-            'deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct',
-            trust_remote_code=True, torch_dtype=torch.bfloat16, device_map='auto')
-    elif args.model == "Magicoder":
-        tokenizer = AutoTokenizer.from_pretrained(
-            'ise-uiuc/Magicoder-S-DS-6.7B',
-            use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained(
-            'ise-uiuc/Magicoder-S-DS-6.7B',
-            trust_remote_code=True, torch_dtype=torch.bfloat16, device_map='auto')
-    elif args.model == "OpenCode":
-        tokenizer = AutoTokenizer.from_pretrained(
-            'm-a-p/OpenCodeInterpreter-DS-6.7B',
-            use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained(
-            'm-a-p/OpenCodeInterpreter-DS-6.7B',
-            trust_remote_code=True, torch_dtype=torch.bfloat16, device_map='auto')
-    elif args.model == "OpenCode-33B":
-        tokenizer = AutoTokenizer.from_pretrained(
-            'm-a-p/OpenCodeInterpreter-DS-33B',
-            use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained(
-            'm-a-p/OpenCodeInterpreter-DS-33B',
-            trust_remote_code=True, torch_dtype=torch.bfloat16, device_map='auto')
-    elif args.model == "KwaiCoder":
-        tokenizer = AutoTokenizer.from_pretrained('Kwaipilot/KwaiCoder-23B-A4B-v1', use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained('Kwaipilot/KwaiCoder-23B-A4B-v1', trust_remote_code=True,
-                                                     torch_dtype=torch.bfloat16, device_map='auto')
-    else:
-        tokenizer, model = None, None
+    file_size = args.filesize
+    method_size = args.methodsize
+    
+    tokenizer, model = None, None
 
     if not os.path.exists(f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}"):
         os.makedirs(f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}")
 
-    import pickle
 
-    real_path_cargo = pickle.load(open("prebuilt/real_path_cargo.pkl", "rb"))
+
+    real_path_cargo = pickle.load(open("/root/contract2solidity/SolEval/prebuilt/real_path_cargo.pkl", "rb"))
+    
+    context_example_cnt = 0  
+    
+    if args.model == "debug":
+        # 1. 基础数量统计
+        total_files = len(data)
+        # 统计每个文件包含的方法数量
+        methods_per_file = [len(content) for content in data.values()]
+        total_methods = sum(methods_per_file)
+        
+        logger.info_blue(f"--- 数据集概览 ---")
+        logger.info_blue(f"总文件数: {total_files}")
+        logger.info_blue(f"总方法数: {total_methods}")
+        if total_files > 0:
+            logger.info_blue(f"平均每个文件的方法数: {total_methods / total_files:.2f}")
+            logger.info_blue(f"单文件最多方法数: {max(methods_per_file)}")
+        
+        sys.exit(0)
+    
+    file_count = 0
+    method_count = 0
+    overwrite = args.overwrite
+    
     for file_path, file_content in tqdm(data.items(), colour='green'):
         logger.info_white("file_path:\n" + file_path)
+        
+        # 限制测试文件数量
+        file_count += 1
+        if file_count > file_size or method_count > method_size:
+            break
+        
         for method in tqdm(file_content, colour="red"):
+            
+            method_count += 1
+            # 限制测试方法数量
+            if method_count > method_size:
+                break
+            
             identifier = method['identifier']
-            if os.path.exists(
-                    f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{args.sample - 1}.txt"):
-                logger.info_blue(
-                    f"exist patch file, skipping {real_path_cargo[file_path].split('/')[-1]}_function_{identifier}")
-                continue
+            
+            # 查看是否覆写
+            file_name = f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{args.sample - 1}.txt"
+            if os.path.exists(file_name):
+                if overwrite:
+                    # 删除该文件
+                    os.remove(file_name)
+                else:
+                    logger.info_blue(
+                        f"exist patch file, skipping {real_path_cargo[file_path].split('/')[-1]}_function_{identifier}")
+                    continue
 
             comment = method['human_labeled_comment'].strip()
             context = eval(method['context']) if method['context'] != "" else None
@@ -262,10 +184,20 @@ if __name__ == '__main__':
                 if not context:
                     prompt = prompt + "No context for this function" + '\n'
                 else:
+                    context_example_cnt += 1
                     for c in context:
                         prompt = prompt + c + '\n'
                 prompt = prompt + "// END_OF_CONTEXT" + '\n'
+                
+                
             prompt = prompt + '\n' + "// START_OF_FUNCTION" + '\n' + function_full_sig
+            
+            prompt_idx += 1
+            prompt_list.append({
+                "idx": prompt_idx,
+                "prompt": prompt
+            })
+            
             import glob
             import os
             import re
@@ -276,9 +208,8 @@ if __name__ == '__main__':
                 if os.path.isfile(file_path_) and re.search(rf'_{identifier}_\d+\.txt$', file_path_):
                     matching_files.append(file_path_)
             have_sample = len(matching_files)
-            # inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-            # if len(inputs[0]) > 2048:
-            #     continue
+
+
             while True:
                 try:
                     start_time = time.time()
@@ -296,9 +227,8 @@ if __name__ == '__main__':
                             time.sleep(1)
                         # slow = True
             output_list = [function_full_sig.strip('\n') + '\n' + output.strip('\n') for output in output_list]
-            if args.model != "gpt-4o-mini":
-                for idx, out in enumerate(output_list):
-                    with open(
-                            f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{idx + have_sample}.txt",
-                            'w') as f:
-                        f.write(out)
+            
+    
+    if args.model == "debug":
+        with open('/root/contract2solidity/SolEval/dataset/prompt.json', 'w', encoding='utf-8') as f:
+            json.dump(prompt_list, f, ensure_ascii=False, indent=4) 

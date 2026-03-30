@@ -1,0 +1,24 @@
+function setCalldataCompat(TBytes storage ptr, bytes calldata value) internal {
+function setCalldataCompat(TBytes storage ptr, bytes calldata value) internal {
+if (block.chainid == 1) {
+            setCalldata(ptr, value);
+            return;
+        }
+        _compat(ptr);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let len := calldataload(value.offset)
+            sstore(ptr.slot, len)
+            if iszero(lt(len, 29)) {
+                let offset := add(value.offset, 0x20)
+                let end := add(offset, len)
+                let slot := add(ptr.slot, 1)
+                for {} lt(offset, end) {
+                    offset := add(offset, 0x20)
+                    slot := add(slot, 1)
+                } {
+                    sstore(slot, calldataload(offset))
+                }
+            }
+        }
+    }

@@ -1,0 +1,14 @@
+[2026-03-30 04:54:10] [INFO] --- 数据集概览 ---
+[2026-03-30 04:54:10] [INFO] 总文件数: 81
+[2026-03-30 04:54:10] [INFO] 总方法数: 1125
+[2026-03-30 04:54:10] [INFO] 平均每个文件的方法数: 13.89
+[2026-03-30 04:54:10] [INFO] 单文件最多方法数: 212
+[2026-03-30 04:54:10] [INFO] --- 累加统计概览 ---
+[2026-03-30 04:54:10] [INFO] 每个文件的方法数列表: [212, 9, 6, 2, 6, 10, 3, 18, 3, 18] ...
+[2026-03-30 04:54:10] [INFO] 累加方法数数组: [212, 221, 227, 229, 235, 245, 248, 266, 269, 287] ...
+[2026-03-30 04:54:10] [INFO] --- 方法数最高的 Top 5 文件 ---
+[2026-03-30 04:54:10] [INFO] Rank 1: 212 methods - Path: /root/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-03-30 04:54:10] [INFO] Rank 2: 106 methods - Path: /root/solady/lib/solady/src/utils/LibClone.sol
+[2026-03-30 04:54:10] [INFO] Rank 3: 95 methods - Path: /root/solady/lib/solady/src/utils/SafeCastLib.sol
+[2026-03-30 04:54:10] [INFO] Rank 4: 66 methods - Path: /root/solady/lib/solady/src/utils/FixedPointMathLib.sol
+[2026-03-30 04:54:10] [INFO] Rank 5: 52 methods - Path: /root/solady/lib/solady/src/utils/DynamicArrayLib.sol

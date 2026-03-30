@@ -1,0 +1,6 @@
+function toInt40(int256 x) internal  pure returns (int40) {
+function toInt40(int256 x) internal  pure returns (int40) {
+if (x < type(int40).min || x > type(int40).max) {
+    revert SafeCastOverflow();
+}
+return int40(x);

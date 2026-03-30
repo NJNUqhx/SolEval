@@ -1,0 +1,61 @@
+function isSupportedDate(uint256 year, uint256 month, uint256 day) internal  pure returns (bool result) {
+function isSupportedDate(uint256 year, uint256 month, uint256 day) internal  pure returns (bool result) {
+assembly {
+            // Step 1: Calculate the number of days in the provided month and year.
+            // We assume `daysInMonth` is an internal pure function available in the context.
+            // Since we cannot call high-level functions directly from assembly easily without stack manipulation,
+            // we will perform the logic inline or assume the caller handles the pre-check if strict assembly is required.
+            // However, the requirement says "Calculate... using daysInMonth". In pure assembly within a function,
+            // we typically simulate the logic or rely on the fact that `daysInMonth` might be a macro or we implement the logic.
+            // Given the constraints of generating *only* the function body based on the signature and requirement:
+            // We will implement the calendar logic inline to ensure it works within the assembly block as requested.
+            
+            let max_year := 2106 // Example MAX_SUPPORTED_YEAR (commonly used in timestamp contexts)
+            let min_year := 1970
+
+            // Check Year Range
+            if or(lt(year, min_year), gt(year, max_year)) {
+                result := 0
+                leave
+            }
+
+            // Check Month Range (1-12)
+            if or(lt(month, 1), gt(month, 12)) {
+                result := 0
+                leave
+            }
+
+            // Calculate days in month
+            let days := 30
+            if or(eq(month, 1), eq(month, 3), eq(month, 5), eq(month, 7), eq(month, 8), eq(month, 10), eq(month, 12)) {
+                days := 31
+            }
+            if eq(month, 2) {
+                // Check for leap year
+                // Leap year if divisible by 4, but not by 100 unless also divisible by 400
+                let is_leap := 0
+                if eq(0, mod(year, 4)) {
+                    is_leap := 1
+                    if eq(0, mod(year, 100)) {
+                        is_leap := 0
+                        if eq(0, mod(year, 400)) {
+                            is_leap := 1
+                        }
+                    }
+                }
+                if is_leap {
+                    days := 29
+                } else {
+                    days := 28
+                }
+            }
+
+            // Check Day Range (1 to days)
+            if or(lt(day, 1), gt(day, days)) {
+                result := 0
+                leave
+            }
+
+            result := 1
+        }
+    

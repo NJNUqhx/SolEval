@@ -1,0 +1,48 @@
+constructor () {
+constructor () {
+    // Step 1: Cache the contract's address (`this`) as a uint256.
+    // Step 2: Cache the current chain ID.
+    // Note: Since these are typically stored in immutable variables for gas optimization, 
+    // we assume the existence of _contractAddress and _chainId immutables or state variables.
+    // If using immutables, assignment happens here directly.
+    
+    // Steps 3-5: Retrieve domain name/version and compute/cache their hashes if static.
+    // We assume helper functions _domainName(), _domainVersion(), and a flag _domainNameAndVersionMayChange() exist.
+    
+    bytes32 nameHash;
+    bytes32 versionHash;
+
+    if (!_domainNameAndVersionMayChange()) {
+        nameHash = keccak256(bytes(_domainName()));
+        versionHash = keccak256(bytes(_domainVersion()));
+        
+        // Cache the computed name and version hashes (assuming internal state variables _nameHash, _versionHash)
+        _nameHash = nameHash;
+        _versionHash = versionHash;
+
+        // Step 6: Compute the domain separator
+        // EIP-712 Domain Separator = keccak256(
+        //   keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+        //   nameHash,
+        //   versionHash,
+        //   chainId,
+        //   address(this)
+        // )
+        bytes32 typeHash = keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        );
+        
+        separator = keccak256(
+            abi.encode(
+                typeHash,
+                nameHash,
+                versionHash,
+                block.chainid,
+                address(this)
+            )
+        );
+
+        // Step 7: Cache the computed domain separator
+        _cachedDomainSeparator = separator;
+    }
+}

@@ -1,0 +1,66 @@
+function values(AddressSet storage set) internal  view returns (address[] memory result) {
+function values(AddressSet storage set) internal  view returns (address[] memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Calculate the root slot for the AddressSet.
+            // The struct layout is typically: slot 0 = packed (count + first element or sentinel), 
+            // slot 1+ = subsequent elements if count > 1 (depending on implementation, but usually standard mapping/set logic applies).
+            // However, based on the prompt's specific instruction to "Load the root packed value" and determine 'n',
+            // we assume a specific storage layout where the first slot holds metadata or the first item in a packed format,
+            // or more commonly for a custom set: slot `p` holds the count, and subsequent slots hold values.
+            // BUT, looking at the previous function style and typical optimized sets (like Solady/OpenZeppelin optimizations):
+            // Often, the first slot (set.slot) holds the length, and the values are stored in subsequent slots starting from set.slot + 1.
+            // OR, if it's a packed set of addresses, the logic might differ.
+            // Let's follow the prompt's steps literally:
+            // 1. Calculate root slot.
+            let root := set.slot
+            
+            // 2. Load the root packed value. 
+            // In many optimized implementations (e.g., Solady AddressSet), the first slot might store the length directly 
+            // or a packed structure. Let's assume the standard pattern where the length is stored at `root`.
+            // If the set stores values starting at `root + 1`, we read length from `root`.
+            let n := sload(root)
+            
+            // Allocate memory for the result array: 32 bytes for length + n * 32 bytes for data.
+            result := mload(0x40)
+            let freePtr := add(result, 0x20)
+            
+            // Store the length in the result array.
+            mstore(result, n)
+            
+            // Iterate through the stored addresses.
+            // Assuming values are stored sequentially starting from root + 1.
+            // If the implementation uses a sentinel (0 address) inside the list, we skip it.
+            // The prompt says: "Iterate through the stored addresses, skipping the zero sentinel value."
+            // This implies the storage might contain a 0 address that shouldn't be returned, or the count `n` includes it?
+            // Usually, `n` is the count of *valid* items. If the prompt implies we must filter zeros while iterating up to `n`,
+            // or if the storage layout has a specific structure.
+            // Let's assume the standard: `n` is the total count of items stored in slots [root+1 ... root+n].
+            // We iterate `i` from 0 to `n-1`.
+            
+            let i := 0
+            let dataPtr := add(root, 1) // Start reading from the next slot
+            
+            // We need a pointer to write to in memory
+            let writePtr := freePtr
+            
+            for {} lt(i, n) { i := add(i, 1) } {
+                let val := sload(add(dataPtr, i))
+                
+                // Skip zero sentinel value
+                if iszero(iszero(val)) {
+                    mstore(writePtr, val)
+                    writePtr := add(writePtr, 0x20)
+                }
+            }
+            
+            // Update the free memory pointer.
+            // The actual number of returned elements might be less if zeros were skipped.
+            // We need to update the length in the array header to match the written count.
+            let actualCount := div(sub(writePtr, freePtr), 0x20)
+            mstore(result, actualCount)
+            
+            // Update the global free memory pointer
+            mstore(0x40, writePtr)
+        }
+    }

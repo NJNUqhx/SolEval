@@ -1,0 +1,4 @@
+function cloneDeterministic(address implementation, bytes32 salt) internal   returns (address instance) {
+function cloneDeterministic(address implementation, bytes32 salt) internal   returns (address instance) {
+instance = cloneDeterministic_PUSH0(0, implementation, salt);
+    } 

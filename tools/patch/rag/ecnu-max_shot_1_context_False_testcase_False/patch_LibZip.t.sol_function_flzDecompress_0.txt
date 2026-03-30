@@ -1,0 +1,137 @@
+function flzDecompress(bytes memory data) internal  pure returns (bytes memory result) {
+function flzDecompress(bytes memory data) internal  pure returns (bytes memory result) {
+assembly {
+            // Load the length of the input data
+            let len := mload(data)
+            
+            // If input is empty, return empty bytes
+            if iszero(len) {
+                mstore(result, 0)
+                leave
+            }
+
+            // Pointers
+            let ip := add(data, 32) // Input pointer (skip length)
+            let end := add(ip, len) // End of input
+            let op := add(result, 32) // Output pointer (skip length)
+            
+            // We will dynamically track the output length in `op` relative to start
+            let startOp := op
+            
+            // Loop through input
+            for {} lt(ip, end) {} {
+                // Read control byte
+                let token := byte(0, mload(ip))
+                ip := add(ip, 1)
+                
+                // Extract type (first 3 bits)
+                let type := shr(5, token)
+                
+                if eq(type, 0) {
+                    // Type 0: Literal copy
+                    // Length is lower 5 bits + 1
+                    let length := add(and(token, 0x1F), 1)
+                    
+                    // Copy `length` bytes from ip to op
+                    // We use a loop for safety though often unrolled in optimized libs
+                    for { let i := 0 } lt(i, length) { i := add(i, 1) } {
+                        mstore8(op, byte(0, mload(ip)))
+                        op := add(op, 1)
+                        ip := add(ip, 1)
+                    }
+                } else {
+                    // Types 1, 2, 3: Back-reference copy
+                    // The structure varies slightly by type, but generally involves:
+                    // - Distance (offset back)
+                    // - Length (how many bytes to copy)
+                    
+                    let length
+                    let distance
+                    
+                    if eq(type, 1) {
+                        // Type 1: 
+                        // Byte 1 (current token): [3 bits type][5 bits length high]
+                        // Byte 2: [8 bits length low] -> Total length = (low 5 bits << 8) | next_byte + 1
+                        // Byte 3: [8 bits distance high]
+                        // Byte 4: [8 bits distance low]
+                        // Wait, standard FLZ usually:
+                        // Token: TTTLLLLL
+                        // If T != 0:
+                        //   Next byte is L_low. Length = (LLLLL << 8) | L_low + 1 (or similar offset)
+                        //   Next 2 bytes are Distance (big endian)
+                        
+                        let l_low := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        length := add(or(shl(8, and(token, 0x1F)), l_low), 1)
+                        
+                        let d_high := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        let d_low := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        distance := add(or(shl(8, d_high), d_low), 1)
+                        
+                    } else if eq(type, 2) {
+                        // Type 2: Short copy?
+                        // Often: Length = lower 5 bits + 4 (or similar base)
+                        // Distance is 2 bytes following? Or encoded differently?
+                        // Let's assume a common variation:
+                        // Length = (lower 5 bits) + 4
+                        // Next 2 bytes = Distance
+                        
+                        length := add(and(token, 0x1F), 4)
+                        
+                        let d_high := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        let d_low := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        distance := add(or(shl(8, d_high), d_low), 1)
+                        
+                    } else {
+                        // Type 3: Long copy?
+                        // Often: Length = lower 5 bits + 4 + 256? Or implies 3rd byte for length?
+                        // Let's assume: Length = (lower 5 bits) + 4 + (next_byte * 32)?
+                        // Or simpler: Length = lower 5 bits + 4, Distance is 3 bytes?
+                        // Without specific spec, we follow a robust pattern often seen:
+                        // Type 3: Length = (lower 5 bits) + 4 + (next_byte << 5)? 
+                        // Let's stick to a deterministic logic often used in these challenges:
+                        // Length = (lower 5 bits) + 4
+                        // Distance = 3 bytes? 
+                        // Actually, let's look at the "standard" simple FLZ often implemented in solidity contests:
+                        // Type 1: len = (L<<8)|next + 1, dist = 2 bytes
+                        // Type 2: len = L + 4, dist = 2 bytes
+                        // Type 3: len = L + 4 + (next<<5)? No.
+                        
+                        // Alternative interpretation based on common "fastlz" like logic in EVM:
+                        // Type 3: Length = (lower 5 bits) + 4, Distance = 3 bytes (24 bits)
+                        
+                        length := add(and(token, 0x1F), 4)
+                        
+                        let d_high := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        let d_mid := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        let d_low := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        distance := add(or(or(shl(16, d_high), shl(8, d_mid)), d_low), 1)
+                    }
+                    
+                    // Perform the back-copy
+                    // Source pointer = current output position - distance
+                    let src := sub(op, distance)
+                    
+                    // Copy `length` bytes
+                    for { let i := 0 } lt(i, length) { i := add(i, 1) } {
+                        mstore8(op, mload8(src))
+                        op := add(op, 1)
+                        src := add(src, 1)
+                    }
+                }
+            }
+            
+            // Set the length of the result
+            mstore(result, sub(op, startOp))
+            
+            // Zeroize the next memory slot to prevent dirty reads (standard solidity practice)
+            mstore(op, 0)
+        }
+    }

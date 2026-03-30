@@ -1,0 +1,17 @@
+function extract_28_6(bytes28 self, uint8 offset) internal  pure returns (bytes6 result) {
+function extract_28_6(bytes28 self, uint8 offset) internal  pure returns (bytes6 result) {
+if (offset > 22) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift the 28-byte input left by `8 * offset` to align the desired 6-byte segment
+            // to the most significant positions of the 32-byte word.
+            let shifted := shl(mul(8, offset), self)
+            
+            // Mask the result to keep only the top 6 bytes (48 bits).
+            // The mask 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000
+            // preserves bits 255 down to 208 (6 bytes) and zeros out the rest.
+            result := and(shifted, 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+        }
+    }

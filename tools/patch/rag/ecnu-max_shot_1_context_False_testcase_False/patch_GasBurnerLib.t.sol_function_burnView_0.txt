@@ -1,0 +1,23 @@
+function burnView(uint256 x) internal  view {
+function burnView(uint256 x) internal  view {
+uint256 n = x > 3500 ? x / 3200 : 0;
+        uint256 m;
+        /// @solidity memory-safe-assembly
+        assembly {
+            m := mload(0x40)
+            mstore(0x00, x)
+            mstore(0x00, keccak256(0x00, 0x20))
+            mstore(0x20, 0x01)
+            mstore(0x40, 0x00)
+            mstore(0x60, 0x20)
+            let i := 0
+            for {} lt(i, n) { i := add(i, 1) } {
+                pop(staticcall(gas(), 0x01, 0x00, 0x40, 0x00, 0x20))
+            }
+            if iszero(mload(0x10)) {
+                invalid()
+            }
+            mstore(0x60, 0)
+            mstore(0x40, m)
+        }
+    }

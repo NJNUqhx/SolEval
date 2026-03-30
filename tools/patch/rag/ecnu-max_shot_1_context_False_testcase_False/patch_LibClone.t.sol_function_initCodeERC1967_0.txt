@@ -1,0 +1,138 @@
+function initCodeERC1967(address implementation) internal  pure returns (bytes memory c) {
+function initCodeERC1967(address implementation) internal  pure returns (bytes memory c) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Load the free memory pointer
+            let fmp := mload(0x40)
+            
+            // Store the proxy contract's initialization code in memory.
+            // The bytecode corresponds to the logic that sets the implementation address in the ERC1967 slot.
+            // Opcode breakdown:
+            // 0x365f5f37365f73 -> Copy calldata to memory for delegatecall setup (standard proxy preamble)
+            // 0x5f5f365f73     -> Push 0, 0, calldatasize, 0, 0x73 (PUSH20 prefix)
+            // 0x5af43d5f5f3e   -> CALL, then check success, revert if fail
+            // 0x573d5ffd5b3d5ff3 -> Conditional revert or return logic
+            // Note: The specific sequence provided in the context hint is adapted here for the standard ERC1967 init code
+            // which typically stores the implementation address at the specific ERC1967 slot (0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc).
+            // However, following the pattern of the previous function and the requirement steps strictly:
+            
+            // We construct the init code that sets the implementation.
+            // Standard minimal proxy init code usually involves pushing the implementation and storing it.
+            // Let's construct the byte array manually as per the requirement steps.
+            
+            // Step 2 & 3: Store code and implementation.
+            // The sequence below creates an init code that stores `implementation` into the ERC1967 slot.
+            // Slot: 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+            // But often "initCode" in these cloning contexts refers to the creation bytecode that results in a proxy.
+            // Given the previous function's style, we are likely building a specific creation bytecode.
+            
+            // Re-evaluating based on the provided snippet style:
+            // The previous function used specific magic numbers. We will follow the requirement's logical steps.
+            
+            // Offset 0x00 relative to fmp: Length will be stored later or calculated.
+            // Let's place the code starting at fmp + 32 (standard bytes structure) or just fmp if returning raw ptr logic.
+            // Since return type is `bytes memory c`, Solidity expects: [32 bytes length][data...]
+            
+            let codeStart := add(fmp, 32)
+            
+            // Constructing the ERC1967 Initialization Code (Creation Bytecode)
+            // This bytecode, when executed, stores the implementation address in the ERC1967 slot and returns.
+            // PUSH32 <ERC1967_SLOT> PUSH20 <IMPLEMENTATION> STORE RETURN
+            // Actually, usually the clone logic passes the implementation in the appended data.
+            // But the requirement says "Store the implementation address in memory, shifted and combined".
+            
+            // Let's follow the exact steps described:
+            // 1. fmp loaded.
+            // 2. Store init code.
+            // 3. Store implementation shifted.
+            // 4. Store length.
+            // 5. Update fmp.
+            
+            // A common ERC1967 proxy creation bytecode (without constructor args) looks like:
+            // 602d5f8160095f39f35f5f365f5f37365f73 <20 bytes impl> 5af43d5f5f3e573d5ffd5b3d5ff3
+            // This matches the fragments seen in the previous function's context.
+            
+            // Part 1: Header
+            mstore(codeStart, 0x602d5f8160095f39f35f5f365f5f37365f730000000000000000000000000000)
+            
+            // Part 2: Implementation address (shifted to align with the 0x73 push)
+            // The 0x73 is at offset 19 (0x13) in the code sequence above? 
+            // Let's count: 602d(2) 5f(1) 81(1) 6009(2) 5f(1) 39(1) f3(1) 5f(1) 5f(1) 36(1) 5f(1) 5f(1) 37(1) 36(1) 5f(1) 73(1) = 19 bytes.
+            // So implementation should start at codeStart + 19.
+            mstore(add(codeStart, 19), shl(96, implementation))
+            
+            // Part 3: Footer (Logic to delegatecall and handle return)
+            // The header above included some footer logic? 
+            // Let's look at the previous function's magic: 0x5af43d5f5f3e6029573d5ffd5b3d5ff3
+            // That looks like the runtime code.
+            // The init code usually constructs the runtime code.
+            
+            // Let's try a standard minimal ERC1967 clone init code pattern:
+            // It copies the appended implementation address into the storage slot.
+            // But the requirement implies generating the "initialization code" which is the creation bytecode.
+            
+            // Let's assume the pattern from the previous function `cloneDeterministic_PUSH0` which had:
+            // mstore(0x00, 0x602d5f8160095f39f35f5f365f5f37365f73) -> 9 bytes? No, 0x602d... is 10 bytes?
+            // 60 2d 5f 81 60 09 5f 39 f3 5f 5f 36 5f 5f 37 36 5f 73 -> 18 bytes.
+            // Then implementation (20 bytes).
+            // Then 5a f4 3d 5f 5f 3e 57 3d 5f fd 5b 3d 5f f3 -> 14 bytes?
+            
+            // Let's reconstruct based on the requirement "Store the initialization code in memory".
+            // We will build the full creation bytecode.
+            
+            // Prefix: 602d5f8160095f39f35f5f365f5f37365f73 (18 bytes)
+            // This pushes 0x2d, swaps, etc. effectively setting up the return of the runtime code.
+            // Actually, 0x602d5f8160095f39f3 returns the code from offset 9 with length 0x2d (45).
+            // The code being returned starts at offset 9.
+            // Offset 0-8: 602d5f8160095f39f3 (9 bytes)
+            // Offset 9-...: The runtime code.
+            // Runtime code: 5f5f365f5f37365f73 <impl> 5af43d5f5f3e573d5ffd5b3d5ff3
+            
+            // Let's write the full sequence into memory.
+            // Total length = 9 (prefix) + 9 (runtime pre) + 20 (impl) + 14 (runtime post) = 52 bytes?
+            // 0x2d = 45. 45 + 9 = 54?
+            
+            // Let's stick to the visible constants in the context to ensure compatibility.
+            // Context had: 0x602d5f8160095f39f35f5f365f5f37365f73 (This is 18 bytes: 9 prefix + 9 runtime start)
+            // Context had: 0x5af43d5f5f3e6029573d5ffd5b3d5ff3 (This is 17 bytes? Let's count: 5a f4 3d 5f 5f 3e 60 29 57 3d 5f fd 5b 3d 5f f3 -> 16 bytes)
+            // Wait, 6029 is PUSH1 0x29.
+            
+            // Correct construction for ERC1967 Proxy Creation Code:
+            // 1. Prefix (returns the rest): 602d 5f 81 6009 5f 39 f3 (7 bytes? No)
+            // Let's use the values from the previous function which are known to work in this codebase.
+            // mstore(0x00, 0x602d5f8160095f39f35f5f365f5f37365f73) -> This writes 32 bytes.
+            // The relevant part is the first 18 bytes.
+            
+            // We will write the header.
+            mstore(codeStart, 0x602d5f8160095f39f35f5f365f5f37365f730000000000000000000000000000)
+            
+            // Write the implementation address shifted to align after the 0x73 (PUSH20)
+            // 0x73 is the 18th byte (index 17). So impl starts at index 18.
+            mstore(add(codeStart, 18), shl(96, implementation))
+            
+            // Write the footer.
+            // From context: 0x5af43d5f5f3e6029573d5ffd5b3d5ff3
+            // This needs to be placed after the implementation.
+            // Impl is 20 bytes. Starts at 18. Ends at 38.
+            // Footer starts at 38.
+            mstore(add(codeStart, 38), 0x5af43d5f5f3e6029573d5ffd5b3d5ff300000000000000000000000000000000)
+            
+            // Total length calculation:
+            // Header (before impl): 18 bytes
+            // Impl: 20 bytes
+            // Footer: 16 bytes (based on the hex string length 32 chars = 16 bytes)
+            // Total = 18 + 20 + 16 = 54 bytes (0x36).
+            
+            // Step 4: Store the length of the initialization code.
+            mstore(fmp, 0x36)
+            
+            // Step 5: Update the free memory pointer.
+            // Allocate 32 (length) + 54 (data) = 86 bytes. Round up to 32 boundary? 
+            // Solidity allocates 32 bytes for length + ceil(data/32)*32.
+            // 54 rounds to 64. Total 96 (0x60).
+            mstore(0x40, add(fmp, 0x60))
+            
+            // Set return pointer
+            c := fmp
+        }
+    }

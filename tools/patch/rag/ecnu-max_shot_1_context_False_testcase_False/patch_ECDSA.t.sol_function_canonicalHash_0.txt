@@ -1,0 +1,96 @@
+function canonicalHash(bytes memory signature) internal  pure returns (bytes32 result) {
+function canonicalHash(bytes memory signature) internal  pure returns (bytes32 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let len := mload(signature)
+            let data := add(signature, 0x20)
+            
+            // Define constants
+            let _HALF_N_PLUS_1 := 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A1
+            let _N := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+            let _W := not(0) // Used for subtraction via addition
+
+            // Check for 64-byte signature (EIP-2098 compact format)
+            if eq(len, 64) {
+                // Load the 32 bytes starting at offset 32 (which contains packed s and v bit)
+                let s_v_packed := mload(add(data, 0x20))
+                
+                // Extract v from the highest bit of s (0x8000...0000)
+                // In EIP-2098, v is stored in the top bit of s. 
+                // If top bit is set, v = 1 (recovery id 1 -> v=28), else v = 0 (recovery id 0 -> v=27)
+                let v_bit := shr(255, s_v_packed)
+                let v := add(v_bit, 27)
+
+                // Extract s by masking out the top bit
+                let s := and(s_v_packed, _HALF_N_PLUS_1) // Masking with half N effectively clears the top bit if it was set, but strictly we just clear bit 255. 
+                // Actually, the spec says s must be < half N. The packing uses the top bit for v.
+                // So s = s_v_packed & (~ (1 << 255))
+                let mask_s := _HALF_N_PLUS_1 // This constant is (2^255 - 1) effectively for the purpose of clearing the top bit? 
+                // Wait, _HALF_N_PLUS_1 is (N+1)/2. The mask to clear the top bit is (2^255 - 1).
+                // Let's use a direct mask for clarity: 0x7FFF...FFFF
+                let full_mask := shr(1, _W) 
+                s := and(s_v_packed, full_mask)
+
+                // Prepare memory for hashing: r (32 bytes) + s (32 bytes) + v (1 byte)
+                // We can reuse the signature memory area if we are careful, or use scratch space.
+                // Let's use the signature memory itself since we own it.
+                // Structure: [0:32] = r, [32:64] = s, [64:65] = v
+                
+                // r is already at data (offset 0 relative to data)
+                // Store s at offset 32
+                mstore(add(data, 0x20), s)
+                // Store v at offset 64. We only need 1 byte, but mstore writes 32. 
+                // We will pass length 65 to keccak, so extra bytes don't matter.
+                mstore(add(data, 0x40), shl(248, v))
+
+                // Canonical check: if s > HALF_N, flip s and v
+                if gt(s, _HALF_N_PLUS_1) {
+                    s := sub(_N, s)
+                    v := xor(v, 1) // Flip 27<->28 or 0<->1 logic handled by adding 27 later? 
+                    // v is currently 27 or 28. XOR 1 flips it.
+                    mstore(add(data, 0x20), s)
+                    mstore(add(data, 0x40), shl(248, v))
+                }
+
+                result := keccak256(data, 65)
+            }
+            // Check for 65-byte signature (Standard format)
+            else {
+                if eq(len, 65) {
+                    // Load r, s, v
+                    // r is at data
+                    let s := mload(add(data, 0x20))
+                    let v_byte := byte(0, mload(add(data, 0x40))) // Load first byte of the 32-byte v slot
+                    let v := v_byte
+
+                    // Ensure v is 27 or 28. If not, it might be 0/1 (some libraries use 0/1).
+                    // The requirement implies handling standard 65 byte. Usually v is 27/28.
+                    // If v < 27, assume it's 0/1 and add 27.
+                    if lt(v, 27) {
+                        v := add(v, 27)
+                    }
+
+                    // Canonical check: if s > HALF_N, flip s and v
+                    if gt(s, _HALF_N_PLUS_1) {
+                        s := sub(_N, s)
+                        v := xor(v, 1)
+                        mstore(add(data, 0x20), s)
+                        mstore(add(data, 0x40), shl(248, v))
+                    } else {
+                        // Just ensure v is stored correctly in case we modified it or for consistency
+                        mstore(add(data, 0x40), shl(248, v))
+                    }
+
+                    result := keccak256(data, 65)
+                }
+                // Invalid length
+                else {
+                    // Return a uniquely corrupted hash as per requirement.
+                    // We'll hash the length + some marker to make it unique per invalid input
+                    mstore(0, len)
+                    mstore(0x20, 0xDEADBEEF)
+                    result := keccak256(0, 0x40)
+                }
+            }
+        }
+    }

@@ -1,0 +1,21 @@
+function extract_28_16(bytes28 self, uint8 offset) internal  pure returns (bytes16 result) {
+function extract_28_16(bytes28 self, uint8 offset) internal  pure returns (bytes16 result) {
+if (offset > 12) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift the 28-byte input left by (offset * 8) bits to align the desired segment.
+            // Since `self` is stored in the lower bytes of the 32-byte slot, shifting left moves the
+            // target bytes towards the most significant position.
+            let shifted := shl(mul(offset, 8), self)
+            
+            // Mask to retain only the first 16 bytes (128 bits).
+            // The mask is 16 bytes of 1s followed by 16 bytes of 0s.
+            // In hex: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+            let mask := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+            
+            // Apply the mask and shift right by 128 bits (16 bytes) to align the result to the least significant bytes.
+            result := shr(128, and(shifted, mask))
+        }
+    }

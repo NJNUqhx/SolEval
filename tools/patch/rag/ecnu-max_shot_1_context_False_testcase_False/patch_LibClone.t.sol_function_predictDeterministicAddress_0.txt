@@ -1,0 +1,7 @@
+function predictDeterministicAddress(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+function predictDeterministicAddress(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+// START_OF_FUNCTION
+function predictDeterministicAddress(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+        bytes32 hash = initCodeHash(implementation);
+        predicted = predictDeterministicAddress(hash, salt, deployer);
+    }

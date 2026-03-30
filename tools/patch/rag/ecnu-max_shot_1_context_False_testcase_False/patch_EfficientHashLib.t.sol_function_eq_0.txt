@@ -1,0 +1,32 @@
+function eq(bytes32 a, bytes memory b) internal  pure returns (bool result) {
+function eq(bytes32 a, bytes memory b) internal  pure returns (bool result) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Compares a `bytes32` value with a `bytes` array to check for equality.
+ *
+ * @param a The `bytes32` value to compare.
+ * @param b The `bytes` array to compare against.
+ * @return result A boolean indicating whether the `bytes32` value matches the first 32 bytes of the `bytes` array.
+ *
+ * Steps:
+ * 1. Use inline assembly for efficient memory comparison.
+ * 2. Check if the length of the `bytes` array is 32 bytes (`0x20` in hexadecimal).
+ * 3. Compare the `bytes32` value `a` with the first 32 bytes of the `bytes` array `b`.
+ * 4. Return `true` if both conditions are met, otherwise `false`.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function eq(bytes32 a, bytes memory b) internal  pure returns (bool result) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Load the length of the bytes array 'b'
+        let len := mload(b)
+        
+        // Check if length is exactly 32 (0x20) AND if the first 32 bytes of 'b' equal 'a'
+        // mload(add(b, 0x20)) loads the first 32 bytes of the data portion of 'b'
+        result := and(eq(len, 0x20), eq(a, mload(add(b, 0x20))))
+    }
+}

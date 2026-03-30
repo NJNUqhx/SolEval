@@ -1,0 +1,22 @@
+function extract_20_10(bytes20 self, uint8 offset) internal  pure returns (bytes10 result) {
+function extract_20_10(bytes20 self, uint8 offset) internal  pure returns (bytes10 result) {
+if (offset > 10) {
+            revert OutOfRangeAccess();
+        }
+
+        assembly {
+            // Shift left to align the desired 10-byte segment to the most significant position
+            // Then shift right to move it to the least significant position, effectively masking the rest.
+            // Total bits in bytes20 = 160. We want 10 bytes (80 bits).
+            // Shift amount = (20 - 10 - offset) * 8 = (10 - offset) * 8 for left shift?
+            // Actually, simpler logic:
+            // We want bytes from [offset] to [offset+10].
+            // In a bytes20 (160 bits), byte 0 is the most significant.
+            // To get 10 bytes starting at offset, we shift left by (offset * 8) to remove preceding bytes.
+            // Then we shift right by ((20 - 10) * 8) = 80 bits to remove trailing bytes and align to result (bytes10).
+            
+            let val := self
+            let shifted := shl(mul(offset, 8), val)
+            result := shr(80, shifted)
+        }
+    }

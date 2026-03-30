@@ -1,0 +1,7 @@
+function toUint40(uint256 x) internal  pure returns (uint40) {
+function toUint40(uint256 x) internal  pure returns (uint40) {
+if (x >= (1 << 40)) {
+            revert("Overflow: uint256 value exceeds uint40 limit");
+        }
+        return uint40(x);
+    }

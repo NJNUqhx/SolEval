@@ -1,0 +1,7 @@
+function _burn(uint256 tokenId) internal {
+function _burn(uint256 tokenId) internal {
+address previousOwner = _update(address(0), tokenId);
+        if (previousOwner == address(0)) {
+            revert ERC721NonexistentToken(tokenId);
+        }
+    }

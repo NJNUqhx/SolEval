@@ -1,0 +1,52 @@
+function pack_24_4(bytes24 left, bytes4 right) internal  pure returns (bytes28 result) {
+function pack_24_4(bytes24 left, bytes4 right) internal  pure returns (bytes28 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Mask left to ensure it fits within 24 bytes (192 bits)
+            let l := and(mload(left), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000)
+            // Mask right to ensure it fits within 4 bytes (32 bits)
+            let r := and(mload(right), 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            // Shift right to align with the lower 4 bytes of the 28-byte result
+            // The result is 28 bytes (224 bits). Left occupies bits 223-32, Right occupies bits 31-0.
+            // Since `l` is already aligned to the top 24 bytes of a 32-byte word, we just need to
+            // ensure `r` is placed in the correct position relative to `l`.
+            // In a 32-byte word:
+            // left (24 bytes) should be in bits [223:32] (if we consider the result as 28 bytes packed in 32)
+            // However, bytes28 stored in memory/packed in assembly usually fills from MSB.
+            // Let's re-evaluate standard packing for fixed bytes types in Solidity via assembly.
+            // bytes24 loads the value left-aligned in the 32-byte slot (bits 255 down to 64).
+            // bytes4 loads the value left-aligned in the 32-byte slot (bits 255 down to 224).
+            // We want a bytes28 result: bits 255 down to 32 should be `left`, bits 31 down to 0 should be `right`.
+            
+            // Current `l` from `mload(left)`: bits 255-64 are data, 63-0 are 0.
+            // We need `l` to occupy bits 255-32. So we shift `l` right by 32 bits? No.
+            // If `left` is 24 bytes, it naturally sits in the top 24 bytes of the 32-byte word.
+            // Top 24 bytes = bits 255 to 64.
+            // We want the final 28 bytes to be: [24 bytes of left][4 bytes of right].
+            // In a 32-byte word representing bytes28, the data occupies bits 255 down to 32.
+            // Wait, `bytes28` in Solidity is left-aligned in memory? 
+            // Actually, fixed-size byte arrays are right-padded with zeros in memory when loaded via mload?
+            // No, `mload` on a `bytes24` variable (which is a value type, not a pointer) isn't direct.
+            // But here `left` is passed as `bytes24`. In ABI encoding and internal representation, 
+            // fixed bytes types are left-aligned in the 32-byte slot? 
+            // Let's assume standard behavior: `bytes24` value is stored in the high 24 bytes of the 32-byte word.
+            // i.e., bits 255..64 contain the data. Bits 63..0 are zero.
+            // `bytes4` value is stored in the high 4 bytes. Bits 255..224 contain data. Bits 223..0 are zero.
+            
+            // Target `bytes28`: Data in bits 255..32. Bits 31..0 are zero.
+            // Structure: [24 bytes left][4 bytes right].
+            // So bits 255..64 should be `left`. Bits 63..32 should be `right`.
+            
+            // Step 1: Get `left`. It is currently in 255..64. This matches the target high part.
+            // Step 2: Get `right`. It is currently in 255..224. We need it in 63..32.
+            // Shift `right` right by (255 - 63) = 192 bits? Or simply shift right by 24 bytes (192 bits).
+            // 255 - 224 = 31 (MSB of right). We want MSB of right at bit 63.
+            // Shift amount = 255 - 63 = 192 bits.
+            // Let's verify: 255 (start of right) - 192 = 63. Correct.
+            
+            let r_shifted := shr(192, mload(right))
+            
+            // Combine: `l` (already in 255..64) | `r_shifted` (now in 63..32)
+            result := or(l, r_shifted)
+        }
+    }

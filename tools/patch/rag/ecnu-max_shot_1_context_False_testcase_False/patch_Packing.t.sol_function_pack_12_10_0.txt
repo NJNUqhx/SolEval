@@ -1,0 +1,86 @@
+function pack_12_10(bytes12 left, bytes10 right) internal  pure returns (bytes22 result) {
+function pack_12_10(bytes12 left, bytes10 right) internal  pure returns (bytes22 result) {
+    assembly {
+        // Step 1: Mask the `left` value to ensure it fits within 12 bytes (96 bits).
+        // 12 bytes = 96 bits. Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFF
+        let masked_left := and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000)
+        
+        // Step 2: Mask the `right` value to ensure it fits within 10 bytes (80 bits).
+        // 10 bytes = 80 bits. Mask: 0xFFFFFFFFFFFFFFFFFF
+        let masked_right := and(right, 0xFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000)
+        
+        // Step 3: Shift the `right` value to align it with the `left` value.
+        // Since `left` occupies the upper 12 bytes of the 22-byte space (within a 32-byte word),
+        // and `right` occupies the lower 10 bytes, we need to shift `right` left by (12 * 8) = 96 bits.
+        let shifted_right := shl(96, masked_right)
+        
+        // Step 4: Combine the `left` and `right` values using a bitwise OR operation.
+        // Note: `masked_left` is already in the upper position if we treat the 22 bytes as starting from bit 160?
+        // Let's re-evaluate the layout for `bytes22` in a `bytes32` slot.
+        // `bytes22` usually occupies the most significant 22 bytes of the 32-byte word when returned or stored tightly?
+        // Actually, in Solidity, fixed-size bytes types are right-aligned in the 32-byte word for value representation,
+        // BUT when packing manually into a larger container like bytes22 (which is treated as bytes32 internally with trailing zeros),
+        // we need to be careful about what "12-byte" and "10-byte" mean in terms of bit positions.
+        
+        // Standard interpretation for packing A (12 bytes) and B (10 bytes) into 22 bytes:
+        // Result = (A << 80) | B
+        // Where A is the high-order 12 bytes, and B is the low-order 10 bytes of the 22-byte sequence.
+        // In a 32-byte word (256 bits):
+        // The 22 bytes will occupy bits [255:160] (if left-aligned) or bits [255:40] (if right aligned 22 bytes)?
+        // Solidity `bytes22` is a 32-byte word where the value is left-aligned (MSB first) in memory/storage representation for fixed bytes?
+        // No, fixed bytes `bytesN` are right-padded with zeros in the 32-byte word. 
+        // Example: bytes1 0x01 is 0x0100...00.
+        // So if we want a `bytes22` result, the significant data should be in the first 22 bytes (MSB side).
+        // Layout: [ Byte 0 ... Byte 21 ] [ 0 ... 0 ]
+        // Bit range: [255 ... 40] are significant. [39 ... 0] are zero.
+        
+        // If `left` is 12 bytes and `right` is 10 bytes:
+        // `left` goes into Byte 0 - 11.
+        // `right` goes into Byte 12 - 21.
+        
+        // `left` (bytes12) input is right-padded in its 32-byte word: [L0...L11][0...0]
+        // We need to move it to [L0...L11][R0...R10][0...0].
+        // Currently `left` is at bits [255:160] (12 bytes * 8 = 96 bits, 256-96=160).
+        // Wait, `bytes12` value 0x001122... is stored as 0x001122...0000.
+        // The significant bits are at [255:160].
+        // We want `left` to stay at [255:160].
+        // `right` (bytes10) input is stored as [R0...R9][0...0]. Significant bits at [255:176].
+        // We need `right` to be at [159:80] (immediately following `left`).
+        // Current `right` MSB is at 255. Target MSB is 159.
+        // Shift amount = 255 - 159 = 96 bits to the right? Or calculate from LSB.
+        // `right` significant bits: 80 bits.
+        // Target position: bits 159 down to 80.
+        // Current position: bits 255 down to 176.
+        // Shift right by 96 bits.
+        
+        // Let's re-verify:
+        // left:  12 bytes. Masked to ensure only 12 bytes matter. 
+        // Input `left` is already left-aligned in the 32-byte word (standard Solidity fixed bytes).
+        // So `left` is effectively (Value << (256 - 96)).
+        // We want the result to have `left` in the top 12 bytes. So `left` stays as is (masked).
+        
+        // right: 10 bytes. Input `right` is (Value << (256 - 80)).
+        // We want `right` in the next 10 bytes. i.e., bits 159..80.
+        // Current `right` is at 255..176.
+        // We need to shift `right` RIGHT by 96 bits. (255 - 159 = 96).
+        
+        // Correction on previous logic:
+        // 1. `left` is already in the correct position for the upper 12 bytes of a 22-byte sequence (which is the upper 22 bytes of the 32-byte word).
+        //    Actually, `bytes22` uses the top 22 bytes.
+        //    Top 12 bytes: bits 255-160.
+        //    Next 10 bytes: bits 159-80.
+        //    `left` (bytes12) comes in as bits 255-160 (padded with 0s below). Correct.
+        //    `right` (bytes10) comes in as bits 255-176 (padded with 0s below).
+        //    We need `right` to be at bits 159-80.
+        //    Shift `right` right by 96 bits.
+        
+        let shifted_right := shr(96, masked_right)
+        
+        // Combine
+        result := or(masked_left, shifted_right)
+        
+        // Ensure the bottom 10 bytes (bits 79-0) are zero (they should be by construction, but good to be safe if masks were loose)
+        // 22 bytes = 176 bits. We want to clear 256 - 176 = 80 bits at the bottom.
+        // Mask: ~((1<<80) - 1)
+        result := and(result, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000)
+    }

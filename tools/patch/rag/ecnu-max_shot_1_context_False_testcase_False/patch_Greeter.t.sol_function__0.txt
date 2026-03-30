@@ -1,0 +1,5 @@
+constructor (string memory newGreeting) {
+constructor (string memory newGreeting) {
+greeting = newGreeting;
+        owner = msg.sender;
+    } 

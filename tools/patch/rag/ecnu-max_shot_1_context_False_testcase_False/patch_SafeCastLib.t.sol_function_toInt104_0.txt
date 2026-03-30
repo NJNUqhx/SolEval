@@ -1,0 +1,7 @@
+function toInt104(int256 x) internal  pure returns (int104) {
+function toInt104(int256 x) internal  pure returns (int104) {
+if (x < type(int104).min || x > type(int104).max) {
+            revert("Overflow when converting to int104");
+        }
+        return int104(x);
+    }

@@ -1,0 +1,27 @@
+function replace_32_6(bytes32 self, bytes6 value, uint8 offset) internal  pure returns (bytes32 result) {
+function replace_32_6(bytes32 self, bytes6 value, uint8 offset) internal  pure returns (bytes32 result) {
+{
+        assembly {
+            // Calculate the shift amount: (26 - offset) * 8 bits.
+            // Since each byte is 8 bits, shifting left by this amount aligns the 6-byte value
+            // to the correct position within the 32-byte word (starting from MSB).
+            let shift := shl(3, sub(26, offset))
+
+            // Extract the existing 6-byte segment at the specified offset.
+            // We shift the original value left to move the target segment to the LSB side,
+            // then shift right to isolate it, effectively zeroing out the rest.
+            // The mask for 6 bytes is 0xFFFFFFFFFFFF (48 bits).
+            let oldSegment := and(shr(shift, self), 0xFFFFFFFFFFFF)
+
+            // Prepare the new segment:
+            // 1. Load the 6-byte value.
+            // 2. Shift it left by the same amount to align it with the target position.
+            let newSegment := shl(shift, and(value, 0xFFFFFFFFFFFF))
+
+            // Perform the replacement using XOR logic:
+            // result = self ^ oldSegment ^ newSegment
+            // XORing with oldSegment clears the bits at the target position.
+            // XORing with newSegment sets the bits to the new value.
+            result := xor(xor(self, oldSegment), newSegment)
+        }
+    }

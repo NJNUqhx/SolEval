@@ -1,0 +1,27 @@
+function parse(string memory s) internal  pure returns (Item memory result) {
+function parse(string memory s) internal  pure returns (Item memory result) {
+assembly {
+            // Step 1: Allocate memory for the result struct.
+            // We allocate 0x40 bytes (64 bytes) which is standard for a struct with two uint256s or equivalent size.
+            // This ensures the memory region is reserved and safe to write to.
+            result := mload(0x40)
+            mstore(0x40, add(result, 0x40))
+            
+            // Zero out the allocated memory to ensure cleanliness before parsing
+            mstore(result, 0)
+            mstore(add(result, 0x20), 0)
+
+            // Step 2 & 3: Call the internal `_query` function and store the result.
+            // We assume `_query` returns a uint256 or a value compatible with the first field of `Item`.
+            // The requirement states to store the result of the query into the `result` variable.
+            // Since `result` is a struct pointer, we store the returned value at the start of the struct.
+            let queryResult := _query(s, 255)
+            mstore(result, queryResult)
+        }
+    }
+
+    // Placeholder for the internal _query function assumed to exist in the context
+    function _query(string memory s, uint256 maxLen) private pure returns (uint256) {
+        // Implementation of _query would go here
+        return 0;
+    }

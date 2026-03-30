@@ -1,0 +1,15 @@
+function extract_8_4(bytes8 self, uint8 offset) internal  pure returns (bytes4 result) {
+function extract_8_4(bytes8 self, uint8 offset) internal  pure returns (bytes4 result) {
+    if (offset > 4) {
+        revert OutOfRangeAccess();
+    }
+
+    assembly {
+        // Shift the input left by `8 * offset` bits to align the desired 4-byte segment to the most significant position.
+        // Then mask with 0xFFFFFFFF00000000... to keep only the top 4 bytes.
+        // Since `result` is bytes4, we only care about the top 4 bytes of the 32-byte word.
+        let shifted := shl(mul(8, offset), self)
+        let masked := and(shifted, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+        result := masked
+    }
+} 

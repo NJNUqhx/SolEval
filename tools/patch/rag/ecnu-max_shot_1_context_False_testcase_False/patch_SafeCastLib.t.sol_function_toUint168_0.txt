@@ -1,0 +1,5 @@
+function toUint168(uint256 x) internal  pure returns (uint168) {
+function toUint168(uint256 x) internal  pure returns (uint168) {
+require(x <= type(uint168).max, "Overflow: value exceeds uint168 max");
+    return uint168(x);
+}

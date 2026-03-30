@@ -1,0 +1,17 @@
+function hashCalldata(bytes calldata b, uint256 start, uint256 end) internal  pure returns (bytes32 result) {
+function hashCalldata(bytes calldata b, uint256 start, uint256 end) internal  pure returns (bytes32 result) {
+if (end > b.length) {
+            end = b.length;
+        }
+        if (start > b.length) {
+            start = b.length;
+        }
+        uint256 n = end - start;
+        
+        /// @solidity memory-safe-assembly
+        assembly {
+            let ptr := mload(0x40)
+            calldatacopy(ptr, add(b.offset, start), n)
+            result := keccak256(ptr, n)
+        }
+    }

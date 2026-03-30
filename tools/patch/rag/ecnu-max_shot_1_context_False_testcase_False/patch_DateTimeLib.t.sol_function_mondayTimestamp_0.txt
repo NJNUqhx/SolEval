@@ -1,0 +1,36 @@
+function mondayTimestamp(uint256 timestamp) internal  pure returns (uint256 result) {
+function mondayTimestamp(uint256 timestamp) internal  pure returns (uint256 result) {
+    assembly {
+        // Step 5: Ensure the result is valid by checking if the input timestamp is greater than 345599.
+        // If timestamp <= 345599, the result should be 0 (or handle as per requirement implication of "ensure valid").
+        // Based on standard logic for "most recent Monday", if the date is before the first Monday (Jan 5, 1970),
+        // it might underflow or return epoch. The requirement says "Ensure the result is valid".
+        // We will implement the calculation and mask the result if the condition fails.
+        
+        // Constants
+        let secondsPerDay := 86400
+        let threshold := 345599
+        
+        // Check validity condition: timestamp > 345599
+        let isValid := gt(timestamp, threshold)
+        
+        // Step 1: Divide the input timestamp by 86400 to get days since epoch.
+        let days := div(timestamp, secondsPerDay)
+        
+        // Step 2: Calculate day of the week.
+        // Unix Epoch (Jan 1, 1970) was a Thursday (4).
+        // We want Monday to be 0.
+        // Thursday(4) + 3 = 7 -> 0 mod 7. So adding 3 aligns Thursday to Monday=0.
+        // Formula: (days + 3) % 7
+        let dayOfWeek := mod(add(days, 3), 7)
+        
+        // Step 3: Subtract dayOfWeek from total days to get the most recent Monday's day count.
+        let mondayDays := sub(days, dayOfWeek)
+        
+        // Step 4: Convert back to timestamp.
+        result := mul(mondayDays, secondsPerDay)
+        
+        // Apply validity mask: if not isValid, result becomes 0.
+        result := mul(result, isValid)
+    }
+} 

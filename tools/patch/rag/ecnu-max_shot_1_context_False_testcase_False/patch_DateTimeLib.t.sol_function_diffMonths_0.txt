@@ -1,0 +1,12 @@
+function diffMonths(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+function diffMonths(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+uint256 fromDays = fromTimestamp / 86400;
+uint256 toDays = toTimestamp / 86400;
+
+(uint256 fromYear, uint256 fromMonth, ) = epochDayToDate(fromDays);
+(uint256 toYear, uint256 toMonth, ) = epochDayToDate(toDays);
+
+uint256 fromTotalMonths = _totalMonths(fromYear, fromMonth);
+uint256 toTotalMonths = _totalMonths(toYear, toMonth);
+
+result = toTotalMonths - fromTotalMonths;

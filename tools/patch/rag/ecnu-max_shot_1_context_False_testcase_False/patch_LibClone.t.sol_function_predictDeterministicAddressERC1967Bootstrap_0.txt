@@ -1,0 +1,5 @@
+function predictDeterministicAddressERC1967Bootstrap(address authorizedUpgrader, address deployer) internal  pure returns (address) {
+function predictDeterministicAddressERC1967Bootstrap(address authorizedUpgrader, address deployer) internal  pure returns (address) {
+bytes32 hash = initCodeHashERC1967Bootstrap(authorizedUpgrader);
+        return predictDeterministicAddress(hash, bytes32(0), deployer);
+    

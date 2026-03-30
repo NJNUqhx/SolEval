@@ -1,0 +1,23 @@
+function clean(address[] memory a) internal  pure {
+function clean(address[] memory a) internal  pure {
+assembly {
+        // Define the mask for 160 bits (20 bytes): 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        let mask := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        // Get the length of the array (stored at the first memory slot)
+        let len := mload(a)
+        // Calculate the starting position of the first element (array pointer + 32 bytes)
+        let pos := add(a, 0x20)
+        // Calculate the end position (start + length * 32)
+        let end := add(pos, mul(len, 0x20))
+
+        // Loop through the array
+        for {} lt(pos, end) { pos := add(pos, 0x20) } {
+            // Load the current value
+            let val := mload(pos)
+            // Apply the mask to keep only the lower 160 bits
+            val := and(val, mask)
+            // Store the cleaned value back
+            mstore(pos, val)
+        }
+    }
+}

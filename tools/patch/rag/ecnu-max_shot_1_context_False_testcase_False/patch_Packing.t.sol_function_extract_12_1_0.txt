@@ -1,0 +1,15 @@
+function extract_12_1(bytes12 self, uint8 offset) internal  pure returns (bytes1 result) {
+function extract_12_1(bytes12 self, uint8 offset) internal  pure returns (bytes1 result) {
+if (offset > 11) {
+            revert OutOfRangeAccess();
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Shift left by (offset * 8) to move the target byte to the most significant position
+            // Then shift right by 248 (or mask with 0xFF00...00) to isolate the first byte
+            // Equivalent to: (self << (offset * 8)) >> 248
+            let shifted := shl(mul(offset, 8), self)
+            result := shr(248, shifted)
+        }
+    }

@@ -1,0 +1,53 @@
+function replace_32_16(bytes32 self, bytes16 value, uint8 offset) internal  pure returns (bytes32 result) {
+function replace_32_16(bytes32 self, bytes16 value, uint8 offset) internal  pure returns (bytes32 result) {
+assembly {
+        // Calculate the shift amount in bits: (16 - offset) * 8
+        let shift := shl(3, sub(16, offset))
+        
+        // Create a mask for the 16-byte segment at the specific offset.
+        // We start with all 1s (not(0)), shift left to clear the lower part,
+        // then shift right to clear the upper part, leaving a 16-byte window of 1s.
+        let mask := shr(shift, shl(shift, not(0)))
+        // Refine mask: We want exactly 16 bytes (128 bits) of 1s at the position.
+        // A simpler way for a 16-byte window at `shift` bits from the right (if we view offset 0 as left):
+        // Actually, `offset` is byte offset from the left (MSB).
+        // If offset=0, we replace bytes 0-15 (MSB side). Shift = 128 bits.
+        // If offset=16, we replace bytes 16-31 (LSB side). Shift = 0 bits.
+        // The formula `sub(16, offset)` gives us how many bytes are to the right of the segment.
+        // So `shift` is the number of bits to shift the 16-byte value to align it.
+        
+        // Let's reconstruct the mask properly:
+        // We want 1s in the positions we are NOT replacing, and 0s where we ARE replacing.
+        // Or vice versa for the blending logic.
+        // Logic: result = (self & ~segment_mask) | (value_aligned)
+        
+        // segment_mask should have 1s where the 16 bytes are located.
+        // 16 bytes = 128 bits.
+        // Position starts at bit: (16 - offset) * 8 ? No.
+        // Bytes are 0..31. Offset 0 means bytes 0..15. These are the high bits.
+        // Bit index of byte 0 is 248 (if 0 is LSB) or 255? Solidity bytes32: index 0 is MSB.
+        // Let's stick to bitwise shifts.
+        // To place a 16-byte value at `offset` (0-15):
+        // It needs to be shifted left by (16 - offset) * 8 bits?
+        // If offset=0, shift = 128. (Bytes 0-15 are the top 128 bits).
+        // If offset=16, shift = 0. (Bytes 16-31 are the bottom 128 bits).
+        // Wait, offset max is 16? Requirement says 0-16. If 16, it replaces the last 16 bytes.
+        // So shift = (16 - offset) * 8.
+        
+        let bitShift := shl(3, sub(16, offset))
+        
+        // Create a mask of 128 ones: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        let ones128 := sub(shl(128, 1), 1)
+        
+        // Align the ones to the target position
+        let segmentMask := shl(bitShift, ones128)
+        
+        // Clear the target segment in self
+        let clearedSelf := and(self, not(segmentMask))
+        
+        // Align the new value
+        let alignedValue := shl(bitShift, value)
+        
+        // Combine
+        result := or(clearedSelf, alignedValue)
+    }

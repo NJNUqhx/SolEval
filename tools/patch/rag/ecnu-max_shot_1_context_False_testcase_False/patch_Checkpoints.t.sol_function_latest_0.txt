@@ -1,0 +1,11 @@
+function latest(Trace224 storage self) internal  view returns (uint224) {
+function latest(Trace224 storage self) internal  view returns (uint224) {
+uint256 pos = self.length;
+
+        if (pos == 0) {
+            return 0;
+        }
+
+        Trace224 storage last = _unsafeAccess(self, pos - 1);
+        return last._value;
+    }

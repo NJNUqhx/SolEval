@@ -1,0 +1,19 @@
+function extract_22_6(bytes22 self, uint8 offset) internal  pure returns (bytes6 result) {
+function extract_22_6(bytes22 self, uint8 offset) internal  pure returns (bytes6 result) {
+require(offset <= 16, "OutOfRangeAccess");
+
+    assembly {
+        // Shift left by (offset * 8) bits to align the target 6 bytes to the most significant position
+        // of the 22-byte window within the 32-byte slot.
+        let shifted := shl(mul(offset, 8), self)
+        
+        // Mask to keep only the top 6 bytes (48 bits).
+        // The mask 0xFFFFFFFFFFFF0000... isolates the first 6 bytes of the 32-byte word.
+        // 0xFFFFFFFFFFFF is 48 bits of 1s. Shifting it left by (32-6)*8 = 208 bits places it at the top.
+        let mask := shl(208, 0xFFFFFFFFFFFF)
+        
+        let extracted := and(shifted, mask)
+        
+        // Shift right by 208 bits to move the 6 bytes to the least significant position for the return value
+        result := shr(208, extracted)
+    }

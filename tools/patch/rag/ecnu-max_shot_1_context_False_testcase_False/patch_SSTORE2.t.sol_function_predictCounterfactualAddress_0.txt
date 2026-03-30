@@ -1,0 +1,4 @@
+function predictCounterfactualAddress(bytes memory data, bytes32 salt) internal  view returns (address pointer) {
+function predictCounterfactualAddress(bytes memory data, bytes32 salt) internal  view returns (address pointer) {
+pointer = _predictCounterfactualAddress(data, salt, address(this));
+    } 

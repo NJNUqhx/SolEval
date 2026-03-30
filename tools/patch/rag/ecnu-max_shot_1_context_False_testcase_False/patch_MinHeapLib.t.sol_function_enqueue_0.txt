@@ -1,0 +1,152 @@
+function enqueue(Heap storage heap, uint256 value, uint256 maxLength) internal   returns (bool success, bool hasPopped, uint256 popped) {
+function enqueue(Heap storage heap, uint256 value, uint256 maxLength) internal   returns (bool success, bool hasPopped, uint256 popped) {
+uint256 status;
+    assembly {
+        // Load the pointer to the memory heap struct from storage slot `heap.slot`.
+        // We use a temporary memory location (0x00) to hold the memory heap struct pointer.
+        // The storage struct `Heap` typically contains a single member `MemHeap heap` at slot 0 relative to `heap.slot`.
+        let memHeapPtr := mload(0x00)
+        
+        // If the memory pointer hasn't been initialized in this context (or to be safe/clean),
+        // we allocate a new memory struct for the operation.
+        // However, since `_set` expects a `MemHeap memory`, and we are passing a `Heap storage`,
+        // we need to bridge them. The standard pattern in such libraries (like Solady) is:
+        // 1. Load the internal memory struct pointer from the storage struct's first slot.
+        // 2. If it's null or needs refresh, the internal logic might handle it, but usually
+        //    the storage struct holds the pointer to the memory array struct.
+        
+        // Let's assume the storage struct `Heap` layout matches the internal expectation where
+        // slot 0 of `heap` stores the pointer to the `MemHeap` memory struct.
+        let slot := heap.slot
+        let memHeapLoc := sload(slot)
+        
+        // If no memory struct is linked yet, allocate one.
+        if iszero(memHeapLoc) {
+            memHeapLoc := mload(0x40)
+            mstore(memHeapLoc, 0) // length = 0
+            mstore(sub(memHeapLoc, 0x20), 0) // capacity encoded
+            sstore(slot, memHeapLoc)
+        }
+        
+        mstore(0x00, memHeapLoc)
+        
+        // Call _set with mode 0 (Enqueue).
+        // We need to call the internal function. Since we are inside the contract,
+        // we can't directly call `_set` from assembly easily without knowing the offset.
+        // Instead, we perform the logic inline or call the high-level wrapper if allowed.
+        // But the prompt asks to implement `enqueue` calling `_set`.
+        // In Solidity, calling an internal pure function from assembly requires knowing the label or using high-level call.
+        // Given the constraints and typical patterns, we will invoke the high-level `_set` via a standard call pattern
+        // or replicate the logic if `_set` isn't directly callable from assembly block easily without Yul functions.
+        
+        // However, the cleanest way in a generated function body is to call the high-level `_set` first,
+        // then unpack results in assembly if needed, OR do everything in high-level if performance allows.
+        // The requirement says: "Call the internal `_set` function... Use inline assembly to check...".
+        // This implies we call `_set` in Solidity, then use assembly to interpret the returned `status`.
+    }
+
+    // Call the internal _set function with mode 0 (Enqueue)
+    // We need a temporary MemHeap memory variable to pass to _set?
+    // No, the storage `Heap` likely wraps `MemHeap`. Let's assume the library pattern where
+    // `heap` (storage) has a method to get the memory struct or the `_set` function handles the storage-to-memory bridge.
+    // Looking at the signature of `_set`: `function _set(MemHeap memory heap, ...)`
+    // And `enqueue`: `function enqueue(Heap storage heap, ...)`
+    // There must be a conversion or the `Heap` storage struct contains the `MemHeap` pointer directly.
+    // Assuming `Heap` is `struct Heap { MemHeap heap; }` or similar, and we access `heap.heap`.
+    // But the signature is `Heap storage heap`. If `Heap` is just a wrapper around the pointer:
+    
+    // Let's assume the standard Solady pattern where `Heap` storage struct's first slot is the `MemHeap` pointer.
+    // We can't pass a storage struct as a memory argument directly.
+    // Wait, the provided `_set` takes `MemHeap memory`.
+    // The `enqueue` takes `Heap storage`.
+    // There is likely a helper or the user is expected to extract the memory struct.
+    // HOWEVER, looking at the code provided in `_set`, it does `mload(heap)`.
+    // If we call `_set(heap.heap, ...)` assuming `Heap` has a member `heap`.
+    // Or if `Heap` IS the `MemHeap` wrapper in storage.
+    
+    // Let's assume the existence of a private view function or direct access to the memory struct pointer.
+    // Given the strict "continue to generate" instruction and the provided `_set` signature,
+    // I will assume there is an implicit conversion or the `Heap` storage struct is layout-compatible
+    // such that we can retrieve the `MemHeap` memory reference.
+    // Actually, in many such libraries, `Heap` storage struct contains a `bytes` or `pointer` to the memory.
+    // Let's try to call `_set` by constructing the memory struct reference from storage.
+    
+    // Alternative interpretation: The provided `_set` is the core logic, and `enqueue` is the public wrapper.
+    // We need to get the `MemHeap` memory object from `Heap storage`.
+    // If `Heap` is defined as `struct Heap { uint256 ptr; }` (common in unsafe optimizations),
+    // then `MemHeap memory h = MemHeap(heap.ptr);` isn't valid Solidity syntax directly for custom types without casting.
+    
+    // Let's assume the library defines `Heap` such that we can access the underlying memory struct.
+    // Or, perhaps the `_set` function in the actual context accepts a storage reference?
+    // No, signature is explicit: `MemHeap memory heap`.
+    
+    // Hypothesis: The `Heap` storage struct has a function `.get()` or we cast.
+    // Since I cannot see the struct definition, I will assume the standard pattern where
+    // the storage struct holds the pointer to the memory struct at its base slot.
+    // We will use a workaround: call `_set` via a memory variable that points to the same data.
+    
+    // Actually, looking at the assembly in `_set`, it treats `heap` as a pointer to a memory location
+    // containing the pointer to the data array.
+    // `let data := mload(heap)`
+    
+    // If `Heap storage heap` stores this exact pointer at `heap.slot`, we can do:
+    // MemHeap memory memHeap;
+    // assembly { memHeap := sload(heap.slot) } // This is invalid Solidity assignment.
+    
+    // Correct Solidity way for such low-level libs:
+    // They often define `Heap` as `bytes` or use a specific casting trick.
+    // Let's assume the function `_set` is intended to be called with a memory struct that is managed by the storage struct.
+    // Maybe the `Heap` storage struct IS the `MemHeap` but in storage? No, types differ.
+    
+    // Let's assume the provided code snippet is part of a contract where `Heap` is defined as:
+    // struct Heap { uint256 _ptr; } and there is a cast.
+    // OR, more likely, the `enqueue` function is supposed to call `_set` passing a memory reference derived from storage.
+    
+    // Given the constraints, I will write the call assuming a helper or direct cast is possible,
+    // or I will replicate the logic if the call is impossible.
+    // BUT the requirement says: "Call the internal `_set` function".
+    // So I must call it.
+    // I will assume `heap` can be cast or accessed as `heap._heap` or similar.
+    // Wait, if `Heap` is `struct Heap { MemHeap heap; }`, then `heap.heap` is storage.
+    // We need `MemHeap memory`.
+    // This implies the library might have a function like `_getMemHeap(Heap storage)` returning `MemHeap memory`.
+    // Without that, this is tricky.
+    
+    // Let's look at the assembly in `_set` again. It modifies the length and data in memory.
+    // If we pass a memory struct that points to the same memory region as the storage-managed memory, it works.
+    // How to get that?
+    // `MemHeap memory h;`
+    // assembly { h := sload(heap.slot) } // If the storage slot holds the pointer directly.
+    // This is a common pattern in "unsafe" Solidity libraries (e.g., Solady).
+    // We declare `MemHeap memory h` and overwrite its pointer value via assembly.
+    
+    MemHeap memory h;
+    assembly {
+        // Assuming the first slot of the storage struct `heap` contains the pointer to the `MemHeap` memory struct.
+        // We load that pointer into the memory variable `h`.
+        h := sload(heap.slot)
+    }
+    
+    uint256 status;
+    uint256 poppedVal;
+    (status, poppedVal) = _set(h, value, maxLength, 0); // 0 = Enqueue
+
+    assembly {
+        // Status 1: Success (enqueue). hasPopped = false.
+        // Status 3: Success with popped (replace/pushPop behavior triggered in enqueue if full). hasPopped = true.
+        // Check if status is 3.
+        if eq(status, 3) {
+            hasPopped := 1
+            popped := poppedVal
+            success := 1
+        } else if eq(status, 1) {
+            hasPopped := 0
+            success := 1
+        } else {
+            // Status 0 or others? The requirement says 1 or 3 for success.
+            // If _set reverted, we wouldn't be here.
+            // If it returned 0 (failure?), success = 0.
+            success := 0
+            hasPopped := 0
+        }
+    }

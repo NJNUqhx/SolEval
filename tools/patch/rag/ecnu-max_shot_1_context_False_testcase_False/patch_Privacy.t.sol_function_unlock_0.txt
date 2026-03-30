@@ -1,0 +1,5 @@
+function unlock(bytes16 _key) public {
+function unlock(bytes16 _key) public {
+    require(_key == data[2], "Key mismatch");
+    locked = false;
+} 

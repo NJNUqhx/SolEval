@@ -1,0 +1,6 @@
+constructor () {
+constructor () {
+wallet = new Wallet();
+        Coin coin = new Coin(address(wallet));
+        wallet.setCoin(address(coin));
+    }

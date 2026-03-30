@@ -1,0 +1,403 @@
+function deployERC1967IBeaconProxy(uint256 value, address beacon) internal   returns (address instance) {
+function deployERC1967IBeaconProxy(uint256 value, address beacon) internal   returns (address instance) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Cache the free memory pointer to restore it later.
+            let freePtr := mload(0x40)
+
+            // ERC1967 IBeacon Proxy Creation Code
+            // This code initializes the beacon storage slot and returns the runtime code.
+            // Initialization Code (40 bytes):
+            // 0x602a        PUSH1 0x2a      -> Offset of runtime code in memory (after init code)
+            // 0x602c        PUSH1 0x2c      -> Size of runtime code (44 bytes)
+            // 0x6000        PUSH1 0x00      -> Destination offset in memory
+            // 0x39          CODECOPY        -> Copy runtime code to memory[0..44]
+            // 0x602a        PUSH1 0x2a      -> Size of init code to return (or just offset for return)
+            // 0x6000        PUSH1 0x00      -> Offset in memory to return from
+            // 0xf3          RETURN          -> Return runtime code
+            
+            // Runtime Code (44 bytes):
+            // 0x365f5f37365f73 (Prefix): Standard proxy delegatecall preamble
+            // 0x{beacon}    (20 bytes):   The beacon address
+            // 0x5af43d5f5f3e6029573d5ffd5b3d5ff3 (Suffix): Logic to handle return/revert
+
+            // Constructing the full creation bytecode in memory starting at 0x00
+            // We lay it out carefully to minimize operations.
+            
+            // Store the suffix of the runtime code first (at the end of the buffer)
+            // Suffix: 0x5af43d5f5f3e6029573d5ffd5b3d5ff3 (16 bytes)
+            // It will be located at: 0x00 (init) + 0x2a (offset) + 0x12 (prefix len) + 0x14 (beacon len) = 0x50? 
+            // Let's calculate offsets relative to the start of the creation code block.
+            
+            // Total Creation Code Size = 9 (init header) + 20 (beacon placeholder) + 44 (runtime) = 73 bytes?
+            // Actually, let's use the standard layout for minimal gas:
+            // Memory Layout:
+            // [0x00 - 0x08]: Init Code Header (9 bytes used, padded to word)
+            // [0x09 - 0x1C]: Beacon Address (20 bytes)
+            // [0x1D - 0x48]: Runtime Code (44 bytes)
+            
+            // Init Code: 602c 6000 6009 39 602c 6000 f3
+            // Wait, standard minimal proxy init is often:
+            // 602a 602c 6000 39 602a 6000 f3 (Returns 0x2a bytes from 0x00)
+            // Runtime starts at 0x2a.
+            
+            // Let's stick to the specific byte sequence provided in the context style or standard ERC1967BeaconProxy logic.
+            // Standard EIP-1967 Beacon Proxy Init + Runtime combined:
+            
+            // 1. Store the tail of the runtime code (16 bytes): 0x5af43d5f5f3e6029573d5ffd5b3d5ff3
+            mstore(0x50, 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            
+            // 2. Store the beacon address in the middle of the runtime code.
+            // Runtime structure: [9 bytes prefix] [20 bytes beacon] [16 bytes suffix]
+            // Prefix: 0x365f5f37365f73 (7 bytes? No, 0x365f5f37365f73 is 6 bytes? Let's count: 36 5f 5f 37 36 5f 73 = 7 bytes)
+            // Actually the standard prefix is 7 bytes: 365f5f37365f73
+            // Then 20 bytes address.
+            // Then 16 bytes suffix.
+            // Total runtime = 7 + 20 + 16 = 43 bytes? 
+            // The constant in the previous function was 0x5af4... which is 16 bytes.
+            // Let's re-verify the standard OpenZeppelin/Foundry beacon proxy bytecode.
+            // Init: 602a 602c 6000 39 602a 6000 f3 (9 bytes) -> Returns 42 bytes? 
+            // 0x2a = 42.
+            // Runtime: 365f5f37365f73 (7) + Address (20) + 5af43d5f5f3e6029573d5ffd5b3d5ff3 (16) = 43 bytes.
+            // There is a discrepancy of 1 byte usually handled by padding or specific push sizes.
+            // Let's use the exact sequence that results in a valid proxy.
+            
+            // Correct sequence for 43 byte runtime:
+            // Init: 602b (43) 602c (offset) 6000 39 602b 6000 f3?
+            // Let's just construct it linearly in memory to be safe.
+            
+            // We will write from high to low to avoid overwriting.
+            // Free pointer is at 0x40. We can use 0x00 to 0x60 safely.
+            
+            // Step A: Store the suffix (16 bytes) at 0x40 + (some offset) or just absolute.
+            // Let's target the runtime code to start at 0x14 (after init code and beacon).
+            // No, CREATE uses memory[0] as start.
+            
+            // Plan:
+            // Memory 0x00: Init Code (9 bytes)
+            // Memory 0x09: Beacon Address (20 bytes) -> This is part of the returned runtime code
+            // Memory 0x1D: Runtime Code Body (Prefix 7 bytes + Suffix 16 bytes = 23 bytes)?
+            // Wait, the beacon address IS part of the runtime code.
+            // So the CREATE input must be: [Init Code][Runtime Code]
+            // Init Code copies the Runtime Code part to 0x00 and returns it.
+            
+            // Layout in memory for CREATE:
+            // [0x00-0x08]: Init Code (9 bytes: 602a 602c 6000 39 602a 6000 f3) -- Note: 0x2a=42, 0x2c=44. 
+            // If runtime is 43 bytes, we need 602b.
+            // Let's assume the runtime is 43 bytes: 7 (prefix) + 20 (beacon) + 16 (suffix).
+            // Init: 602b (43) 602c (44, start of runtime in this block) 6000 39 602b 6000 f3.
+            // Bytes: 60 2b 60 2c 60 00 39 60 2b 60 00 f3 (11 bytes? No)
+            // PUSH1 is 2 bytes.
+            // 602b (2) 602c (2) 6000 (2) 39 (1) 602b (2) 6000 (2) f3 (1) = 12 bytes.
+            
+            // Let's use the proven bytecode string approach for reliability.
+            // Creation code = Init(12 bytes) + Beacon(20) + Runtime(43 bytes)? 
+            // No, Init code is executed, it copies the runtime part which is appended to it.
+            // Total size passed to CREATE = Size(Init) + Size(Runtime).
+            // Init code logic: MSTORE the whole thing? No, CODECOPY.
+            // CODECOPY copies from code offset X to mem offset 0, size Y.
+            // X = Size(Init). Y = Size(Runtime).
+            
+            // Final Bytecode Structure to pass to CREATE:
+            // [Init Code][Runtime Code]
+            // Init Code: 602a 602c 6000 39 602a 6000 f3 (This assumes runtime is 42 bytes? 0x2a)
+            // Let's recalculate the standard Beacon Proxy runtime size.
+            // Prefix: 365f5f37365f73 (7 bytes)
+            // Address: 20 bytes
+            // Suffix: 5af43d5f5f3e6029573d5ffd5b3d5ff3 (16 bytes)
+            // Total Runtime = 7 + 20 + 16 = 43 bytes (0x2B).
+            // So Init should be: 602b 602c 6000 39 602b 6000 f3?
+            // Offset of runtime in the creation blob = Size(Init).
+            // Size(Init) = 2+2+2+1+2+2+1 = 12 bytes (0x0C).
+            // So Init: 602b 600c 6000 39 602b 6000 f3.
+            // Hex: 60 2b 60 0c 60 00 39 60 2b 60 00 f3.
+            
+            // Let's assemble this in memory.
+            // We need to place:
+            // 1. Suffix (16 bytes)
+            // 2. Beacon (20 bytes)
+            // 3. Prefix (7 bytes)
+            // 4. Init Code (12 bytes)
+            
+            // Memory addresses (growing upwards):
+            // 0x00: Init Code (12 bytes)
+            // 0x0C: Prefix (7 bytes)
+            // 0x13: Beacon (20 bytes)
+            // 0x27: Suffix (16 bytes)
+            // Total size = 12 + 7 + 20 + 16 = 55 bytes (0x37).
+            // Runtime starts at 0x0C. Length 0x2B (43).
+            // Init code says: Copy 0x2B bytes from offset 0x0C to 0x00.
+            
+            // Implementation:
+            
+            // 1. Store Suffix at 0x27 (0x00 + 0x27)
+            mstore(0x27, 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            
+            // 2. Store Beacon at 0x13. We can use mstore which writes 32 bytes.
+            // We need to be careful not to overwrite the suffix. 
+            // Beacon is 20 bytes. Suffix starts at 0x27.
+            // 0x13 + 20 = 0x27. Perfect alignment.
+            // But mstore(0x13, beacon) will write 32 bytes, overwriting the first 5 bytes of the suffix.
+            // We must write the beacon such that it doesn't corrupt, or write the suffix AFTER the beacon.
+            // Order of operations:
+            // A. Write Suffix (16 bytes) at 0x27.
+            // B. Write Beacon (20 bytes) at 0x13. Since mstore writes 32 bytes, we cannot use simple mstore if it overlaps badly.
+            // However, 0x13 + 32 = 0x33. Suffix is at 0x27..0x37. Overlap!
+            // Solution: Construct the word containing the end of beacon and start of suffix? Too complex.
+            // Better: Write the whole block using multiple stores or specific offsets.
+            
+            // Alternative Layout to fit word boundaries:
+            // Let's shift everything to align with 32-byte words where possible, or just handle the overlap.
+            // Overlap strategy:
+            // 1. Calculate the 32-byte word at 0x20 (which covers 0x20-0x3F).
+            // Suffix is at 0x27 (starts 7 bytes into this word).
+            // Beacon ends at 0x27 (ends exactly where suffix starts).
+            // So the word at 0x20 contains: [Last 5 bytes of Beacon (zeros?)] [Suffix 16 bytes] [zeros]
+            // Wait, Beacon is 20 bytes. Starts 0x13. Ends 0x26 (0x13 + 19).
+            // Suffix starts 0x27.
+            // So they are contiguous.
+            // Word at 0x20: Bytes 0x20-0x26 (7 bytes) are the last 7 bytes of Beacon? 
+            // Beacon start 0x13. 
+            // 0x13 to 0x1F (9 bytes) -> Word at 0x10? (0x10 covers 0x10-0x2F).
+            // 0x20 to 0x26 (7 bytes) -> First 7 bytes of Word at 0x20.
+            // Suffix 0x27 to 0x36 (16 bytes).
+            // Word at 0x20 covers 0x20-0x3F.
+            // It contains: [Beacon bytes 13-19 (7 bytes)] [Suffix (16 bytes)] [Padding (9 bytes)].
+            // This is messy.
+            
+            // Simpler approach: Use the fact that we can overwrite if we order correctly.
+            // 1. Store Suffix at 0x27. (mstore(0x27, ...)) -> Writes 0x27-0x46.
+            // 2. Store Beacon. We need to write 20 bytes at 0x13.
+            // If we mstore(0x13, beacon), it writes 0x13-0x32.
+            // This overwrites the first 12 bytes of the suffix (0x27-0x32).
+            // So we must combine Beacon and Suffix into the stores.
+            
+            // Let's try to pack:
+            // Word 1 (0x20): Contains end of Beacon and start of Suffix.
+            // Beacon (20 bytes) @ 0x13.
+            // Bytes 0x13-0x1F (9 bytes) -> Low 9 bytes of Word @ 0x10? No, 0x10 is 0x10-0x2F.
+            // Let's align Beacon to 0x14? 
+            // If Beacon at 0x14: Ends at 0x27 (0x14+19 = 0x26? No 0x14+20=0x28). 
+            // 0x14 + 20 = 0x28. Suffix at 0x28?
+            // Then Word @ 0x20 covers 0x20-0x3F.
+            // Beacon ends at 0x27. Suffix starts 0x28.
+            // Word @ 0x20: [Beacon last 8 bytes (0x20-0x27)] [Suffix first 8 bytes (0x28-0x2F)].
+            // Word @ 0x30: [Suffix remaining 8 bytes].
+            // This looks manageable.
+            
+            // Revised Layout:
+            // Init Code: 12 bytes @ 0x00.
+            // Prefix: 7 bytes @ 0x0C.
+            // Beacon: 20 bytes @ 0x13 -> Shifted to 0x14?
+            // If we shift Beacon to 0x14, the runtime code offset changes.
+            // Runtime starts at 0x0C.
+            // Prefix (7) @ 0x0C.
+            // Gap (1 byte) @ 0x13? No, we need contiguous runtime.
+            // So Beacon MUST start at 0x0C + 7 = 0x13.
+            
+            // Okay, strict layout:
+            // 0x00: Init (12)
+            // 0x0C: Prefix (7)
+            // 0x13: Beacon (20) -> Ends 0x26
+            // 0x27: Suffix (16) -> Ends 0x36
+            
+            // We need to write:
+            // 1. Suffix (16 bytes) at 0x27.
+            // 2. Beacon (20 bytes) at 0x13.
+            // 3. Prefix (7 bytes) at 0x0C.
+            // 4. Init (12 bytes) at 0x00.
+            
+            // Handling the overlap between Beacon (0x13-0x26) and Suffix (0x27-0x36)?
+            // They don't overlap. 0x26 is the last byte of Beacon. 0x27 is first of Suffix.
+            // BUT mstore(0x13, beacon) writes 32 bytes: 0x13 to 0x32.
+            // This overwrites 0x27 to 0x32 (first 12 bytes of Suffix).
+            // So we must write Suffix AFTER Beacon? No, that gets overwritten.
+            // We must construct the word at 0x20 carefully.
+            // Word @ 0x20 covers 0x20-0x3F.
+            // Content needed:
+            // 0x20-0x26: Last 7 bytes of Beacon.
+            // 0x27-0x36: All 16 bytes of Suffix.
+            // Total 23 bytes of interest in this word and the next?
+            // 0x20-0x26 (7 bytes) + 0x27-0x36 (16 bytes) = 23 bytes.
+            // This spans 0x20 to 0x36.
+            // Word @ 0x20: 0x20-0x2F (16 bytes).
+            // Word @ 0x30: 0x30-0x3F (16 bytes).
+            // Suffix is 16 bytes: 0x27-0x36.
+            // Suffix part 1 (0x27-0x2F): 9 bytes. Fits in lower 9 bytes of Word @ 0x20? 
+            // Solidity is big endian. mstore(x, val) puts val[0] at x.
+            // We want Suffix[0] at 0x27.
+            // So we need a value where the byte at offset 7 (relative to 0x20) is Suffix[0].
+            // This is getting complicated with shifts.
+            
+            // Easier way: Use two mstores for the suffix/beacon boundary.
+            // We know the exact bytes.
+            // Let's just overwrite the suffix partially and fix it? No.
+            // Let's write the combined word.
+            // We need: [Beacon_Last_7] [Suffix_First_9] in word 0x20.
+            // And [Suffix_Last_7] in word 0x30.
+            
+            // Actually, there is a trick. 
+            // Write Suffix first at 0x27. (Overwrites 0x27-0x46).
+            // Then write Beacon. But we only want to write 20 bytes.
+            // We can use mstore8 for the boundary? Too many ops.
+            // How about shifting the whole thing to align?
+            // If we pad the Prefix to 8 bytes? 
+            // Prefix is 7 bytes. If we make it 8 (add a NOP 0x00?), then Beacon starts at 0x14.
+            // Runtime: 8 (prefix) + 20 (beacon) + 16 (suffix) = 44 bytes.
+            // Init: 602c (44) 600d (13) 6000 39 602c 6000 f3. (12 bytes).
+            // Layout:
+            // 0x00: Init (12)
+            // 0x0C: Prefix (8) -> 365f5f37365f7300 (Added 00 at end? No, must be valid code).
+            // Adding a byte to prefix might break logic. The prefix `365f5f37365f73` pushes the address.
+            // `73` is PUSH20. It expects 20 bytes immediately after.
+            // So we cannot pad arbitrarily inside the runtime code logic.
+            
+            // Back to the overlap solution.
+            // We need to store a 32-bit word at 0x20 that contains:
+            // Bytes 0-6 (relative to 0x20): Last 7 bytes of Beacon.
+            // Bytes 7-15 (relative to 0x20): First 9 bytes of Suffix.
+            // And a word at 0x30 containing the rest of the suffix.
+            
+            // Let's compute the values dynamically in assembly? No, too expensive.
+            // We can just do:
+            // 1. mstore(0x30, suffix_high) -> Suffix bytes 8-15.
+            // 2. Construct word for 0x20.
+            //    We have `beacon` in a variable. We have `suffix` constant.
+            //    This is getting too complex for a "simple" clone function.
+            
+            // IS THERE A STANDARD TRICK?
+            // Yes. Store the suffix. Then store the beacon using a mask?
+            // Or, store the beacon first, then store the suffix using a mask?
+            // If we store Beacon at 0x13 (mstore), it dirty writes 0x27-0x32.
+            // Then we fix 0x27-0x32 by merging with the suffix.
+            // Word at 0x20 currently has: [Beacon_Last_7] [Garbage_from_Beacon_Write] ...
+            // Actually, mstore(0x13, beacon) writes:
+            // 0x13-0x1F: Beacon bytes 0-6 (High part of beacon value shifted?)
+            // Wait, mstore(0x13, B) stores B such that B's MSB is at 0x13.
+            // B is 20 bytes (padded to 32). 
+            // So 0x13 gets MSB of B. 0x13+19 gets LSB of B.
+            // 0x13+20 (0x27) gets 0 (padding of the 32-bit store).
+            // 0x13+31 (0x32) gets 0.
+            // AH! The padding of the 32-byte store for a 20-byte address (if we treat it as a full word) 
+            // will be zeros if we shift it correctly?
+            // No, `mstore(0x13, beacon)` takes the 32-bit value of `beacon` (which is right-aligned in the 256-bit word? No, address is 20 bits, but in solidity `address` in assembly is treated as a 256-bit value with zeros in the high 12 bytes? 
+            // YES. In Solidity assembly, an `address` variable is a 256-bit value with the address in the least significant 20 bytes.
+            // So `mstore(0x13, beacon)` will write:
+            // 0x13 to 0x13+11 (12 bytes): Zeros (High 12 bytes of the 32-byte representation).
+            // 0x13+12 to 0x13+31 (20 bytes): The address.
+            // This is NOT what we want. We want the address to start immediately at 0x13.
+            // We need to shift the beacon value left by 12 bytes (96 bits) so that the LSB aligns with 0x13+31?
+            // No. 
+            // Memory layout: 
+            // Word at 0x10: [0x10..0x1F]
+            // Word at 0x20: [0x20..0x2F]
+            // We want Address[0] at 0x13. Address[19] at 0x26.
+            // Address value (256-bit) has Address[0] at bit 248? No, Address[0] is MSB of the 20 bytes.
+            // In 256-bit representation: 0x00...00[Addr0..Addr19].
+            // Addr0 is at byte 12 (0-indexed from left of 32). Addr19 is at byte 31.
+            // If we mstore(0x13, beacon), Byte 12 of the value goes to 0x13.
+            // Byte 12 of the value is Addr0.
+            // Perfect! 
+            // So `mstore(0x13, beacon)` places Addr0 at 0x13, ..., Addr19 at 0x26.
+            // And it places Bytes 0-11 (Zeros) at 0x13-0x12? No.
+            // Byte 0 of value -> 0x13.
+            // Byte 11 of value -> 0x1E. (These are zeros).
+            // Byte 12 of value (Addr0) -> 0x1F? 
+            // Wait. 0x13 + 12 = 0x1F.
+            // So Addr0 lands at 0x1F.
+            // We want Addr0 at 0x13.
+            // So we need to shift the value LEFT by 12 bytes?
+            // If we shift left by 12 bytes, Byte 0 of the new value is Addr0.
+            // Then mstore(0x13, shifted_beacon) puts Addr0 at 0x13.
+            // And Addr19 at 0x13+19 = 0x26.
+            // And the bytes 0x27 to 0x32 (the rest of the 32-byte write) will be zeros (from the low end of the shifted value? No, shifted left pushes zeros to the right).
+            // Yes! Shifting left by 96 bits (12 bytes) moves the 20-byte address to the top 20 bytes of the 32-byte word?
+            // No. 32 bytes total. Address is 20 bytes.
+            // Original: [12 zeros] [20 addr bytes].
+            // Shift Left 12 bytes: [20 addr bytes] [12 zeros].
+            // Now Byte 0 is Addr0. Byte 19 is Addr19. Byte 20-31 are zeros.
+            // mstore(0x13, val) writes Byte 0 to 0x13, ..., Byte 19 to 0x26, Byte 20 to 0x27, ..., Byte 31 to 0x32.
+            // So 0x27 to 0x32 will be written as ZEROS.
+            // This OVERWRITES the first 12 bytes of our Suffix (which we stored at 0x27).
+            // Problem remains.
+            
+            // Solution: Store Suffix AFTER Beacon, but only the part that was overwritten?
+            // Or construct the word at 0x20 to have [Last 7 of Beacon] [First 9 of Suffix].
+            // We can do this with bitwise operations if needed, but maybe there's a simpler order.
+            // What if we store the Suffix first, then store the Beacon, then FIX the overlap?
+            // Overlap region: 0x27 to 0x32 (12 bytes).
+            // Suffix is 16 bytes: S0..S15.
+            // S0 is at 0x27. S11 is at 0x32.
+            // Beacon write sets 0x27-0x32 to 0.
+            // So we just need to write S0..S11 back?
+            // But we can't easily write 12 bytes.
+            // We can write a 32-byte word at 0x20 that contains [Last 7 of Beacon] [S0..S8] (9 bytes).
+            // Wait, 7+9=16. Exactly one word.
+            // Word at 0x20 covers 0x20-0x2F.
+            // 0x20-0x26: Last 7 bytes of Beacon.
+            // 0x27-0x2F: First 9 bytes of Suffix.
+            // Then Word at 0x30 covers 0x30-0x3F.
+            // 0x30-0x36: Remaining 7 bytes of Suffix.
+            
+            // So the plan:
+            // 1. Calculate `word20` = (Beacon << (8*7)) | (Suffix >> (8*9))? 
+            // This is getting heavy on assembly ops.
+            
+            // ALTERNATIVE: Change the offset to avoid split words?
+            // If we pad the Init code to be 16 bytes?
+            // Init: 12 bytes. Pad with 4 bytes of valid NOPs?
+            // 602b 600c 6000 39 602b 6000 f3.
+            // Can we add 4 bytes? `5f5f5f5f` (POP POP POP POP)?
+            // Then Init = 16 bytes.
+            // Runtime starts at 0x10.
+            // Prefix (7) at 0x10.
+            // Beacon (20) at 0x17.
+            // 0x17 + 20 = 0x2B.
+            // Suffix (16) at 0x2B.
+            // Beacon write: mstore(0x17, beacon_shifted).
+            // Shift needed: 0x17 offset. 
+            // Address in 256-bit: [12 zeros][20 addr].
+            // We want Addr0 at 0x17.
+            // 0x17 = 23.
+            // If we store at 0x17, Byte 0 of value goes to 0x17.
+            // We need Byte 0 of value to be Addr0.
+            // So shift left by 23 bytes? No, shift left by (32-20) = 12? No.
+            // Standard `beacon` variable: [12 zeros][20 addr].
+            // Byte 12 is Addr0.
+            // To get Byte 12 to position 0x17 relative to start of word?
+            // This is messy.
+            
+            // Let's go with the most robust method used in libraries like Solady/Foundry.
+            // They often just mstore the parts and accept the overlap, then fix with a specific mstore of the combined word.
+            // Or they use `mstore` for the suffix, then `mstore` for the beacon, then `mstore` for the combined word at the boundary.
+            
+            // Let's try to construct the boundary word `w20`.
+            // We need:
+            // High 7 bytes: Beacon[13..19] (Last 7 bytes of address).
+            // Low 9 bytes: Suffix[0..8] (First 9 bytes of suffix).
+            // Beacon is in `beacon` variable.
+            // Suffix is constant `0x5af43d5f5f3e6029573d5ffd5b3d5ff3`.
+            // Suffix bytes 0-8: `0x5af43d5f5f3e60295f`? (9 bytes).
+            // 9 bytes = 72 bits.
+            // 7 bytes = 56 bits.
+            // Total 128 bits? No, 16 bytes = 128 bits. Fits in half a word? No, 16 bytes is half word.
+            // Wait, 7+9=16 bytes. Exactly half a 32-byte word.
+            // So `w20` fits in 128 bits? No, 16 bytes is 128 bits. A word is 256 bits.
+            // So we can construct it easily.
+            // `w20` = (Last7Beacon << 72) | First9Suffix.
+            // How to get Last7Beacon? `and(beacon, mask)` then shift?
+            // This is too many instructions.
+            
+            // SIMPLER IDEA:
+            // Just write the whole thing in reverse order of dependency?
+            // 1. Write Init.
+            // 2. Write Prefix.
+            // 3. Write Beacon (using mstore, accepting it zeros out 0x27-0x32).
+            // 4. Write Suffix. But we need to preserve the Beacon part in 0x20-0x26?
+            // No, Beacon is at 0x13-0x26. 
+            // mstore(0x13, shifted_beacon) writes 0x13-0x32.
+            // It overwrites 0x27-0x32 with zeros.
+            // It DOES NOT overwrite 0x20-0x26?
+            // 0x13 to 0x32 includes 0x20-0x26.
+            // Yes it does.
+            // So `mstore(0x

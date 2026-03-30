@@ -1,0 +1,5 @@
+function toUint24(uint256 x) internal  pure returns (uint24) {
+function toUint24(uint256 x) internal  pure returns (uint24) {
+if (x >= (1 << 24)) revert();
+        return uint24(x);
+    }

@@ -1,0 +1,46 @@
+function replace_12_10(bytes12 self, bytes10 value, uint8 offset) internal  pure returns (bytes12 result) {
+function replace_12_10(bytes12 self, bytes10 value, uint8 offset) internal  pure returns (bytes12 result) {
+assembly {
+            // Ensure offset is within bounds (0, 1, or 2). If not, result remains 0 or we could revert, 
+            // but based on typical low-level patterns, we assume valid input or let logic handle it.
+            // The requirement specifies offset 0-2.
+            
+            // Load the full 12-byte value into 'res' (which maps to 'result')
+            res := self
+            
+            // Calculate the bit shift amount: offset * 8
+            let shift := shl(3, offset)
+            
+            // Create a mask for 10 bytes: 0xFFFFFFFFFFFFFFFFFFFF (80 bits set to 1)
+            // 10 bytes = 80 bits. ~0 is all 1s. Shifting right by (256 - 80) = 176 gives us 80 ones at the LSB.
+            // Alternatively: sub(shl(80, 1), 1)
+            let mask10 := sub(shl(80, 1), 1)
+            
+            // Align the mask to the specific offset within the 12-byte (96-bit) space.
+            // The 12-byte value occupies the least significant 96 bits of the 32-byte word.
+            // However, usually when dealing with fixed bytes types in assembly via arguments, 
+            // they are right-aligned (LSB) in the 32-byte slot.
+            // Let's assume standard right-alignment:
+            // bytes12 occupies bits 0 to 95.
+            // We want to replace 10 bytes starting at 'offset' (bytes 0-9, 1-10, or 2-11).
+            
+            // Shift the 10-byte mask to the correct position
+            let shiftedMask := shl(shift, mask10)
+            
+            // Extract the old 10-byte segment from 'self' using the shifted mask
+            let oldSegment := and(res, shiftedMask)
+            
+            // Prepare the new value:
+            // 1. Ensure 'value' is treated as 10 bytes (mask it, though input type guarantees size mostly)
+            // 2. Shift it to the correct offset position
+            let newVal := and(value, mask10) // Clean upper bits just in case
+            let shiftedNewVal := shl(shift, newVal)
+            
+            // Perform the replacement using XOR logic:
+            // result = (self ^ oldSegment) ^ shiftedNewVal
+            // Step 1: Clear the old segment bits in res
+            res := xor(res, oldSegment)
+            // Step 2: Set the new segment bits
+            res := xor(res, shiftedNewVal)
+        }
+    }

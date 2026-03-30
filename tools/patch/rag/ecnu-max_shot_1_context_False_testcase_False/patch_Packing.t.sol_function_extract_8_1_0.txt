@@ -1,0 +1,13 @@
+function extract_8_1(bytes8 self, uint8 offset) internal  pure returns (bytes1 result) {
+function extract_8_1(bytes8 self, uint8 offset) internal  pure returns (bytes1 result) {
+if (offset > 7) {
+    revert("OutOfRangeAccess");
+}
+
+assembly {
+    // Shift the bytes8 value left by (8 * offset) bits to align the target byte to the most significant position.
+    // Then shift right by 248 bits (31 bytes) to move it to the least significant position.
+    // self is loaded directly as it fits in a single slot.
+    let shifted := shl(mul(8, offset), self)
+    result := shr(248, shifted)
+}

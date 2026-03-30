@@ -1,0 +1,5 @@
+function tryGet(Bytes32ToBytes32Map storage map, bytes32 key) internal  view returns (bool exists, bytes32 value) {
+function tryGet(Bytes32ToBytes32Map storage map, bytes32 key) internal  view returns (bool exists, bytes32 value) {
+value = map._inner[key];
+        exists = map._inner[key] != bytes32(0) || map._contains[key];
+    } 

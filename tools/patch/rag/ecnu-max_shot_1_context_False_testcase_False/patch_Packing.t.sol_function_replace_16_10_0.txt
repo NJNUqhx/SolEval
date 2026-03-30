@@ -1,0 +1,55 @@
+function replace_16_10(bytes16 self, bytes10 value, uint8 offset) internal  pure returns (bytes16 result) {
+function replace_16_10(bytes16 self, bytes10 value, uint8 offset) internal  pure returns (bytes16 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Mask to isolate the 10-byte (80-bit) segment: 0x0000000000FFFFFFFFFFFFFFFFFF
+            // We need to shift this mask to the correct position based on the offset.
+            // In bytes16, byte 0 is the most significant.
+            // Offset 0 means bits 248..169 (if counting from 0 at LSB).
+            // Actually, let's work with standard solidty bytes layout where index 0 is MSB.
+            // A bytes16 is 128 bits.
+            // 10 bytes = 80 bits.
+            // If offset is 0, we replace bytes [0..9]. These are the high 80 bits.
+            // If offset is 6, we replace bytes [6..15]. These are the low 80 bits.
+            
+            // Calculate shift amount for the value and the mask.
+            // Total bits = 128. Segment bits = 80.
+            // Shift right by (128 - 80 - offset * 8) to align the 10-byte value to the target slot?
+            // Let's re-evaluate based on integer representation.
+            // bytes16 `self` as uint256 (upper 128 bits used).
+            // Byte 0 is at bit 120..127 (if 128 bit number) or generally MSB.
+            // Let's assume standard EVM big-endian byte ordering for bytesN.
+            // bytes16: [b0, b1, ..., b15]
+            // b0 is MSB.
+            // To replace starting at `offset`:
+            // We need to clear 80 bits starting from (15 - offset - 9) * 8 ? No.
+            
+            // Let's use a simpler approach with shifting.
+            // We want to insert `value` (10 bytes) into `self` at `offset`.
+            // The `value` needs to be shifted left by (16 - 10 - offset) * 8 bits to align with MSB logic?
+            // If offset = 0: value goes to MSB. Shift = (6)*8 = 48 bits left?
+            // bytes16 length 16. value length 10. Remaining space 6 bytes.
+            // If offset 0: [value (10)] [tail (6)]. Value is at top.
+            // If offset 6: [head (6)] [value (10)]. Value is at bottom.
+            
+            // Number of bytes to the right of the insertion point = 16 - offset - 10.
+            let rightBytes := sub(sub(16, offset), 10)
+            let shiftBits := mul(rightBytes, 8)
+            
+            // Prepare the new value shifted to position
+            let v := shl(shiftBits, and(value, 0xFFFFFFFFFFFFFFFFFF)) // Mask 10 bytes just in case
+            
+            // Create a mask to clear the old 10-byte segment in `self`.
+            // We want 0s where the new value goes, 1s elsewhere.
+            // 10 bytes of 0s: 0xFFFFFFFFFFFFFFFFFF (80 bits)
+            // Invert it to get 10 bytes of 0s in a 128 bit space? No, we need a 128-bit mask.
+            // Mask of 10 bytes of 1s: 0xFFFFFFFFFFFFFFFFFF
+            // Shift it to position: shl(shiftBits, 0xFFFFFFFFFFFFFFFFFF)
+            // Invert it: not(...)
+            
+            let clearMask := not(shl(shiftBits, 0xFFFFFFFFFFFFFFFFFF))
+            
+            // Apply mask to self and OR with new value
+            result := or(and(self, clearMask), v)
+        }
+    }

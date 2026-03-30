@@ -1,0 +1,85 @@
+function predictDeterministicAddress(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+function predictDeterministicAddress(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Predicts the deterministic address for a contract deployment using the CREATE2 opcode.
+ *
+ * @param implementation The address of the implementation contract.
+ * @param salt A unique salt value used to generate the deterministic address.
+ * @param deployer The address of the deployer (typically the contract deploying the new instance).
+ * @return predicted The predicted deterministic address for the contract deployment.
+ *
+ * Steps:
+ * 1. Load the free memory pointer.
+ * 2. Store the deployer address, implementation address, and salt in memory.
+ * 3. Use the CREATE2 opcode formula to compute the deterministic address:
+ *    - The formula involves hashing the deployer address, implementation address, and salt.
+ *    - The result is masked to ensure it is a valid Ethereum address.
+ * 4. Return the predicted address.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function predictDeterministicAddress(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+    // Step 1: Load the free memory pointer to find a safe location in memory.
+    uint256 mptr;
+    assembly {
+        mptr := mload(0x40)
+    }
+
+    // Step 2: Store the deployer address, implementation address, and salt in memory.
+    // Layout: [0..12] padding, [12..32] deployer, [32..64] implementation, [64..96] salt
+    // We align addresses to the right (20 bytes) within their 32-byte slots.
+    assembly {
+        mstore(mptr, shl(96, deployer))       // Store deployer at offset 0
+        mstore(add(mptr, 0x20), shl(96, implementation)) // Store implementation at offset 32
+        mstore(add(mptr, 0x40), salt)         // Store salt at offset 64
+    }
+
+    // Step 3: Use the CREATE2 opcode formula to compute the deterministic address.
+    // The CREATE2 address calculation is: keccak256(0xFF ++ deployer ++ salt ++ keccak256(init_code))
+    // Here, 'implementation' acts as the proxy for the init_code hash in this specific context logic,
+    // or more accurately based on the prompt's variable names, we are hashing the packed arguments
+    // to simulate the pre-image required for the specific prediction logic requested.
+    // However, standard CREATE2 prediction requires the init_code hash. 
+    // Given the prompt asks to hash deployer, implementation, and salt directly in step 3:
+    // We perform keccak256 on the 96 bytes of data we just stored.
+    bytes32 hash;
+    assembly {
+        hash := keccak256(mptr, 0x60) // Hash 96 bytes (0x60) starting from mptr
+    }
+    
+    // The prompt implies a specific formula involving these three. 
+    // Standard CREATE2 is: keccak256(0xFF ++ deployer ++ salt ++ initCodeHash)
+    // If 'implementation' is meant to be the initCodeHash (common in proxy patterns), 
+    // we need to prepend 0xFF. Let's strictly follow the "Store deployer, implementation, salt" instruction
+    // and the "hashing deployer, implementation, and salt" description.
+    // To be cryptographically accurate to CREATE2, we usually need the 0xFF prefix.
+    // Let's adjust the assembly to include the 0xFF prefix which is critical for CREATE2.
+    
+    assembly {
+        // Re-layout for standard CREATE2: 0xFF (1 byte) + deployer (20) + salt (32) + initCodeHash (32)
+        // But the prompt says: "Store deployer, implementation, and salt".
+        // If we strictly follow the prompt's step 2 & 3 without external assumptions of 0xFF:
+        // We will assume the prompt describes a custom deterministic scheme or implies 'implementation' IS the initCodeHash
+        // and we missed the 0xFF in the explicit store step description but it's required for "CREATE2 opcode formula".
+        // The CREATE2 formula SPECIFICALLY requires 0xFF.
+        // Let's construct the correct CREATE2 preimage: 0xFF ++ deployer ++ salt ++ implementation(as hash)
+        
+        mstore(mptr, shl(248, 0xff)) // Store 0xFF at the start
+        mstore(add(mptr, 0x01), shl(96, deployer)) // Deployer
+        mstore(add(mptr, 0x15), salt) // Salt
+        mstore(add(mptr, 0x35), shl(96, implementation)) // Implementation (acting as initCodeHash)
+        
+        // Total length: 1 + 20 + 32 + 32 = 85 bytes
+        hash := keccak256(mptr, 0x55)
+    }
+
+    // Step 3 (continued): Mask the result to ensure it is a valid Ethereum address (last 20 bytes).
+    predicted = address(uint160(uint256(hash)));
+
+    // Step 4: Return the predicted address.
+    // (Implicit in return statement)
+}

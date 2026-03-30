@@ -1,0 +1,31 @@
+function burnPure(uint256 x) internal  pure {
+function burnPure(uint256 x) internal  pure {
+function burnPure(uint256 x) internal pure {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Store the value `or(1, x)` at memory location `0x10`.
+            mstore(0x10, or(1, x))
+
+            // Step 2: Calculate `n` as the result of `mul(gt(x, 120), div(x, 91))`.
+            // If x <= 120, gt(x, 120) is 0, so n becomes 0.
+            // If x > 120, gt(x, 120) is 1, so n becomes x / 91.
+            let n := mul(gt(x, 120), div(x, 91))
+
+            // Step 3: Iterate `n` times, updating the value at memory location `0x10` using keccak256.
+            // We use a loop that decrements n until it reaches 0.
+            for {} n {} {
+                n := sub(n, 1)
+                // Update the value at 0x10 with keccak256 of the current value at 0x10.
+                // The value is 32 bytes, so we hash the range starting at 0x10 with length 0x20.
+                let val := mload(0x10)
+                mstore(0x00, val)
+                let hash := keccak256(0x00, 0x20)
+                mstore(0x10, hash)
+            }
+
+            // Step 4: If the final value at memory location `0x10` is zero, trigger an invalid operation (revert).
+            if iszero(mload(0x10)) {
+                invalid()
+            }
+        }
+    }

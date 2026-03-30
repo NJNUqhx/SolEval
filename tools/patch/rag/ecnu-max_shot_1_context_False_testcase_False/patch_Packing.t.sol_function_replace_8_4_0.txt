@@ -1,0 +1,23 @@
+function replace_8_4(bytes8 self, bytes4 value, uint8 offset) internal  pure returns (bytes8 result) {
+function replace_8_4(bytes8 self, bytes4 value, uint8 offset) internal  pure returns (bytes8 result) {
+assembly {
+            // Extract the old 4-byte value at the specified offset within the 8-byte value.
+            // Since 'self' is 8 bytes (64 bits), and we are dealing with a 4-byte (32 bits) segment:
+            // Shift self right by (4 - offset) * 8 bits to align the target 4 bytes to the least significant position,
+            // then mask with 0xFFFFFFFF to isolate them.
+            let shift := shl(3, sub(4, offset)) // shift = (4 - offset) * 8
+            let oldSegment := and(shr(shift, self), 0xFFFFFFFF)
+
+            // Prepare the new value: ensure it's treated as 32-bit and shift it to the correct position.
+            let newValue := and(value, 0xFFFFFFFF)
+            let shiftedNew := shl(shift, newValue)
+
+            // Prepare the old segment shifted to its original position for XOR removal.
+            let shiftedOld := shl(shift, oldSegment)
+
+            // Calculate result:
+            // 1. XOR self with shiftedOld to clear the old segment (set those bits to 0).
+            // 2. XOR the result with shiftedNew to insert the new segment.
+            result := xor(xor(self, shiftedOld), shiftedNew)
+        }
+    

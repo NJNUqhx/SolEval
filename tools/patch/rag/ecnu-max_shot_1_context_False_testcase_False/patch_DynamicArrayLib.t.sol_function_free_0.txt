@@ -1,0 +1,10 @@
+function free(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+function free(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+    result = a;
+        uint256 n;
+        assembly ("memory-safe") {
+            n := mload(result)
+            mstore(result, 0)
+        }
+    }
+    

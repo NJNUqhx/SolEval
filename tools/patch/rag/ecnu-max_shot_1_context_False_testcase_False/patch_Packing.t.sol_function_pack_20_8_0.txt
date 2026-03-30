@@ -1,0 +1,77 @@
+function pack_20_8(bytes20 left, bytes8 right) internal  pure returns (bytes28 result) {
+function pack_20_8(bytes20 left, bytes8 right) internal  pure returns (bytes28 result) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Clear the lower 96 bits of `left` (keep upper 160 bits which correspond to bytes20 in the upper part of bytes32)
+        // bytes20 is stored in the upper 20 bytes of a 32-byte slot when cast to uint256? 
+        // Actually, bytes20 `left` when loaded occupies the upper 20 bytes of the 32-byte word if we consider standard ABI encoding for static types in assembly context often aligns to the left?
+        // Let's re-evaluate standard solidity behavior for `bytes20` in assembly.
+        // When a `bytes20` is passed to an assembly block, it is right-aligned in the 32-byte word (i.e., stored in the least significant 20 bytes? No, static types like bytesN are left-aligned? 
+        // Correction: In Solidity, fixed-size bytes types (bytes1 to bytes32) are left-aligned when stored in memory or stack? 
+        // Actually, for function arguments in assembly:
+        // `bytes20` is right-aligned in the 32-byte word (padded with zeros on the left? No, padded on the right? Let's check).
+        // Standard ABI: Static types are padded to 32 bytes. `bytes20` occupies the first 20 bytes. In memory, this is left-aligned. 
+        // However, when loaded into a stack variable in assembly, `bytes20` is typically right-aligned (i.e., the value is in the lower 20 bytes? Or upper?)
+        // Let's assume the standard convention for bitwise packing in Solidity assembly for `bytesN`:
+        // `bytes20` is usually treated as occupying the most significant 20 bytes (left-aligned) if we are constructing a `bytes32`. 
+        // BUT, the requirement says: "Clears the lower 96 bits of the `left`". 
+        // 32 bytes = 256 bits. 20 bytes = 160 bits. 
+        // If we want the result to be `bytes28` (224 bits), and `left` is `bytes20` (160 bits) and `right` is `bytes8` (64 bits).
+        // Total 160 + 64 = 224 bits.
+        // The requirement says: "Clears the lower 96 bits of the `left`". 
+        // If `left` is in a uint256 slot, and we clear lower 96 bits, we keep the upper 160 bits. This implies `left` is expected to be in the upper 160 bits?
+        // Or does it mean the input `left` (which is 20 bytes) is placed in the upper 20 bytes of the 28-byte result?
+        // Let's look at the "Clears the lower 96 bits of the `left`" instruction. 
+        // 256 - 96 = 160. So we keep the top 160 bits. This suggests `left` is aligned to the top.
+        // "Clears the lower 192 bits of the `right`". 256 - 192 = 64. So we keep the top 64 bits.
+        // Then combine.
+        // If `left` is `bytes20`, in Solidity assembly arguments, it is right-aligned (value in lower 20 bytes)? Or left-aligned?
+        // Actually, Solidity passes `bytes20` as a uint256 where the value is left-aligned (most significant 20 bytes contain the data, least significant 12 bytes are zero). 
+        // Wait, no. Solidity documentation says: "For fixed-size bytes types, the value is left-aligned (i.e., the first byte is at the most significant position)."
+        // So `bytes20` in a uint256 slot: Data is in bits 255 down to 96. Bits 95 down to 0 are zero.
+        // So "Clears the lower 96 bits of the `left`" is redundant if it's already zero, but ensures safety.
+        // `right` is `bytes8`. Data is in bits 255 down to 192. Bits 191 down to 0 are zero.
+        // "Clears the lower 192 bits of the `right`" keeps bits 255-192.
+        // Now we need to pack them into `bytes28`.
+        // `bytes28` is 224 bits.
+        // Expected layout: `left` (20 bytes) followed by `right` (8 bytes).
+        // In a 32-byte word representing `bytes28`, the data should be left-aligned (bits 255 down to 32). The last 32 bits (4 bytes) should be zero? 
+        // Or is `bytes28` just the 28 bytes?
+        // If the return type is `bytes28`, Solidity expects the return value in the stack variable `result`. 
+        // Since `bytes28` is a static type, it is returned as a left-aligned 32-byte word (data in bits 255..32, zeros in 31..0).
+        // Current state:
+        // `left`: bits 255..96 (20 bytes).
+        // `right`: bits 255..192 (8 bytes).
+        // We want `result`: `left` (20 bytes) ++ `right` (8 bytes).
+        // So `left` stays at 255..96.
+        // `right` needs to move from 255..192 to 159..96? 
+        // 20 bytes = 160 bits. So `right` should start at bit 160 from the top? 
+        // Top is 255. 255 - 160 + 1 = 96? 
+        // Let's count: 
+        // Bytes 0-19 (20 bytes) -> bits 255-96.
+        // Bytes 20-27 (8 bytes) -> bits 95-32.
+        // So `right` (currently at 255-192) needs to be shifted right by (255-192) - (95-32)? 
+        // Shift amount: 192 - 32 = 160 bits? 
+        // If `right` is at 255..192 (top 8 bytes), and we want it at 95..32 (next 8 bytes after the 20 bytes of left).
+        // The gap between 192 and 95 is 97? No.
+        // Position of `right` start: bit 192 (0-indexed from right? No, 255 is MSB).
+        // Let's use byte indices. 
+        // `left` occupies bytes 0-19 (MSB side).
+        // `right` occupies bytes 0-7 (MSB side) currently.
+        // We want `right` to occupy bytes 20-27.
+        // So we need to shift `right` right by 20 bytes = 160 bits.
+        // `right` >> 160.
+        // Then OR with `left`.
+        // Let's verify the "Clear" steps in the requirement.
+        // 1. Clear lower 96 bits of `left`: `left` & ~((1<<96)-1). This keeps bits 255..96. Correct for `bytes20`.
+        // 2. Clear lower 192 bits of `right`: `right` & ~((1<<192)-1). This keeps bits 255..192. Correct for `bytes8`.
+        // 3. Shift `right` to correct position: `right` >> 160. (Moves bits 255..192 to 95..32).
+        // 4. OR: `left` | (`right` >> 160).
+        // Result will have data in bits 255..32. Bits 31..0 will be 0. This matches `bytes28` (224 bits of data, 32 bits padding).
+        
+        let leftClean := and(left, not(sub(shl(96, 1), 1))) // Clear lower 96 bits
+        let rightClean := and(right, not(sub(shl(192, 1), 1))) // Clear lower 192 bits
+        let rightShifted := shr(160, rightClean)
+        result := or(leftClean, rightShifted)
+    }
+``

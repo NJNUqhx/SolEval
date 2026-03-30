@@ -1,0 +1,22 @@
+function predictDeterministicAddress(bytes32 salt) public  view returns (address predicted) {
+function predictDeterministicAddress(bytes32 salt) public  view returns (address predicted) {
+bytes32 creationCodeHash = keccak256(abi.encodePacked(
+    hex"602d5f8160095f39f35f5f365f5f37365f73",
+    address(this),
+    hex"5af43d5f5f3e6029573d5ffd5b3d5ff3"
+));
+
+/// @solidity memory-safe-assembly
+assembly {
+    // Prepare the memory for hashing: 0xff ++ address ++ salt ++ codeHash
+    mstore(0x00, 0xff00000000000000000000000000000000000000000000000000000000000000)
+    mstore(0x01, address())
+    mstore(0x15, salt)
+    mstore(0x35, creationCodeHash)
+
+    // Compute the predicted address using keccak256 over the 85 bytes (0x01 to 0x55)
+    predicted := keccak256(0x01, 0x55)
+
+    // Clean the upper 96 bits of the predicted address to ensure it's a valid address
+    predicted := and(predicted, 0xffffffffffffffffffffffffffffffffffffffff)
+}

@@ -1,0 +1,7 @@
+function toInt8(int256 x) internal  pure returns (int8) {
+function toInt8(int256 x) internal  pure returns (int8) {
+if (x < -0x80 || x > 0x7f) {
+            revert Overflow();
+        }
+        return int8(uint8(x));
+    }

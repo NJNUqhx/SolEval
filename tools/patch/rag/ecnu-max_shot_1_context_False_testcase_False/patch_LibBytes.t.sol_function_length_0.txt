@@ -1,0 +1,22 @@
+function length(BytesStorage storage $) internal  view returns (uint256 result) {
+function length(BytesStorage storage $) internal  view returns (uint256 result) {
+uint256 spacer;
+    assembly {
+        spacer := sload($.slot)
+    }
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Extract the last byte of the spacer
+        let lastByte := and(spacer, 0xff)
+        
+        // Check if the last byte is 0xff
+        if eq(lastByte, 0xff) {
+            // If last byte is 0xff, the length is encoded in the higher bytes.
+            // Shift right by 8 bits to remove the 0xff marker and get the length.
+            result := shr(8, spacer)
+        } else {
+            // Otherwise, the length is simply the value of the last byte.
+            result := lastByte
+        }
+    }

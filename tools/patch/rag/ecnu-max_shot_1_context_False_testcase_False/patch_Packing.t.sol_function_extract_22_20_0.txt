@@ -1,0 +1,19 @@
+function extract_22_20(bytes22 self, uint8 offset) internal  pure returns (bytes20 result) {
+function extract_22_20(bytes22 self, uint8 offset) internal  pure returns (bytes20 result) {
+if (offset > 2) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift the 22-byte value left by `offset * 8` bits to align the desired 20-byte segment.
+            // Since `self` is stored in the lower bits of the slot, shifting left moves the higher bytes
+            // into the position where the top 20 bytes of the 32-byte word will contain our result.
+            let shifted := shl(mul(offset, 8), self)
+            
+            // Mask to keep only the upper 20 bytes (160 bits).
+            // The mask ~0 shifted right by 96 bits (32*8 - 20*8) leaves the top 160 bits as 1s and the rest 0s.
+            // Alternatively, since we shifted left, the desired 20 bytes are now at the top of the 32-byte word.
+            // We can simply shift right by 96 bits to move them to the lower 20 bytes position.
+            result := shr(96, shifted)
+        }
+    }

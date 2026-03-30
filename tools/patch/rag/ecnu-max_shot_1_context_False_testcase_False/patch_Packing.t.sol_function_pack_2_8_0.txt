@@ -1,0 +1,42 @@
+function pack_2_8(bytes2 left, bytes8 right) internal  pure returns (bytes10 result) {
+function pack_2_8(bytes2 left, bytes8 right) internal  pure returns (bytes10 result) {
+assembly {
+        // Step 1: Clear the lower bits of `left` beyond its 2-byte (16-bit) length.
+        // Since `left` is bytes2, we mask out anything beyond the first 16 bits.
+        // 0xFFFF = 16 ones. We shift left by 240 to align with the top of bytes32, then mask.
+        // Actually, simpler: just take the top 16 bits of the 32-byte word representation.
+        // But since input is bytes2, it's already left-aligned in the 32-byte slot if passed as such?
+        // No: bytes2 in Solidity is right-padded with zeros in the 32-byte slot? Actually, no:
+        // In Solidity, fixed-size bytes types like bytes2 are stored in the leftmost (most significant) bytes.
+        // So bytes2 value 0x1234 is stored as 0x12340000...0000 in a bytes32 slot.
+        // Therefore, to extract the actual 2 bytes, we shift right by 240 bits (30 bytes).
+        let leftVal := shr(240, left)
+
+        // Step 2: Clear the higher bits of `right` beyond its 8-byte (64-bit) length.
+        // bytes8 is stored left-aligned, so 0x1234567890abcdef0000...0000
+        // We want the top 64 bits, so shift right by 192 bits (24 bytes).
+        let rightVal := shr(192, right)
+
+        // Step 3: Combine: shift leftVal to occupy the top 16 bits of a 80-bit (10-byte) value,
+        // and rightVal to occupy the next 64 bits.
+        // Total 80 bits = 10 bytes.
+        // In a bytes32 slot, we want:
+        // [leftVal (16 bits)][rightVal (64 bits)][0...0]
+        // So: shift leftVal by 64 bits (to make room for rightVal), then OR with rightVal.
+        // Then shift the whole thing left by 176 bits? Wait, let's think in terms of final alignment.
+
+        // Actually, the result is bytes10, which in Solidity is stored as left-aligned in a 32-byte slot.
+        // So we want the 10 bytes to be in the most significant 10 bytes of the 32-byte word.
+        // That means: total shift left by (32 - 10) * 8 = 22 * 8 = 176 bits.
+
+        // But let's build the 80-bit value first in the lower part, then shift left.
+        // Option: 
+        //   combined = or(shl(64, leftVal), rightVal)  -> this gives 80 bits in the lower part of a 256-bit word? 
+        //   Actually, leftVal is 16 bits, shifting left by 64 gives bits 79..64 set.
+        //   rightVal is 64 bits, occupies bits 63..0.
+        //   So combined has 80 bits in the least significant 80 bits.
+        // Then we shift left by 176 to move them to the most significant 80 bits (since 256 - 80 = 176).
+
+        let combined := or(shl(64, leftVal), rightVal)
+        result := shl(176, combined)
+    }

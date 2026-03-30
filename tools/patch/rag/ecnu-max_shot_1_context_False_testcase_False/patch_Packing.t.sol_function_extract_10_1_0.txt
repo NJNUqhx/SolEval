@@ -1,0 +1,37 @@
+function extract_10_1(bytes10 self, uint8 offset) internal  pure returns (bytes1 result) {
+function extract_10_1(bytes10 self, uint8 offset) internal  pure returns (bytes1 result) {
+if (offset > 9) {
+            revert OutOfRangeAccess();
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Shift the bytes10 value left by (8 * offset) bits to bring the target byte to the most significant position.
+            // bytes10 is 80 bits. To move the byte at `offset` to the top, we shift left by (offset * 8).
+            // However, since `self` is stored in the lower bits of a 256-bit word, shifting left moves it towards the MSB.
+            // We want the byte at `offset` (0-indexed from left) to end up at the very top (bit 255..248).
+            // The first byte is at bit 248..255 (if we consider the 80 bits aligned to MSB) or more simply:
+            // bytes10 layout in 256 bits: [0...0][byte0][byte1]...[byte9]
+            // Actually, Solidity stores bytesN right-aligned. So byte0 is at the highest position of the 10 bytes.
+            // Let's assume standard big-endian interpretation for bytesN:
+            // self = 0x00...00 | b0 b1 b2 b3 b4 b5 b6 b7 b8 b9
+            // To extract b0 (offset 0), we need to shift left by 0? No, it's already at the top of the 10 bytes.
+            // But in a 256-bit word, the 10 bytes occupy the lowest 80 bits? No, Solidity left-pads bytesN with zeros when loading into 256-bit slots?
+            // Correction: In Solidity, `bytes10` is right-aligned in a 256-bit word.
+            // Value: 0x0000...0000[b0][b1]...[b9] where b9 is the LSB.
+            // Wait, standard convention for bytesN:
+            // "bytes10" value 0x0102...0a is stored as 0x0102...0a00...00?
+            // Actually, for fixed-size bytes types, the value is left-aligned in the 32-byte word?
+            // Let's check Solidity docs: "For bytes1 to bytes32, the value is left-aligned."
+            // So: [b0][b1]...[b9][00]...[00].
+            // To get byte at `offset`, we shift left by (offset * 8). Then the byte is at the top.
+            // Then we shift right by 248 to isolate it? Or just mask.
+            // Strategy:
+            // 1. Shift left by (offset * 8). The target byte becomes the first byte (MSB).
+            // 2. Shift right by 248 to move that byte to the LSB position.
+            
+            let shifted := shl(mul(offset, 8), self)
+            // Move the MSB (which is our target byte) to the LSB position
+            result := shr(248, shifted)
+        }
+    }

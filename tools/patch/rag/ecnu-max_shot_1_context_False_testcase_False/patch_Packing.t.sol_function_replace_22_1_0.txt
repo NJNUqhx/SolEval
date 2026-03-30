@@ -1,0 +1,16 @@
+function replace_22_1(bytes22 self, bytes1 value, uint8 offset) internal  pure returns (bytes22 result) {
+function replace_22_1(bytes22 self, bytes1 value, uint8 offset) internal  pure returns (bytes22 result) {
+    bytes1 old = extract_22_1(self, offset);
+    assembly {
+        // Mask the new value to ensure it is a single byte (0xff)
+        let maskedValue := and(value, 0xff)
+        // Mask the old value to ensure it is a single byte (0xff)
+        let maskedOld := and(old, 0xff)
+        // Calculate the result:
+        // 1. Start with the original self value.
+        // 2. XOR with the old byte at the correct position to zero it out.
+        // 3. XOR with the new byte at the correct position to set it.
+        // The shift amount is (21 - offset) * 8 because bytes22 is stored left-aligned in the 32-byte slot.
+        let shift := shl(3, sub(21, offset))
+        result := xor(xor(self, shl(shift, maskedOld)), shl(shift, maskedValue))
+    }

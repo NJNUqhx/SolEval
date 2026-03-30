@@ -1,0 +1,24 @@
+function extract_8_2(bytes8 self, uint8 offset) internal  pure returns (bytes2 result) {
+function extract_8_2(bytes8 self, uint8 offset) internal  pure returns (bytes2 result) {
+if (offset > 6) {
+            revert OutOfRangeAccess();
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Shift left to align the desired 2 bytes to the most significant position
+            // 8 bytes = 64 bits. Each offset step is 1 byte (8 bits).
+            let shifted := shl(mul(offset, 8), self)
+            // Mask to keep only the top 2 bytes (16 bits)
+            // 0xFFFF00000000000000... but since we are working within 256 bits and result is bytes2,
+            // we can shift right by 240 bits (256 - 16) after masking or just mask directly.
+            // A common pattern for extracting high bytes:
+            // 1. Shift left so target bytes are at the very top (bits 255-240).
+            // 2. Shift right by 240 to bring them to the bottom.
+            
+            // Actually, simpler logic for bytes2 result:
+            // We want bits [255:240] of the shifted value if we treat it as aligned to top.
+            // Let's do: (self << (offset * 8)) >> 240
+            result := shr(240, shl(mul(offset, 8), self))
+        }
+    }

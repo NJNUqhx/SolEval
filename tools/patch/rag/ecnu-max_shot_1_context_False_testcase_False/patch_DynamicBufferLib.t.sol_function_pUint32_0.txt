@@ -1,0 +1,5 @@
+function pUint32(DynamicBuffer memory buffer, uint32 data) internal  pure returns (DynamicBuffer memory result) {
+function pUint32(DynamicBuffer memory buffer, uint32 data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = p(buffer, _single(bytes32(uint256(data)), 4));
+    }

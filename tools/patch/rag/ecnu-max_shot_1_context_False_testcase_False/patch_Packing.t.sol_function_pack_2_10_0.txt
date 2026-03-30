@@ -1,0 +1,238 @@
+function pack_2_10(bytes2 left, bytes10 right) internal  pure returns (bytes12 result) {
+function pack_2_10(bytes2 left, bytes10 right) internal  pure returns (bytes12 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Shift left (bytes2) by 240 bits (80 bytes * 3 bits? No, 240 bits = 30 bytes).
+            // bytes2 is 16 bits. To place it in the top 16 bits of a 96-bit (bytes12) value:
+            // Total bits = 96. bytes2 takes top 16. Shift amount = 96 - 16 = 80 bits.
+            // Wait, the requirement says "shifted left by 240 bits".
+            // Let's re-read carefully: "Packs a bytes2 and a bytes10 into a single bytes12".
+            // bytes12 = 12 bytes = 96 bits.
+            // bytes2 = 2 bytes = 16 bits.
+            // bytes10 = 10 bytes = 80 bits.
+            // If we treat them as integers in a 256-bit word:
+            // left (bytes2) should occupy the most significant 16 bits of the 96-bit result.
+            // In a 256-bit word, the 96-bit result occupies the least significant 96 bits?
+            // Or does the result variable hold the value aligned to the right (LSB)?
+            // Standard Solidity fixed-size bytes types are right-aligned in the 32-byte word when treated as integers.
+            // bytes12 result: bits 0 to 95 contain data.
+            // left (bytes2) -> bits 80 to 95.
+            // right (bytes10) -> bits 0 to 79.
+            
+            // The requirement description mentions specific shifts: 
+            // "left value is shifted left by 240 bits"
+            // "right value is shifted left by 176 bits"
+            // This implies operating on the full 256-bit word representation where the data is initially left-aligned (as loaded from memory slots potentially) or the requirement describes a specific internal logic.
+            // However, `bytes2` and `bytes10` arguments in assembly `mload` context (if they were from memory) are left-aligned in the 32-byte slot? 
+            // Actually, function arguments of fixed size in Solidity are passed in the stack. 
+            // When you have `bytes2 left`, the value in the stack has the data in the most significant bytes (left-aligned) of the 32-byte word? 
+            // Let's verify Solidity ABI encoding for fixed bytes in calldata/memory vs stack.
+            // In Solidity assembly, if you have `bytes2 x`, the value `x` on the stack has the 2 bytes in the top (most significant) positions of the 32-byte word (i.e., bits 240-255).
+            // Similarly, `bytes10 y` has data in bits 128-207? No.
+            // Fixed bytes types are left-aligned in the 32-byte word.
+            // bytes2: data in bits [240, 255].
+            // bytes10: data in bits [128, 207] (10 bytes = 80 bits. 256 - 80 = 176. So bits [176, 255]?? No.)
+            // Let's re-evaluate alignment.
+            // bytes32: bits 0-255.
+            // bytes1: bit 248-255.
+            // bytes2: bits 240-255.
+            // bytes10: 10 bytes. 256 - 10*8 = 176. Bits 176-255.
+            
+            // Goal: bytes12 result. Data should be in bits 208-255 (12 bytes = 96 bits. 256-96=160? No. 12 bytes is 96 bits. 256-96 = 160. So bits 160-255).
+            // Wait, standard representation for `bytes12` in a 256-bit word is left-aligned?
+            // Yes, fixed-size bytes are always left-aligned in the 32-byte word in Solidity.
+            // So `bytes12` result should have data in bits [160, 255] (256 - 12*8 = 160).
+            
+            // Input `left` (bytes2): Data in bits [240, 255].
+            // Input `right` (bytes10): Data in bits [176, 255] (256 - 10*8 = 176).
+            
+            // We want `left` to end up in the top 2 bytes of the 12-byte sequence.
+            // The 12-byte sequence occupies bits [160, 255].
+            // Top 2 bytes of that sequence are bits [240, 255].
+            // So `left` is already in the correct position relative to the 256-bit word if we just mask it?
+            // We need to ensure bits outside the 12-byte range are zero.
+            // And `right` (bytes10) needs to occupy the next 10 bytes: bits [176, 239].
+            // Currently `right` is in [176, 255]. We need to shift it right by 16 bits (2 bytes) to make room for `left`?
+            // No, `left` is in [240, 255]. `right` is in [176, 255].
+            // If we OR them directly, `right`'s top 2 bytes (which are part of its 10 bytes? No, `right` is 10 bytes. Bits 176 to 255 is exactly 10 bytes? 256-176=80 bits = 10 bytes. Yes.)
+            // So `right` occupies [176, 255]. `left` occupies [240, 255].
+            // They overlap!
+            // We need `right` to occupy [176, 239] (bits 176 to 239 is 64 bits? No. 239-176+1 = 64 bits = 8 bytes. We need 10 bytes).
+            // Let's recalculate bit ranges.
+            // Total 256 bits.
+            // bytes12 result: occupies bits [160, 255] (12 bytes).
+            // Left part (bytes2): should be bits [240, 255] (within the result).
+            // Right part (bytes10): should be bits [176, 239]? 
+            // 176 to 239 is 64 bits (8 bytes). We need 10 bytes (80 bits).
+            // 160 + 80 = 240. So right part should be [160, 239].
+            // Left part [240, 255].
+            // Total [160, 255]. Correct.
+            
+            // Current state of inputs (left-aligned in 256-bit word):
+            // `left` (bytes2): [240, 255]. Correct position for final result.
+            // `right` (bytes10): [176, 255]. 
+            // We need `right` to be in [160, 239].
+            // So we need to shift `right` RIGHT by 16 bits?
+            // Current start: 176. Target start: 160. Difference: 16 bits right shift.
+            // But shifting right moves data to lower significance.
+            // 176 -> 160. Yes.
+            // So: `right` >> 16.
+            // Then `left` | (`right` >> 16).
+            
+            // Let's check the requirement text again:
+            // "left value is shifted left by 240 bits"
+            // "right value is shifted left by 176 bits"
+            // This sounds like the requirement assumes the inputs are NOT left-aligned in the 256-bit word, or it's describing a different packing strategy (e.g., treating inputs as integers 0..N and shifting them into a 256 bit integer).
+            // BUT, Solidity `bytes2` and `bytes10` ARE left-aligned.
+            // If the requirement insists on those specific shifts, maybe it implies converting to a value where they are right-aligned first?
+            // Or perhaps the requirement description is slightly mismatched with Solidity's default representation, but I must follow the "Steps" logically to achieve the packing.
+            // Let's ignore the specific "240/176" numbers if they contradict Solidity's layout and focus on the goal: "Packs a bytes2 and a bytes10 into a single bytes12".
+            // The standard efficient way in Solidity assembly for left-aligned fixed bytes:
+            // left is already at top.
+            // right needs to be shifted right by (2 * 8) = 16 bits to make space for left?
+            // Wait. 
+            // left: 2 bytes.
+            // right: 10 bytes.
+            // Result: 12 bytes.
+            // Layout: [ left (2) ][ right (10) ] ??
+            // Or [ left (2) ] then [ right (10) ]?
+            // Usually "pack left and right" means `left` is high order, `right` is low order.
+            // In left-aligned words: High order bits are at the beginning (left side).
+            // So `left` should be at the very top (bits 240-255).
+            // `right` should follow immediately?
+            // If `left` is 2 bytes, `right` should start at byte 2 (bit 16 from the start of the data block).
+            // In 256-bit word:
+            // Data starts at bit 160 (for 12 bytes).
+            // `left` (2 bytes) -> bits 240-255.
+            // `right` (10 bytes) -> bits 160-239.
+            // Input `right` (bytes10) is at bits 176-255.
+            // To get it to 160-239, we shift RIGHT by 16 bits.
+            // Input `left` is at 240-255. It stays.
+            // Operation: `or(left, shr(16, right))`.
+            
+            // Let's re-read the requirement's shift instructions.
+            // "left ... shifted left by 240 bits"
+            // "right ... shifted left by 176 bits"
+            // If the inputs were treated as simple integers (right aligned in 256 bits):
+            // left (2 bytes) value V_l. Shift left 240? 256-16=240. That puts it at top.
+            // right (10 bytes) value V_r. Shift left 176? 256-80=176. That puts it at top 10 bytes.
+            // If we do that, they overlap at the top.
+            // This suggests the requirement description might be assuming a specific intermediate representation or is slightly confusing.
+            // However, the GOAL is clear: Pack into bytes12.
+            // If I follow the standard Solidity behavior for `bytes12`, the result must be left-aligned.
+            // The most logical interpretation that produces a valid `bytes12` with `left` as the first 2 bytes and `right` as the next 10:
+            // 1. Ensure `left` is clean (masked to 2 bytes).
+            // 2. Ensure `right` is clean (masked to 10 bytes).
+            // 3. Shift `right` right by 16 bits (2 bytes) so it sits below `left`.
+            // 4. OR them.
+            
+            // Let's try to interpret the requirement's shift values in a way that makes sense.
+            // Maybe it means:
+            // Take `left`, shift it so it ends up in the correct spot.
+            // Take `right`, shift it so it ends up in the correct spot.
+            // If the requirement says "shift left by 240", and the input is already at 240 (for bytes2), then shifting left by 240 would move it to 240+240 = 480 (overflow/wrap)? No.
+            // Perhaps the requirement assumes the inputs are effectively 0-padded on the LEFT (right-aligned integers)?
+            // If `left` is a 16-bit integer at LSB (bits 0-15). Shift left 240 -> bits 240-255.
+            // If `right` is an 80-bit integer at LSB (bits 0-79). Shift left 176 -> bits 176-255.
+            // Then OR them: bits 176-255 are set.
+            // But we want `right` to be below `left`.
+            // If `left` is at 240-255. `right` should be at 160-239.
+            // So `right` (if starting at 0) should shift left by 160.
+            // The requirement says 176.
+            // 176 + 80 = 256. So it puts `right` at the very top (176-255).
+            // This creates an overlap with `left` (240-255).
+            // This implies the requirement description's shift amounts might be flawed or refer to a different layout (e.g. `right` then `left`? No, "left" is higher order).
+            // OR, maybe "left" and "right" refer to the position in the final byte array, and the shifts are calculated to place them there assuming right-aligned inputs?
+            // If I strictly follow "shift left 240" and "shift left 176" and OR, I get garbage overlap.
+            // I will prioritize the semantic goal: "Packs a bytes2 and a bytes10 into a single bytes12".
+            // Standard packing: `bytes12(abi.encodePacked(left, right))`.
+            // In assembly:
+            // `left` is already at [240, 255].
+            // `right` is at [176, 255]. We need it at [160, 239].
+            // Shift `right` right by 16.
+            // Masking is implicit if we trust the input types, but good to be safe.
+            // Mask for `left`: 0xFFFF...0000 (top 2 bytes). Actually `left` is already typed.
+            // Mask for `right`: top 10 bytes.
+            // Let's construct the mask and shift.
+            
+            // Mask for 2 bytes: 0xFFFF000000000000000000000000000000000000000000000000000000000000
+            // Mask for 10 bytes: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000
+            // Wait, 10 bytes = 80 bits. FFFFFFFFFFFFFFFFFFFFFFFF is 64 bits.
+            // 10 bytes mask: 0xFFFFFFFFFFFFFFFFFFFFFFFFFF00... (top 80 bits).
+            
+            // Simpler approach:
+            // result = left | (right >> 16)
+            // Since `left` is bytes2 (top 2 bytes), and `right` is bytes10 (top 10 bytes).
+            // `right >> 16` moves the 10 bytes down by 2 bytes.
+            // Top 2 bytes of `right` (which are valid data) move to position 2-11.
+            // The original top 2 bytes of `right` (bits 176-191) move to 160-175.
+            // The bottom 2 bytes of `right` (bits 240-255) move to 224-239.
+            // Wait. `right` has 10 bytes. Bits 176 to 255.
+            // Shift right 16 bits: Bits 176-255 become 160-239.
+            // Bits 240-255 (the last 2 bytes of `right`) become 224-239.
+            // `left` is at 240-255.
+            // No overlap. Perfect.
+            
+            // Why did the requirement say "shift left 240" and "shift left 176"?
+            // Maybe it meant:
+            // 1. Convert to right-aligned? (Not necessary in assembly if we know the layout).
+            // 2. The prompt might be generated with a slight misunderstanding of Solidity's fixed-byte alignment.
+            // I will implement the logically correct packing for Solidity `bytes12`.
+            
+            // Masking to ensure cleanliness (though types enforce it, assembly can be risky if called weirdly, but here inputs are typed).
+            // We'll just do the shift and OR.
+            
+            // One detail: "Zeroize the memory slot..." - No, this is pure assembly returning a value, not memory allocation.
+            // Just compute the stack value.
+            
+            // Let's refine the mask just in case.
+            // left mask: 0xFFFF << 240.
+            // right mask: 0xFFFFFFFFFFFFFFFFFFFFFFFFFF << 176? (10 bytes = 80 bits. 256-80=176).
+            // Actually, `shl(176, 0xFFFFFFFFFFFFFFFFFFFFFFFFFF)`?
+            // Easier: `and(left, 0xFFFF...0000)` and `and(right, 0xFF...0000)`.
+            // But since inputs are `bytes2` and `bytes10`, Solidity guarantees the upper bits (if any? no, they fill the word) are set?
+            // Solidity guarantees that for `bytes2`, only the top 2 bytes are meaningful, the rest are zero? 
+            // YES, for fixed-size bytes, the unused lower bits (in the 32-byte word representation? No, unused LOWER significance bits? 
+            // Wait. Left aligned. 
+            // `bytes2`: Data in top 2 bytes. Bottom 30 bytes are ZERO.
+            // `bytes10`: Data in top 10 bytes. Bottom 22 bytes are ZERO.
+            // So `left` is clean. `right` is clean.
+            // We just need `right >> 16`.
+            // Then `left | (right >> 16)`.
+            
+            // Let's double check the "Steps" in the requirement again.
+            // "1. Mask and shift the left value..."
+            // "2. Mask and shift the right value..."
+            // "3. Combine..."
+            // I will add masks to be explicit and safe, following the spirit of the requirement.
+            // Mask for left (2 bytes): 0xFFFF000000000000000000000000000000000000000000000000000000000000
+            // Mask for right (10 bytes): 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000 (80 ones followed by 176 zeros).
+            // Actually, constructing these masks in assembly:
+            // left_mask = not(0) << 240? No. not(0) is all 1s. shl(240, 0xFFFF)?
+            // 0xFFFF is 16 bits. shl(240, 0xFFFF) puts it at top.
+            // right_mask = 10 bytes. 0xFFFFFFFFFFFFFFFFFFFFFFFFFF (80 bits). shl(176, ...).
+            
+            // Implementation:
+            let l := left
+            let r := right
+            
+            // Mask left: ensure only top 2 bytes are kept (though input should be clean)
+            // 0xFFFF << 240
+            let maskL := shl(240, 0xFFFF)
+            l := and(l, maskL)
+            
+            // Mask right: ensure only top 10 bytes are kept
+            // 10 bytes = 80 bits. Value with 80 ones: 0xFFFFFFFFFFFFFFFFFFFFFFFFFF
+            // Shift left by 176 to align to top.
+            let maskR := shl(176, 0xFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            r := and(r, maskR)
+            
+            // Shift right value down by 16 bits (2 bytes) to make room for left
+            // Current r: [176, 255]. Target: [160, 239].
+            // Shift right logical by 16.
+            r := shr(16, r)
+            
+            // Combine
+            result := or(l, r)
+        }
+    }

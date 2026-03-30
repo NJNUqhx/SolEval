@@ -1,0 +1,7 @@
+function toInt152(int256 x) internal  pure returns (int152) {
+function toInt152(int256 x) internal  pure returns (int152) {
+if (x < type(int152).min || x > type(int152).max) {
+            revert("Overflow");
+        }
+        return int152(x);
+    }

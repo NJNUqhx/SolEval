@@ -1,0 +1,14 @@
+function toInt240(int256 x) internal  pure returns (int240) {
+function toInt240(int256 x) internal  pure returns (int240) {
+    // Step 1: Check if the value `x` can be safely represented as a 240-bit integer.
+    // A signed 240-bit integer ranges from -2^239 to 2^239 - 1.
+    // We verify this by casting back to int256 and checking for equality.
+    // If the upper bits (above 240) contained significant data, the round-trip cast would fail.
+    if (int256(int240(x)) != x) {
+        // Step 3: Revert with an overflow error if the value is out of range.
+        revert SafeCastOverflow();
+    }
+
+    // Step 2: Return the cast value as int240.
+    return int240(x);
+} 

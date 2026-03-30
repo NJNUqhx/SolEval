@@ -1,0 +1,17 @@
+function mulWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+function mulWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+if (y == 0) {
+            return 0;
+        }
+        
+        // Check for overflow: x * y > type(uint256).max
+        // Equivalent to: x > type(uint256).max / y
+        if (x > type(uint256).max / y) {
+            revert MulWadFailed();
+        }
+
+        // Perform multiplication and division by WAD using inline assembly for gas optimization
+        assembly {
+            z := div(mul(x, y), WAD)
+        }
+    }

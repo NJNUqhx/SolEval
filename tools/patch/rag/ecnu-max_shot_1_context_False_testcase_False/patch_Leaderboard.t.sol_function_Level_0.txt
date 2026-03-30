@@ -1,0 +1,7 @@
+function Level() {
+function Level() {
+struct Level {
+        uint256 noOfInstancesCreated;
+        uint256 noOfInstancesSubmitted_Success;
+        uint256 noOfSubmissions_Failed;
+    }

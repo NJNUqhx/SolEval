@@ -1,0 +1,53 @@
+function lastIndexOf(uint256[] memory a, uint256 needle, uint256 from) internal  pure returns (uint256 result) {
+function lastIndexOf(uint256[] memory a, uint256 needle, uint256 from) internal  pure returns (uint256 result) {
+function lastIndexOf(uint256[] memory a, uint256 needle, uint256 from) internal  pure returns (uint256 result) {
+    result = type(uint256).max;
+    uint256 n = a.length;
+
+    if (n > 0) {
+        if (from >= n) {
+            from = n - 1;
+        }
+
+        assembly {
+            // Calculate the starting memory offset for the element at index `from`.
+            // Array data starts at `add(a, 32)`. Each element is 32 bytes.
+            let o := add(add(a, 32), mul(from, 32))
+            
+            // Store the original length to restore later
+            let originalLength := mload(a)
+            
+            // Temporarily store `needle` in the length slot (index -1 relative to data start)
+            // This acts as a sentinel to ensure the loop always finds a match eventually
+            mstore(a, needle)
+
+            // Loop backwards: compare memory at `o` with `needle`
+            // Since we put `needle` at `a` (which is `o - 32` when `from` wraps conceptually, 
+            // but logically we just decrement `o` until we hit the sentinel), 
+            // the loop condition is effectively "while true" until we hit the sentinel or find it naturally.
+            // However, the standard pattern for this optimization checks equality and breaks.
+            for {} true {} {
+                if eq(mload(o), needle) {
+                    break
+                }
+                o := sub(o, 32)
+            }
+
+            // Restore the original length
+            mstore(a, originalLength)
+
+            // Calculate the index from the memory offset.
+            // Index = (offset - data_start) / 32
+            // data_start = add(a, 32)
+            // If we hit the sentinel (which was placed at `a`), the calculated index would be -1 (underflow).
+            // We need to check if the found offset corresponds to the sentinel we placed artificially.
+            // The sentinel is at `a`. The data starts at `add(a, 32)`.
+            // If `o` equals `a`, it means we didn't find it in the valid range [0, from].
+            if eq(o, a) {
+                result := sub(0, 1) // not(0)
+            } else {
+                result := div(sub(o, add(a, 32)), 32)
+            }
+        }
+    }
+} 

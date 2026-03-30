@@ -1,0 +1,12 @@
+function pack_10_10(bytes10 left, bytes10 right) internal  pure returns (bytes20 result) {
+function pack_10_10(bytes10 left, bytes10 right) internal  pure returns (bytes20 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear upper bits of left (keep lower 80 bits)
+            left := and(left, 0xffffffffffffffffffffffffffff)
+            // Clear upper bits of right (keep lower 80 bits)
+            right := and(right, 0xffffffffffffffffffffffffffff)
+            // Shift right by 80 bits (10 bytes) and combine with left
+            result := or(left, shl(80, right))
+        }
+    }

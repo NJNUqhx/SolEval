@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
-from tools.utils.logger import MyLogger
+from utils.logger import MyLogger
 from utils.replacements import cwd_dir_cargo
 import time
 

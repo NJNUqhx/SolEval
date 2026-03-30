@@ -1,0 +1,60 @@
+function replace_28_10(bytes28 self, bytes10 value, uint8 offset) internal  pure returns (bytes28 result) {
+function replace_28_10(bytes28 self, bytes10 value, uint8 offset) internal  pure returns (bytes28 result) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Replaces a 10-byte segment within a 28-byte value at a specified offset.
+ *
+ * @param self The original 28-byte value.
+ * @param value The new 10-byte value to replace the segment with.
+ * @param offset The position (in bytes) within the 28-byte value where the replacement should occur.
+ * @return result The modified 28-byte value after replacement.
+ *
+ * Steps:
+ * 1. Extract the existing 10-byte segment from the 28-byte value at the specified offset.
+ * 2. Use inline assembly to:
+ *    a. Mask the new 10-byte value to ensure it fits within the 10-byte segment.
+ *    b. Calculate the result by XORing the original value with the old segment and then XORing with the new segment.
+ * 3. Return the modified 28-byte value.
+ *
+ * @dev This function uses low-level assembly for precise byte manipulation.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function replace_28_10(bytes28 self, bytes10 value, uint8 offset) internal  pure returns (bytes28 result) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Load the 28-byte value into a temporary variable.
+        // bytes28 is stored in the lower 224 bits of a bytes32 slot.
+        let original := self
+
+        // Calculate the number of bits to shift to align the target segment to the least significant position.
+        // The segment is 10 bytes long. The offset is in bytes from the left (MSB).
+        // Total size is 28 bytes.
+        // Shift amount in bits = (28 - offset - 10) * 8.
+        let shiftAmount := mul(sub(sub(28, offset), 10), 8)
+
+        // Create a mask for 10 bytes (80 bits).
+        // Type(uint160).max is 0xFFFF... (20 bytes), we need 10 bytes.
+        // 10 bytes = 80 bits. Mask = (1 << 80) - 1.
+        let mask := sub(shl(80, 1), 1)
+
+        // Extract the old 10-byte segment from the original value.
+        // Shift right to bring the segment to the LSB, mask it, then shift back to original position.
+        let oldSegment := and(shr(shiftAmount, original), mask)
+        oldSegment := shl(shiftAmount, oldSegment)
+
+        // Prepare the new value.
+        // Convert the bytes10 input to a uint160 (or larger) and mask it to ensure only 10 bytes are used.
+        let newValue := and(value, mask)
+        // Shift the new value to the correct position.
+        newValue := shl(shiftAmount, newValue)
+
+        // Perform the replacement using XOR logic:
+        // result = (original XOR oldSegment) XOR newValue
+        // This clears the old bits and sets the new bits.
+        result := xor(xor(original, oldSegment), newValue)
+    }
+}

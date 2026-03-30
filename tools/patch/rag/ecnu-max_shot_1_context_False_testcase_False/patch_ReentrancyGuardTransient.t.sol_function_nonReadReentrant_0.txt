@@ -1,0 +1,33 @@
+function nonReadReentrant()  virtual {
+function nonReadReentrant()  virtual {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Check if we are on mainnet (chain ID 1)
+            if eq(chainid(), 1) {
+                // Use transient storage slot 0 for reentrancy guard on mainnet
+                if tload(0) {
+                    mstore(0x00, 0xb53c9a59) // `Reentrancy()` selector
+                    revert(0x1c, 0x04)
+                }
+                tstore(0, 1)
+            } else {
+                // For non-mainnet, use standard storage slot 0
+                // Check if slot contains the contract's own address (reentrancy detected)
+                if eq(sload(0), address()) {
+                    mstore(0x00, 0xb53c9a59) // `Reentrancy()` selector
+                    revert(0x1c, 0x04)
+                }
+                // Store contract address as guard
+                sstore(0, address())
+            }
+        }
+        _;
+        /// @solidity memory-safe-assembly
+        assembly {
+            if eq(chainid(), 1) {
+                tstore(0, 0)
+            } else {
+                sstore(0, 0)
+            }
+        }
+    }

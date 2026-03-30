@@ -1,0 +1,6 @@
+function tryMod(uint256 a, uint256 b) internal  pure returns (bool success, uint256 result) {
+function tryMod(uint256 a, uint256 b) internal  pure returns (bool success, uint256 result) {
+unchecked {
+        if (b == 0) return (false, 0);
+        return (true, a % b);
+    }

@@ -1,0 +1,43 @@
+function searchSorted(Uint8Map storage map, uint8 needle, uint256 start, uint256 end) internal  view returns (bool found, uint256 index) {
+function searchSorted(Uint8Map storage map, uint8 needle, uint256 start, uint256 end) internal  view returns (bool found, uint256 index) {
+(function _data, uint256 _needle, uint256 _start, uint256 _end, uint256 _bits) internal view returns (bool, uint256) {
+        assembly {
+            // Load the slot of the map's data array
+            let dataSlot := sload(map.slot)
+            
+            // Binary search implementation
+            let low := _start
+            let high := _end
+            let mid := 0
+            let val := 0
+            
+            for {} lt(low, high) {} {
+                mid := shr(1, add(low, high))
+                
+                // Calculate the storage slot for the element at index `mid`
+                // For a dynamic array, element at index `i` is at keccak256(dataSlot) + i
+                let elementSlot := add(keccak256(dataSlot, 32), mid)
+                val := shr(sub(256, _bits), sload(elementSlot))
+                
+                switch gt(val, _needle)
+                case 1 {
+                    high := mid
+                }
+                case 0 {
+                    switch lt(val, _needle)
+                    case 1 {
+                        low := add(mid, 1)
+                    }
+                    case 0 {
+                        // Found the value
+                        return(1, mid)
+                    }
+                }
+            }
+            
+            // Not found, return false and the insertion point (low)
+            return(0, low)
+        }
+    }
+    
+    (found, index) = _searchSorted(map._data, needle, start, end, 8);

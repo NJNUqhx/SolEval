@@ -1,0 +1,7 @@
+function clear(TUint256 storage ptr) internal {
+function clear(TUint256 storage ptr) internal {
+/// @solidity memory-safe-assembly
+        assembly {
+            sstore(ptr.slot, 0)
+        }
+    }

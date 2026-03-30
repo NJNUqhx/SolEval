@@ -1,0 +1,91 @@
+function findLastSet(Bitmap storage bitmap, uint256 upTo) internal  view returns (uint256 setBitIndex) {
+function findLastSet(Bitmap storage bitmap, uint256 upTo) internal  view returns (uint256 setBitIndex) {
+setBitIndex = NOT_FOUND;
+uint256 bucketIndex = upTo >> 8;
+
+assembly {
+    let found := 0
+    let currentBucket := bucketIndex
+    
+    // Load the slot of the bitmap mapping
+    let slot := sload(bitmap.slot)
+    
+    // We need to compute the slot for mapping(uint256 => uint256) bitmap
+    // The slot for bitmap[currentBucket] is keccak256(abi.encode(currentBucket, bitmap.slot))
+    mstore(0x00, currentBucket)
+    mstore(0x20, slot)
+    let bucketSlot := keccak256(0x00, 0x40)
+    
+    let bucketData := sload(bucketSlot)
+    let offset := and(upTo, 0xff)
+    
+    // Create a mask to zero out bits above the 'upTo' index within the current bucket
+    // We want to keep bits from 0 to offset. Mask = (1 << (offset + 1)) - 1
+    let mask := sub(shl(add(offset, 1), 1), 1)
+    let maskedData := and(bucketData, mask)
+    
+    if iszero(maskedData) {
+        // If no bits set in current bucket up to offset, search previous buckets
+        for { } gt(currentBucket, 0) { } {
+            currentBucket := sub(currentBucket, 1)
+            
+            mstore(0x00, currentBucket)
+            mstore(0x20, slot)
+            bucketSlot := keccak256(0x00, 0x40)
+            bucketData := sload(bucketSlot)
+            
+            if bucketData {
+                found := 1
+                break
+            }
+        }
+    } else {
+        found := 1
+    }
+    
+    if found {
+        // Find the index of the highest set bit in bucketData
+        // We can use a binary search approach or built-in logic if available, 
+        // but in pure assembly for EVM, we often rely on a loop or mathematical trick.
+        // However, finding the MSB index efficiently in assembly usually involves a de Bruijn sequence or a loop.
+        // Given the constraints and typical patterns, let's assume a helper logic or a loop for MSB.
+        // Here we implement a simple loop to find the MSB position (0-255).
+        
+        let temp := bucketData
+        let msbPos := 0
+        let shift := 0
+        
+        // Unrolled binary search for MSB position for efficiency
+        if gt(temp, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { 
+            // This check is redundant for uint256, but logically:
+            // We check upper 128 bits
+        }
+        
+        // Standard bit-twiddling to find MSB index
+        if gt(temp, 0xffffffffffffffffffffffffffffffff) { temp := shr(128, temp); shift := add(shift, 128) }
+        if gt(temp, 0xffffffffffffffff) { temp := shr(64, temp); shift := add(shift, 64) }
+        if gt(temp, 0xffffffff) { temp := shr(32, temp); shift := add(shift, 32) }
+        if gt(temp, 0xffff) { temp := shr(16, temp); shift := add(shift, 16) }
+        if gt(temp, 0xff) { temp := shr(8, temp); shift := add(shift, 8) }
+        
+        // Now temp is in 0..255 range, find exact bit
+        // Using a small lookup or simple checks
+        if gt(temp, 0xf) { temp := shr(4, temp); shift := add(shift, 4) }
+        if gt(temp, 0x3) { temp := shr(2, temp); shift := add(shift, 2) }
+        if gt(temp, 0x1) { shift := add(shift, 1) }
+        
+        msbPos := shift
+        
+        setBitIndex := add(shl(8, currentBucket), msbPos)
+        
+        // Final check: ensure the found index is not greater than upTo (should be guaranteed by logic, but safe check)
+        if gt(setBitIndex, upTo) {
+            setBitIndex := NOT_FOUND
+        }
+    } else {
+        setBitIndex := NOT_FOUND
+    }
+}
+
+return setBitIndex;
+    }

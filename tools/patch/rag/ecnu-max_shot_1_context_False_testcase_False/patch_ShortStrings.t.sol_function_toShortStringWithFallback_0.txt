@@ -1,0 +1,10 @@
+function toShortStringWithFallback(string memory value, string storage store) internal   returns (ShortString) {
+function toShortStringWithFallback(string memory value, string storage store) internal   returns (ShortString) {
+function toShortStringWithFallback(string memory value, string storage store) internal   returns (ShortString) {
+        uint256 len = bytes(value).length;
+        if (len < 32) {
+            return toShortString(value);
+        }
+        store = value;
+        return FALLBACK_SENTINEL;
+    }

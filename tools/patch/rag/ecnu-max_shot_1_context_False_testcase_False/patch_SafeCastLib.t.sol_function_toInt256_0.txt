@@ -1,0 +1,7 @@
+function toInt256(uint256 x) internal  pure returns (int256) {
+function toInt256(uint256 x) internal  pure returns (int256) {
+if (x > uint256(type(int256).max)) {
+            revert SafeCastOverflow();
+        }
+        return int256(x);
+    } 

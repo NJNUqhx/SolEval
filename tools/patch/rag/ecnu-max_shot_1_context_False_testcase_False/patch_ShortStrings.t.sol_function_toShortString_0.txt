@@ -1,0 +1,10 @@
+function toShortString(string memory str) internal  pure returns (ShortString) {
+function toShortString(string memory str) internal  pure returns (ShortString) {
+bytes memory b = bytes(str);
+        if (b.length > 31) revert StringTooLong();
+        bytes32 data;
+        assembly {
+            data := mload(add(b, 32))
+        }
+        return ShortString(data | bytes32(b.length * 2));
+    } 

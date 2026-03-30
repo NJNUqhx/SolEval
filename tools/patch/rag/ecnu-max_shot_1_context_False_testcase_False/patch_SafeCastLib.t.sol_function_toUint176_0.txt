@@ -1,0 +1,8 @@
+function toUint176(uint256 x) internal  pure returns (uint176) {
+function toUint176(uint256 x) internal  pure returns (uint176) {
+if (x >= (1 << 176)) {
+            revert Overflow();
+        }
+        return uint176(x);
+    }
+    

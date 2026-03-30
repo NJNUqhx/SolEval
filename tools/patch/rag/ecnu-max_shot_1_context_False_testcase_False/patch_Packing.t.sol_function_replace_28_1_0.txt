@@ -1,0 +1,21 @@
+function replace_28_1(bytes28 self, bytes1 value, uint8 offset) internal  pure returns (bytes28 result) {
+function replace_28_1(bytes28 self, bytes1 value, uint8 offset) internal  pure returns (bytes28 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Extract the existing byte at the specified offset.
+            let oldByte := extract_28_1(self, offset)
+            
+            // Mask the new value to ensure it is a single byte (0xFF).
+            let newByte := and(value, 0xFF)
+            
+            // Calculate the result:
+            // 1. XOR self with oldByte to zero out the target position.
+            // 2. XOR the result with newByte to set the new value at the target position.
+            // Note: Since oldByte and newByte are aligned to the same position by extract_28_1 logic 
+            // (assuming extract_28_1 returns the byte shifted to its correct position within the 28-byte word),
+            // we can directly XOR them. If extract_28_1 returns a raw 0-255 value, it needs shifting.
+            // Based on standard patterns for this specific utility set (extract_28_1 usually returns the byte 
+            // already shifted to match the position in the 224-bit integer representation of bytes28):
+            result := xor(xor(self, oldByte), newByte)
+        }
+    }

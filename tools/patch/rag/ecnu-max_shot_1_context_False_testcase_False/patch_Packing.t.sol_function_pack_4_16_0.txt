@@ -1,0 +1,20 @@
+function pack_4_16(bytes4 left, bytes16 right) internal  pure returns (bytes20 result) {
+function pack_4_16(bytes4 left, bytes16 right) internal  pure returns (bytes20 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear unused upper bits of `left` (keep lower 32 bits) and shift to upper part of 20 bytes.
+            // left is 4 bytes (32 bits). We want it at the most significant 4 bytes of the 20-byte result.
+            // 20 bytes = 160 bits. 32 bits should occupy bits 159..128.
+            // So we shift left by (160 - 32) = 128 bits.
+            let leftCleaned := and(left, 0xFFFFFFFF)
+            let leftShifted := shl(128, leftCleaned)
+
+            // Clear unused upper bits of `right` (keep lower 128 bits).
+            // right is 16 bytes (128 bits). We want it at the least significant 16 bytes of the 20-byte result.
+            // It occupies bits 127..0. No shift needed, just mask to ensure 128 bits.
+            let rightCleaned := and(right, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+
+            // Combine both parts
+            result := or(leftShifted, rightCleaned)
+        }
+    }

@@ -1,0 +1,21 @@
+function truncatedCalldata(bytes calldata subject, uint256 n) internal  pure returns (bytes calldata result) {
+function truncatedCalldata(bytes calldata subject, uint256 n) internal  pure returns (bytes calldata result) {
+assembly {
+        // Set the offset of the result to match the offset of the original calldata.
+        // In calldata pointers, the first slot is offset, second is length.
+        // We are returning a calldata slice, so we just manipulate the pointer components.
+        result.offset := subject.offset
+        
+        // Load the original length from the calldata pointer (second slot)
+        let originalLength := subject.length
+        
+        // Calculate the result length: min(originalLength, n)
+        let resultLength := originalLength
+        if gt(originalLength, n) {
+            resultLength := n
+        }
+        
+        // In Solidity assembly for calldata slices, we assign the length directly
+        // to the result variable's length component.
+        result.length := resultLength
+    }

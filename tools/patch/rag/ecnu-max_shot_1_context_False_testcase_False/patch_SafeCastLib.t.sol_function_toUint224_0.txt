@@ -1,0 +1,7 @@
+function toUint224(uint256 x) internal  pure returns (uint224) {
+function toUint224(uint256 x) internal  pure returns (uint224) {
+if (x >= type(uint224).max + 1) {
+            revert();
+        }
+        return uint224(x);
+    }

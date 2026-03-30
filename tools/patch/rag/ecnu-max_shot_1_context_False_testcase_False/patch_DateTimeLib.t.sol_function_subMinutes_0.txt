@@ -1,0 +1,4 @@
+function subMinutes(uint256 timestamp, uint256 numMinutes) internal  pure returns (uint256 result) {
+function subMinutes(uint256 timestamp, uint256 numMinutes) internal  pure returns (uint256 result) {
+result = timestamp - (numMinutes * 60);
+} 

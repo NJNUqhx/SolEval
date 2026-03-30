@@ -1,0 +1,79 @@
+function extract_16_6(bytes16 self, uint8 offset) internal  pure returns (bytes6 result) {
+function extract_16_6(bytes16 self, uint8 offset) internal  pure returns (bytes6 result) {
+if (offset > 10) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift the 16-byte value left by (offset * 8) bits to align the desired segment to the most significant position.
+            // Since 'self' is bytes16, it occupies the upper 16 bytes of the 32-byte slot when loaded directly in some contexts,
+            // but here we treat it as a value. We shift left to move the target 6 bytes to the top.
+            let shifted := shl(mul(offset, 8), self)
+            
+            // Mask to keep only the top 6 bytes (48 bits).
+            // 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000
+            // However, since we will eventually store this into a bytes6 variable which takes the lower 6 bytes of the word,
+            // we actually want to shift the result down to the least significant position after masking, 
+            // OR mask the top 6 bytes and then shift right by (32 - 6) * 8 = 208 bits?
+            // Let's re-evaluate standard Solidity assembly extraction for fixed bytes.
+            // A simpler approach for extracting N bytes starting at offset O from a M byte value:
+            // 1. Shift left by (O * 8) to move the start of the segment to the MSB of the 16-byte block? 
+            // No, standard practice:
+            // To get 6 bytes starting at offset `offset` from a 16-byte value stored in `self`:
+            // The value `self` is in the lower 16 bytes of the 32-byte word if passed as a parameter? 
+            // Actually, `bytes16` is right-aligned in the 32-byte slot in memory/stack for pure functions usually?
+            // Let's assume standard EVM word layout where the value is padded with zeros on the right if it's smaller than 32 bytes?
+            // No, fixed size bytes are left-aligned in 32 bytes in some contexts, but in Solidity parameters, they are usually right-aligned (padded with zeros at the end/higher bits)?
+            // Wait, `bytes16` in a 256-bit word: The data is in the most significant 16 bytes (left-aligned) or least significant?
+            // Solidity packs `bytes16` into the lower 16 bytes (right-aligned) of the 32-byte word? NO.
+            // Solidity stores fixed-size byte arrays left-aligned (in the high-order bytes) in the 32-byte word?
+            // Let's check: `bytes16` value `0x1122...` is stored as `0x1122...0000...` (left aligned) in the stack?
+            // Actually, for `bytes16`, the value is placed in the most significant 16 bytes of the 32-byte word.
+            // So `self` looks like: [16 bytes data][16 bytes zero].
+            // We want to extract 6 bytes starting at `offset`.
+            // Total 16 bytes. Indices 0..15.
+            // If we shift left by `offset * 8`, the byte at `offset` moves to the very front (MSB).
+            // Then we shift right by (32 - 6) * 8 = 208 bits to move those 6 bytes to the least significant position (right-aligned) to fit into `bytes6`.
+            // Or we can just mask.
+            
+            // Correct logic for left-aligned 16-byte value in 32-byte word:
+            // 1. Shift left by `offset * 8`. Now the desired 6 bytes are at the very top (bits 255 down to 208).
+            // 2. Shift right by (16 - 6) * 8 = 80 bits? No.
+            // If the original is [D0...D15][0...0], shifting left by `offset*8` gives [D_offset...D15][0...0][D0...D_offset-1]? No, it shifts out.
+            // It gives [D_offset ... D15] followed by zeros. The desired 6 bytes are now at the top.
+            // We need to move them to the bottom (right-aligned) to assign to `bytes6` (which is right-aligned in the return slot? Or left?).
+            // `bytes6` return value is typically right-aligned in the 32-byte slot (padded with zeros at the top)?
+            // Actually, `bytes6` is stored as [6 bytes data][26 bytes zero] (Left aligned) OR [26 bytes zero][6 bytes data] (Right aligned)?
+            // In Solidity, fixed bytes types like `bytes6` are right-aligned (least significant bytes) in the 32-byte word when used in assembly?
+            // Let's assume the standard: `bytesN` is right-aligned (value in the lowest N bytes).
+            // So if `self` is `bytes16`, is it right aligned?
+            // Test: `bytes16 x = 0x1;` -> x is `0x0000...0001` (right aligned) or `0x0100...`?
+            // Solidity docs: "For fixed-size byte arrays, the bytes are stored in the lower-order bytes of the 32-byte word." -> RIGHT ALIGNED.
+            // Okay, so `self` is [16 zeros][16 bytes data].
+            // We want 6 bytes starting at `offset`.
+            // The data is in bits 0 to 127.
+            // Byte 0 is at bits 120-127. Byte `offset` is at bits (120 - 8*offset) to (127 - 8*offset).
+            // We want to extract these 6 bytes and put them in the lowest 6 bytes of the result (bits 40-47? No, bits 0-47).
+            // Step 1: Shift right by `(10 - offset) * 8`?
+            // If offset=0, we want bytes 0-5. They are at the top of the 16-byte block (bits 120-127 down to 72-79).
+            // We need to shift right by `(16-6)*8 = 80` bits to move byte 5 to bit 47?
+            // Let's trace:
+            // Data: [0...0][B0 B1 B2 B3 B4 B5 ... B15] (Right aligned in 32 bytes)
+            // We want B_offset ... B_{offset+5}.
+            // If we shift right by `(10 - offset) * 8`:
+            // If offset=0: shift right by 80. B0 moves from bit 127 to bit 47. B5 moves from bit 87 to bit 7.
+            // This leaves B0..B5 in bits 47..0? No.
+            // B0 is at 127. Shift right 80 -> 47.
+            // B5 is at 87. Shift right 80 -> 7.
+            // So the 6 bytes occupy bits 47 down to 0. This fits perfectly in the lower 6 bytes (48 bits).
+            // Formula: `shr(mul(sub(10, offset), 8), self)`
+            // Wait, max offset is 10. 16 bytes total. 6 bytes segment. 10+6=16.
+            // If offset=10, we want B10..B15.
+            // B10 is at bit (127 - 80) = 47.
+            // We want B10 at bit 47? Yes, so shift by 0.
+            // Formula `sub(10, offset)` works. 10-10=0.
+            // If offset=0, shift 80.
+            
+            result := shr(mul(sub(10, offset), 8), self)
+        }
+    

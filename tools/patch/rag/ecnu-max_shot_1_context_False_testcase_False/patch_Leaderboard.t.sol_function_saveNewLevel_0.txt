@@ -1,0 +1,5 @@
+function saveNewLevel(address level) external  onlyEthernaut {
+function saveNewLevel(address level) external  onlyEthernaut {
+    levelExists[level] = true;
+    levels.push(level);
+} 

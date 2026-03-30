@@ -1,0 +1,15 @@
+function extract_32_16(bytes32 self, uint8 offset) internal  pure returns (bytes16 result) {
+function extract_32_16(bytes32 self, uint8 offset) internal  pure returns (bytes16 result) {
+require(offset <= 16, "OutOfRangeAccess");
+    assembly {
+        // Shift left by (offset * 8) bits to align the desired 16-byte segment to the MSB
+        let shifted := shl(mul(offset, 8), self)
+        // Mask to keep only the top 128 bits (16 bytes)
+        let masked := and(shifted, 0xffffffffffffffffffffffffffffffff00000000000000000000000000000000)
+        // Store the masked value into the result variable (which is a bytes16, stored in the lower 16 bytes of a slot)
+        // Since `result` is a value type returned, we assign the upper 128 bits logic to fit bytes16 interpretation
+        // Actually, for `bytes16`, the value is left-aligned in the 32-byte word when returned or stored in assembly context often requires care.
+        // However, standard Solidity `bytes16` assignment from assembly usually takes the lower 16 bytes of the 32-byte word if we just assign.
+        // But our mask keeps the UPPER 16 bytes. We need to shift right by 128 bits to move them to the lower position for `bytes16` value representation.
+        result := shr(128, masked)
+    }

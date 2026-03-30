@@ -1,0 +1,95 @@
+function isLeapYear(uint256 year) internal  pure returns (bool leap) {
+function isLeapYear(uint256 year) internal  pure returns (bool leap) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Check divisibility by 25: year % 25 == 0
+            // If divisible by 25, the remainder is 0, so isZero(0) = 1 (true)
+            // If not divisible, remainder != 0, so isZero(rem) = 0 (false)
+            // However, the requirement specifically asks to check divisibility by 25 
+            // and use bitwise operations. A standard leap year is divisible by 4, 
+            // but not by 100 unless also by 400. 
+            // The prompt's specific instruction "Check if the year is divisible by 25" 
+            // combined with "bitwise operations" suggests a simplified or specific logic 
+            // requested by the user, possibly implying a custom rule or a typo in the requirement 
+            // (usually it's 4, 100, 400). 
+            // BUT, strictly following the prompt's explicit steps: 
+            // 1. Check if divisible by 25. 
+            // 2. Use bitwise ops.
+            // Let's interpret the requirement literally as written, even if it deviates from 
+            // the Gregorian calendar standard, OR assume the prompt implies the standard rule 
+            // but described it poorly. 
+            // Re-reading: "Check if the year is divisible by 25" is step 1. 
+            // Standard leap year: (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0).
+            // 25 is a factor of 100. 
+            // Let's look at the bitwise hint. Divisibility by 4 is (year & 3) == 0.
+            // Divisibility by 100 is harder with just bitwise. 
+            // Divisibility by 25: year % 25 == 0.
+            // Perhaps the prompt meant "divisible by 4" and "divisible by 25" (as in 100)?
+            // Let's implement the STANDARD leap year logic using assembly and bitwise where possible,
+            // while incorporating the check for 25 (which relates to the 100/400 rule).
+            // Actually, looking at the strict constraint "Check if the year is divisible by 25",
+            // maybe it's a trick question or a specific non-Gregorian rule?
+            // No, likely it's a slightly confused requirement description for the standard algorithm.
+            // Standard: Divisible by 4? Yes. Divisible by 100? If yes, must be divisible by 400.
+            // 100 = 4 * 25. 400 = 16 * 25.
+            // Let's try to map the standard logic to the "divisible by 25" hint.
+            // If year % 25 != 0, then it's not divisible by 100 or 400. So if it's div by 4, it's a leap year.
+            // If year % 25 == 0, then it might be div by 100. Then we need to check div by 400 (which is div by 16 * 25).
+            
+            // Let's implement the standard Gregorian leap year logic efficiently in assembly.
+            // Logic: leap = (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))
+            
+            let rem4 := and(year, 3) // year % 4
+            if rem4 {
+                leap := 0
+            } else {
+                let rem100 := mod(year, 100)
+                if rem100 {
+                    leap := 1
+                } else {
+                    let rem400 := mod(year, 400)
+                    if rem400 {
+                        leap := 0
+                    } else {
+                        leap := 1
+                    }
+                }
+            }
+            
+            // The prompt explicitly said: "Check if the year is divisible by 25".
+            // Let's ensure that check is visually present or logically integral.
+            // In the logic above, mod(year, 100) involves 25 implicitly? No.
+            // Let's refactor to explicitly use mod(year, 25) as requested in step 1.
+            // If year % 25 != 0, then year % 100 != 0 and year % 400 != 0.
+            // So if year % 4 == 0 and year % 25 != 0 -> Leap.
+            // If year % 25 == 0, then we check if year % 400 == 0 (since it's already div by 25, 
+            // we just need to check the factor of 16 more? No, 400/25 = 16. 
+            // So if year % 25 == 0, let y25 = year / 25. Then year % 400 == 0 iff y25 % 16 == 0.
+            
+            // Revised Assembly Logic based on explicit "divisible by 25" requirement:
+            // 1. Check div by 4 (bitwise).
+            // 2. Check div by 25.
+            
+            let isDiv4 := iszero(and(year, 3))
+            let isDiv25 := iszero(mod(year, 25))
+            
+            if iszero(isDiv4) {
+                leap := 0
+            } else {
+                // Divisible by 4.
+                // If NOT divisible by 25, then it cannot be divisible by 100.
+                // So it IS a leap year.
+                if iszero(isDiv25) {
+                    leap := 1
+                } else {
+                    // Divisible by 25 (and 4). So divisible by 100.
+                    // Must be divisible by 400 to be a leap year.
+                    // Since it's divisible by 25, we check if (year / 25) is divisible by 16.
+                    // (year / 25) % 16 == 0  <==> year % 400 == 0
+                    let div25 := div(year, 25)
+                    let isDiv16 := iszero(and(div25, 15)) // 15 is 1111 in binary
+                    leap := isDiv16
+                }
+            }
+        }
+    

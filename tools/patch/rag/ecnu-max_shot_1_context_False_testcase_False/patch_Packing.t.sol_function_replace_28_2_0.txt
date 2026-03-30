@@ -1,0 +1,29 @@
+function replace_28_2(bytes28 self, bytes2 value, uint8 offset) internal  pure returns (bytes28 result) {
+function replace_28_2(bytes28 self, bytes2 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+            // Extract the existing 2-byte value at the specified offset.
+            // The helper `extract_28_2` is assumed to be available in the context or inlined logically here.
+            // Since we are in assembly, we calculate the shift amount directly.
+            // bytes28 is stored in the lower 224 bits of a 256-bit word.
+            // Offset 0 corresponds to the most significant byte of the 28-byte sequence.
+            // Total bits = 28 * 8 = 224.
+            // Shift amount for extraction: (28 - offset - 2) * 8.
+            
+            let shift_amt := mul(sub(sub(28, offset), 2), 8)
+            
+            // Load the full 28-byte value from 'self' (which is passed as a stack value)
+            let val := self
+            
+            // Extract the old 2-byte value: (val >> shift_amt) & 0xFFFF
+            let old_val := and(shr(shift_amt, val), 0xFFFF)
+            
+            // Mask the new input value to ensure it is only 2 bytes
+            let new_val := and(value, 0xFFFF)
+            
+            // Calculate the difference to apply via XOR: (old_val ^ new_val) << shift_amt
+            let diff := shl(shift_amt, xor(old_val, new_val))
+            
+            // Apply the difference to the original value
+            result := xor(val, diff)
+        }
+    }

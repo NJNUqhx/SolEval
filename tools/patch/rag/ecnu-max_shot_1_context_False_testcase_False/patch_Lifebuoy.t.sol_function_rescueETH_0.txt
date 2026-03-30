@@ -1,0 +1,16 @@
+function rescueETH(address to, uint256 amount) public virtual onlyRescuer(_LIFEBUOY_RESCUE_ETH_LOCK) {
+function rescueETH(address to, uint256 amount) public virtual onlyRescuer(_LIFEBUOY_RESCUE_ETH_LOCK) {
+assembly {
+            // Attempt to transfer ETH using a low-level call.
+            // call(gas, recipient, value, inputOffset, inputSize, outputOffset, outputSize)
+            // We pass 0 for input/output sizes as this is a simple ETH transfer.
+            let success := call(gas(), to, amount, 0, 0, 0, 0)
+            
+            // If the call fails, revert with the error signature for RescueTransferFailed()
+            // RescueTransferFailed() selector: 0x8c333098 (calculated from keccak256("RescueTransferFailed()"))
+            if iszero(success) {
+                mstore(0x00, 0x8c33309800000000000000000000000000000000000000000000000000000000)
+                revert(0x00, 0x04)
+            }
+        }
+    }

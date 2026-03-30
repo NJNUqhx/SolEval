@@ -1,0 +1,13 @@
+function extract_16_12(bytes16 self, uint8 offset) internal  pure returns (bytes12 result) {
+function extract_16_12(bytes16 self, uint8 offset) internal  pure returns (bytes12 result) {
+if (offset > 4) revert OutOfRangeAccess();
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Shift left to align the desired 12-byte segment to the most significant position
+        let shifted := shl(mul(8, offset), self)
+        // Mask to keep only the top 12 bytes (96 bits): 0xFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+        // This is achieved by shifting 0xFFFFFFFFFFFFFFFFFFFFFFFF (2^96 - 1) left by 160 bits (20 bytes)
+        let mask := shl(160, sub(shl(96, 1), 1))
+        // Apply mask and store result
+        result := and(shifted, mask)
+    }

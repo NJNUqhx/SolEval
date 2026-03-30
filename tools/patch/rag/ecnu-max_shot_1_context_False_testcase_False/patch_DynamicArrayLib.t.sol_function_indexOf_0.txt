@@ -1,0 +1,79 @@
+function indexOf(uint256[] memory a, uint256 needle, uint256 from) internal  pure returns (uint256 result) {
+function indexOf(uint256[] memory a, uint256 needle, uint256 from) internal  pure returns (uint256 result) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Finds the index of a specific value (`needle`) in a given array (`a`), starting from a specified index (`from`).
+ *
+ * @dev This function uses low-level assembly for efficient array traversal. It temporarily modifies the array's memory to optimize the search process.
+ *
+ * @param a The array in which to search for the value.
+ * @param needle The value to search for in the array.
+ * @param from The index from which to start the search.
+ *
+ * @return result The index of the first occurrence of `needle` in the array, starting from `from`. Returns `type(uint256).max` (not(0)) if the value is not found.
+ *
+ * Steps:
+ * 1. Initialize `result` to `type(uint256).max` (not(0)) to indicate the value is not found.
+ * 2. Check if `from` is within the bounds of the array.
+ * 3. Calculate the starting memory offset for the search.
+ * 4. Cache the word after the array to restore it later.
+ * 5. Temporarily store `needle` at the end of the array to act as a sentinel value.
+ * 6. Iterate through the array starting from `from` until `needle` is found.
+ * 7. Restore the cached word after the array.
+ * 8. If `needle` is found, calculate and return its index. Otherwise, return `type(uint256).max`.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function indexOf(uint256[] memory a, uint256 needle, uint256 from) internal  pure returns (uint256 result) {
+    assembly {
+        // Step 1: Initialize result to type(uint256).max (which is not(0))
+        result := not(0)
+
+        // Step 2: Get array length and check bounds
+        let len := mload(a)
+        
+        // If from >= len, return immediately (result is already not(0))
+        if iszero(lt(from, len)) {
+            leave
+        }
+
+        // Step 3: Calculate memory layout
+        // Array data starts at a + 32 (after length slot)
+        let dataStart := add(a, 32)
+        
+        // Calculate the memory address of the element at index 'from'
+        let searchStart := add(dataStart, mul(from, 32))
+        
+        // Calculate the memory address just after the last element of the array
+        let endPtr := add(dataStart, mul(len, 32))
+        
+        // Step 4: Cache the word immediately after the array
+        let cached := mload(endPtr)
+        
+        // Step 5: Place sentinel value (needle) at the end
+        mstore(endPtr, needle)
+        
+        // Step 6: Iterate until we find the needle
+        let ptr := searchStart
+        for {} 1 {} {
+            if eq(mload(ptr), needle) {
+                break
+            }
+            ptr := add(ptr, 32)
+        }
+        
+        // Step 7: Restore the cached word
+        mstore(endPtr, cached)
+        
+        // Step 8: Calculate result index
+        // If ptr reached endPtr, it means we only found the sentinel, so needle wasn't in the original range
+        if lt(ptr, endPtr) {
+            // Calculate index: (ptr - dataStart) / 32
+            result := div(sub(ptr, dataStart), 32)
+        }
+        // Else result remains not(0)
+    }
+}

@@ -1,0 +1,7 @@
+function toUint184(uint256 x) internal  pure returns (uint184) {
+function toUint184(uint256 x) internal  pure returns (uint184) {
+if (x >= 2**184) {
+            revert("Overflow: uint256 exceeds uint184 range");
+        }
+        return uint184(x);
+    }

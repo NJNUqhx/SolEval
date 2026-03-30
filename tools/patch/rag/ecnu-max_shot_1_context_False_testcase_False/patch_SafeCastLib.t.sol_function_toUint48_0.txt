@@ -1,0 +1,7 @@
+function toUint48(uint256 x) internal  pure returns (uint48) {
+function toUint48(uint256 x) internal  pure returns (uint48) {
+if (x >= (1 << 48)) {
+            revert("toUint48: overflow");
+        }
+        return uint48(x);
+    }

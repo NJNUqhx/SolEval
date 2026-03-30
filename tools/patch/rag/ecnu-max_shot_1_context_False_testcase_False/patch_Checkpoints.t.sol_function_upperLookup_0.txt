@@ -1,0 +1,28 @@
+function upperLookup(Trace224 storage self, uint32 key) internal  view returns (uint224) {
+function upperLookup(Trace224 storage self, uint32 key) internal  view returns (uint224) {
+uint256 pos = self._checkpoints.length;
+        if (pos == 0) {
+            return 0;
+        }
+
+        uint256 low = 0;
+        uint256 high = pos;
+
+        while (low < high) {
+            uint256 mid = low + (high - low) / 2;
+            Checkpoint224 storage cp = _unsafeAccess(self._checkpoints, mid);
+            if (cp._key <= key) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+
+        if (low == 0) {
+            return 0;
+        }
+
+        Checkpoint224 storage result = _unsafeAccess(self._checkpoints, low - 1);
+        return result._value;
+    }
+    

@@ -1,0 +1,23 @@
+function replace_20_1(bytes20 self, bytes1 value, uint8 offset) internal  pure returns (bytes20 result) {
+function replace_20_1(bytes20 self, bytes1 value, uint8 offset) internal  pure returns (bytes20 result) {
+assembly {
+        // Step 1: Extract the existing byte at the specified offset.
+        // We shift the value right so the target byte is at the least significant position,
+        // then mask with 0xFF to isolate it.
+        let oldByte := shr(sub(152, mul(offset, 8)), self)
+        oldByte := and(oldByte, 0xFF)
+
+        // Step 2a: Mask the new byte to ensure it is a single byte.
+        let newByte := and(value, 0xFF)
+
+        // Step 2b: Calculate the new bytes20 value.
+        // Strategy: XOR the original value with the old byte (to clear it) and the new byte (to set it).
+        // Both need to be shifted to the correct position.
+        let shiftAmount := sub(152, mul(offset, 8))
+        let maskOld := shl(shiftAmount, oldByte)
+        let maskNew := shl(shiftAmount, newByte)
+
+        // XOR self with oldByte position to zero it out, then XOR with newByte position to set it.
+        // (A ^ B) ^ C is equivalent to A ^ (B ^ C)
+        result := xor(xor(self, maskOld), maskNew)
+    }

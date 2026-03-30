@@ -1,0 +1,28 @@
+function replace_10_2(bytes10 self, bytes2 value, uint8 offset) internal  pure returns (bytes10 result) {
+function replace_10_2(bytes10 self, bytes2 value, uint8 offset) internal  pure returns (bytes10 result) {
+    assembly {
+        // Mask the input value to ensure it is only 2 bytes (0xFFFF)
+        let maskedValue := and(value, 0xFFFF)
+        
+        // Calculate the shift amount: (10 - offset - 2) * 8
+        // We need to shift the 2-byte value to the correct position within the 10-byte word.
+        // Since bytes10 is left-aligned in a 32-byte slot, the first byte is at bit 248.
+        // The byte index `offset` corresponds to bit position: 248 - (offset * 8)
+        // We want to replace 2 bytes starting at `offset`.
+        // Shift amount for the 2-byte value = (10 - 2 - offset) * 8 = (8 - offset) * 8
+        
+        let shift := shl(3, sub(8, offset))
+        
+        // Create the new segment shifted into place
+        let newSegment := shl(shift, maskedValue)
+        
+        // Create a mask to clear the old 2 bytes at the target position
+        // 0xFFFF shifted to the position, then inverted
+        let clearMask := not(shl(shift, 0xFFFF))
+        
+        // Clear the old bytes in self
+        let clearedSelf := and(self, clearMask)
+        
+        // Combine the cleared self with the new segment
+        result := or(clearedSelf, newSegment)
+    }

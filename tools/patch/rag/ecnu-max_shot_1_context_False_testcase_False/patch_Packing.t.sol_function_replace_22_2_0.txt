@@ -1,0 +1,35 @@
+function replace_22_2(bytes22 self, bytes2 value, uint8 offset) internal  pure returns (bytes22 result) {
+function replace_22_2(bytes22 self, bytes2 value, uint8 offset) internal  pure returns (bytes22 result) {
+extract_22_2(self, offset);
+        assembly {
+            // Mask the new value to ensure it is only 2 bytes (16 bits)
+            let maskedValue := and(value, 0xFFFF)
+            
+            // Calculate the shift amount: (21 - offset) * 8
+            // Since bytes22 is 22 bytes, index 0 is the most significant.
+            // To place 2 bytes at `offset`, we shift left by (22 - 2 - offset) * 8 = (20 - offset) * 8
+            let shift := shl(3, sub(20, offset))
+            
+            // Shift the new value to the correct position
+            let shiftedNew := shl(shift, maskedValue)
+            
+            // We need to clear the old 2 bytes at that position in `self` and insert the new ones.
+            // Strategy: result = (self & ~old_mask) | shiftedNew
+            // Or using XOR: result = self ^ old_val_shifted ^ shiftedNew
+            // But we don't have old_val_shifted directly without extracting again.
+            // Let's use the masking approach for clarity and safety.
+            
+            // Create a mask for 2 bytes: 0xFFFF
+            let byteMask := 0xFFFF
+            // Shift the mask to the target position
+            let shiftedMask := shl(shift, byteMask)
+            // Invert the mask to clear the target area in self
+            let invertedMask := not(shiftedMask)
+            
+            // Clear the 2 bytes in self
+            let clearedSelf := and(self, invertedMask)
+            
+            // Combine with the new shifted value
+            result := or(clearedSelf, shiftedNew)
+        }
+    } 

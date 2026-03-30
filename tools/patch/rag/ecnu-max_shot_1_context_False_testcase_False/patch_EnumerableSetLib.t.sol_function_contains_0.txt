@@ -1,0 +1,137 @@
+function contains(AddressSet storage set, address value) internal  view returns (bool result) {
+function contains(AddressSet storage set, address value) internal  view returns (bool result) {
+    assembly {
+        // Step 1: Retrieve the root slot of the set.
+        // The storage pointer for `set` is passed implicitly.
+        // AddressSet typically stores a uint256 as the root at the base slot.
+        let rootSlot := set.slot
+
+        // Step 2: Handle the address value.
+        // Shift the address to the upper 20 bytes of the 32-byte word for consistent hashing/comparison if needed,
+        // but standard Solidity sets usually store addresses right-aligned or packed.
+        // Based on typical optimized implementations (like OpenZeppelin's EnumerableSet or custom bitmaps):
+        // We assume `value` is the key.
+        
+        // Revert if the address is the zero sentinel value (often 0x0 is reserved or invalid in specific custom sets).
+        // However, the requirement says "Revert if the address is the zero sentinel value".
+        // Let's assume the sentinel is 0x0.
+        if iszero(value) {
+            revert(0, 0)
+        }
+
+        // Replace a zero address with the zero sentinel value? 
+        // The prompt says: "Replace a zero address with the zero sentinel value."
+        // But we just reverted on zero. This step might imply handling a specific internal representation.
+        // If the set uses a sentinel (e.g., 0x0) to represent "empty" and the user passes 0x0, we reverted.
+        // If the user passes a valid address, we proceed.
+        // Let's interpret "Replace a zero address with the zero sentinel value" as an internal normalization
+        // if the logic allowed zero, but since we revert, this might be dead code or for a different variant.
+        // Given the strict "Revert if zero", we skip replacement for zero.
+        
+        // Step 3: Load the packed root value from storage.
+        let root := sload(rootSlot)
+
+        // Step 4: Traverse the storage slots to check if the address exists.
+        // Logic depends on whether the root indicates a packed state or a pointer to a tree/list.
+        // Common pattern: If root < threshold, it's packed (stored directly in root or next few slots).
+        // If root >= threshold, it's a hash map or tree root.
+        
+        // Assuming a specific optimized structure where:
+        // If the set is small, addresses are packed in the root slot or immediate subsequent slots.
+        // If large, it uses keccak256(value, rootSlot) to find the bucket.
+        
+        // Heuristic based on "If the root is not packed, check the first three slots directly":
+        // This implies if `root` has a specific flag or magnitude, it's unpacked.
+        // Let's assume if `root` is 0, it's empty. 
+        // Let's assume a bitmask or count is stored.
+        
+        // Alternative interpretation of "packed":
+        // Many optimized sets store up to N items directly in the root struct.
+        // Let's assume the requirement implies:
+        // If (root & 1) == 0 -> Not packed (or vice versa). 
+        // OR if root represents a count and is small.
+        
+        // Let's follow the specific steps literally with a generic optimized approach:
+        // Check if packed: Let's assume if `root` fits in a certain range or has a flag.
+        // Since the exact struct layout isn't provided, we infer from "check the first three slots directly".
+        // This suggests the data might be in `rootSlot`, `rootSlot + 1`, `rootSlot + 2`.
+        
+        // Let's assume a flag in the least significant bit determines packing.
+        // 0 = Unpacked (tree/hash), 1 = Packed.
+        let isPacked := and(root, 1)
+        
+        if isPacked {
+            // Packed logic: Compute slot using keccak256? 
+            // Wait, the requirement says: "If the root is packed, compute the storage slot using keccak256 and check the value."
+            // And "If the root is not packed, check the first three slots directly."
+            // This seems inverted compared to some implementations, but we follow the prompt.
+            
+            // Actually, re-reading: 
+            // "If the root is not packed, check the first three slots directly."
+            // "If the root is packed, compute the storage slot using keccak256..."
+            
+            // This implies "packed" means "compressed into a hash map structure" and "not packed" means "stored linearly in first slots".
+            // Or perhaps "packed" refers to a specific encoding.
+            
+            // Let's implement the branching as described:
+            
+            // Case A: Root is NOT packed (isPacked == 0)
+            // Check first three slots directly.
+            // We look for `value` in slot `rootSlot`, `rootSlot+1`, `rootSlot+2`.
+            // But `root` itself is in `rootSlot`.
+            // Maybe the data starts at `rootSlot + 1`?
+            // Let's assume the set stores items sequentially if not packed.
+            
+            // Let's try to match the "check first three slots" literally.
+            let val1 := sload(rootSlot)
+            let val2 := sload(add(rootSlot, 1))
+            let val3 := sload(add(rootSlot, 2))
+            
+            // Compare (addresses are left-aligned in storage usually for these checks or right aligned)
+            // Solidity stores addresses right-aligned (lower 20 bytes).
+            if or(or(eq(val1, value), eq(val2, value)), eq(val3, value)) {
+                result := 1
+            }
+        } else {
+            // Case B: Root IS packed (isPacked == 1) -> Use keccak256
+            // This naming is confusing but we follow the prompt's logic flow.
+            // "compute the storage slot using keccak256 and check the value"
+            
+            mstore(0, value)
+            mstore(0x20, rootSlot)
+            let bucket := keccak256(0, 0x40)
+            
+            let bucketValue := sload(bucket)
+            if eq(bucketValue, value) {
+                result := 1
+            }
+        }
+        
+        // Fallback/Refinement: The above logic is a guess at the specific data structure.
+        // However, without the struct definition, we must rely on the prompt's algorithmic steps.
+        // Let's refine the "packed" check. Often `root` holds a length.
+        // If length > 0 and small, it's linear. If large, it's a hash.
+        // But the prompt explicitly links "packed" to keccak256.
+        
+        // Let's stick to the prompt's conditional logic strictly.
+        // Re-evaluating the "zero sentinel" part.
+        // "Replace a zero address with the zero sentinel value."
+        // If we didn't revert, maybe the input `value` was non-zero, but internal logic needs normalization?
+        // If the prompt implies that `0x0` is the sentinel and we reverted, then we never replace.
+        // Perhaps it means: if the *found* value is zero, treat as sentinel? No, it says "Replace a zero address".
+        // Maybe it means: if `value` == 0, set `value` = sentinel (but we revert).
+        // Let's assume the revert is the primary guard, and the replacement is for a case where sentinel != 0x0?
+        // "Revert if the address is the zero sentinel value." -> If value == SENTINEL, revert.
+        // "Replace a zero address with the zero sentinel value." -> If value == 0, value = SENTINEL.
+        // This implies SENTINEL != 0.
+        // But standard EVM addresses 0x0 is the "zero address".
+        // Let's assume SENTINEL = 0x0.
+        // Then: if value == 0, revert. The replace step is unreachable for 0.
+        // Maybe it means: if the stored value is 0, it represents the sentinel?
+        // Let's ignore the confusing replacement line if it conflicts with revert, or assume it handles non-zero inputs that need mapping (unlikely for address).
+        // We will proceed with the revert on 0x0 and the lookup logic.
+    }
+    
+    // Pure solidity fallback if assembly block doesn't cover all paths or for clarity, 
+    // though the requirement asks for assembly optimization.
+    // The assembly block above sets `result`.

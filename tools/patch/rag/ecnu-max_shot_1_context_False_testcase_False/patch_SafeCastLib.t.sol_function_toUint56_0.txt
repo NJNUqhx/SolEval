@@ -1,0 +1,7 @@
+function toUint56(uint256 x) internal  pure returns (uint56) {
+function toUint56(uint256 x) internal  pure returns (uint56) {
+if (x >= (1 << 56)) {
+            revert();
+        }
+        return uint56(x);
+    }

@@ -1,0 +1,10 @@
+function log256Up(uint256 x) internal  pure returns (uint256 r) {
+function log256Up(uint256 x) internal  pure returns (uint256 r) {
+    r = log256(x);
+    assembly {
+        let shift := shl(mul(3, r), 1)
+        if lt(shift, x) {
+            r := add(r, 1)
+        }
+    }
+} 

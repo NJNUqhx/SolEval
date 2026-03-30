@@ -1,0 +1,98 @@
+function replace_24_20(bytes24 self, bytes20 value, uint8 offset) internal  pure returns (bytes24 result) {
+function replace_24_20(bytes24 self, bytes20 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+        // Ensure offset is within valid range (0 to 4) for a 24-byte value with a 20-byte replacement
+        if gt(offset, 4) { revert(0, 0) }
+
+        // Calculate the bit shift amount: (4 - offset) * 8
+        // Since we are dealing with left-aligned data in a 32-byte slot for bytes24,
+        // the 20-byte segment starts at byte index `offset`.
+        // In a 32-byte word, bytes24 occupies the first 24 bytes (bits 255 down to 32).
+        // The 20-byte segment to replace starts at `offset` bytes from the beginning of the 24 bytes.
+        // Total bits to shift left to align the 20-byte segment to the top of the 32-byte word:
+        // The 20-byte segment ends at (offset + 20). The remaining bytes after it in the 24-byte field is (24 - (offset + 20)) = 4 - offset.
+        // So we need to shift left by (4 - offset) * 8 bits to move the segment to the most significant position relative to the 24-byte block?
+        // Actually, let's think in terms of masking.
+        // We want to clear 20 bytes starting at `offset`.
+        // The mask for 20 bytes is 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF (shifted appropriately).
+        // Let's construct the mask dynamically.
+        
+        // Load self and value into local variables for assembly
+        let s := self
+        let v := value
+        
+        // Calculate shift amount for the 20-byte segment within the 32-byte word.
+        // bytes24 is stored in the high 24 bytes of the 32-byte slot? No, Solidity stores bytesNN right-aligned in the 32-byte slot?
+        // Correction: Solidity stores fixed-size bytes types (bytes1 to bytes32) left-aligned (padded on the right with zeros) in memory/storage slots when loaded as integers?
+        // Actually, when you load `bytes24` into a uint256 in assembly, it is left-aligned (most significant byte is at bit 255).
+        // So, `self` looks like: [24 bytes of data][8 bytes of zeros].
+        // We want to replace 20 bytes starting at `offset` (0 <= offset <= 4).
+        // The segment to replace spans from bit (255 - offset*8) down to (255 - (offset+20)*8 + 1).
+        // To create a mask for these 20 bytes:
+        // 1. Create a mask of 20 ones: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.
+        // 2. Shift it left by (8 * (4 - offset)). Why?
+        //    The 24 bytes occupy bits 255..32.
+        //    If offset=0, we replace bytes 0..19. These are the top 20 bytes. Shift = 8 * 4 = 32? No.
+        //    If offset=0, the segment is bits 255..96. The remaining 4 bytes of the 24 are bits 95..64. The padding is 63..0.
+        //    A 20-byte mask (160 bits) aligned to the top would be shifted by 0?
+        //    Let's re-evaluate.
+        //    Total 32 bytes. bytes24 uses bytes 0-23 (indices).
+        //    Value to replace is 20 bytes at index `offset`.
+        //    Indices: [offset, offset+1, ..., offset+19].
+        //    In a left-aligned 32-byte word:
+        //      Byte 0 is at bits 255-248.
+        //      Byte `k` is at bits (255 - 8*k) down to (255 - 8*k - 7).
+        //    We need a mask that has 1s from byte `offset` to `offset+19`.
+        //    The mask of 20 bytes (160 bits) all 1s is: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.
+        //    If we place this at the very top (bytes 0-19), we shift left by 0?
+        //    Wait, 20 bytes = 160 bits. 32 bytes = 256 bits.
+        //    If we want bits 255..96 to be 1s, we take the 160-bit mask and shift left by (256-160) = 96 bits?
+        //    No, the mask constant 0xFF...FF (20 bytes) if treated as a uint256 is right aligned (bits 159..0).
+        //    To move it to bits 255..96, we shift left by 96 bits.
+        //    Now, if `offset` > 0, we shift right by `offset * 8`.
+        //    So total shift = 96 - (offset * 8) = 8 * (12 - offset)? No.
+        //    Let's simplify.
+        //    Base shift for 20 bytes at start of 24-byte field (offset 0):
+        //      The 24-byte field ends at bit 32 (since 256 - 24*8 = 32).
+        //      The 20-byte segment at offset 0 ends at byte 19, which is bit 256 - 20*8 = 96.
+        //      So the segment is bits 255..96.
+        //      The mask 0xFF...FF (20 bytes) is naturally bits 159..0.
+        //      To get to 255..96, we shift left by 96.
+        //    If offset = 1, segment is bytes 1..20. Ends at byte 20 -> bit 256 - 21*8 = 88. Starts at bit 247.
+        //      We need to shift the base mask (which is at 255..96) right by 8.
+        //      So shift amount = 96 - (offset * 8).
+        
+        let shift := sub(96, mul(offset, 8))
+        
+        // Create 20-byte mask (160 bits of 1s)
+        // 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        let mask20 := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        
+        // Align mask to the correct position
+        let shiftedMask := shl(shift, mask20)
+        
+        // Clear the old segment in self: self & (~shiftedMask)
+        let cleared := and(s, not(shiftedMask))
+        
+        // Align the new value to the same position
+        // `value` is bytes20, so when loaded as uint256, it is left-aligned in its own 32-byte slot?
+        // Yes, bytes20 is left-aligned (bits 255..96 are data, 95..0 are zero).
+        // So `v` already has the data at bits 255..96.
+        // We just need to shift `v` by the same amount we shifted the mask?
+        // Wait. If `v` is bytes20, it is stored as [20 bytes data][12 bytes 0].
+        // Bits 255..96 contain the data.
+        // Our `shiftedMask` for offset=0 is also at bits 255..96.
+        // So for offset=0, we don't shift `v`.
+        // For offset=1, we need `v` at bits 247..88. So we shift `v` right by 8.
+        // General rule: shift `v` right by (offset * 8).
+        // But wait, our `shift` variable was 96 - offset*8.
+        // The base position of `v` (as bytes20) is effectively shifted left by 96 relative to a right-aligned 20-byte int?
+        // Let's just align `v` directly.
+        // `v` (bytes20) is at bits 255..96.
+        // Target position starts at bit (255 - offset*8).
+        // So we need to shift `v` right by (offset * 8).
+        let shiftedValue := shr(mul(offset, 8), v)
+        
+        // Combine: cleared | shiftedValue
+        result := or(cleared, shiftedValue)
+    

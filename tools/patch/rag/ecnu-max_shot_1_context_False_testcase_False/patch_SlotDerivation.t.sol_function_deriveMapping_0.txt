@@ -1,0 +1,9 @@
+function deriveMapping(bytes32 slot, address key) internal  pure returns (bytes32 result) {
+function deriveMapping(bytes32 slot, address key) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, key)
+            mstore(0x20, slot)
+            result := keccak256(0x00, 0x40)
+        }
+    }

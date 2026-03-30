@@ -1,0 +1,45 @@
+function pack_4_8(bytes4 left, bytes8 right) internal  pure returns (bytes12 result) {
+function pack_4_8(bytes4 left, bytes8 right) internal  pure returns (bytes12 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Clear higher-order bits of `left` to ensure it fits within 4 bytes (32 bits).
+            // Since `left` is already `bytes4`, we mask with 0xFFFFFFFF shifted to the correct position.
+            // However, in assembly, `left` occupies the lower 32 bits of the 256-bit slot.
+            // We want the final result to have `left` in the upper 4 bytes of the 12-byte sequence.
+            // The `result` is 12 bytes (96 bits). `left` goes to bits 95..64, `right` to bits 63..0.
+            
+            // Mask `left` to 4 bytes just in case (though type system usually guarantees this).
+            let l := and(left, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            
+            // Step 2: Clear higher-order bits of `right` to ensure it fits within 8 bytes (64 bits).
+            // `right` is `bytes8`, so we mask with 0xFFFFFFFFFFFFFFFF shifted appropriately.
+            // In the 256-bit slot, `right` is in the lower 64 bits.
+            let r := and(right, 0x0000000000000000FFFFFFFFFFFFFFFF00000000000000000000000000000000)
+
+            // Step 3: Combine `left` and `right`.
+            // `left` needs to be shifted right by 128 bits to move from the MSB of the 256-bit word
+            // to the upper 4 bytes of the 12-byte (96-bit) result area?
+            // Let's re-evaluate standard packing for `bytes12`.
+            // A `bytes12` returned in a 256-bit slot usually occupies the left-most 12 bytes (MSB aligned)
+            // OR it is treated as a value where the first byte is the most significant.
+            // Standard Solidity return of fixed bytes is left-aligned in the 32-byte word.
+            // `bytes4` input is left-aligned (bits 255-224).
+            // `bytes8` input is left-aligned (bits 255-192).
+            
+            // We want `result` (bytes12) to be left-aligned (bits 255-160).
+            // `left` (4 bytes) should occupy bits 255-224.
+            // `right` (8 bytes) should occupy bits 223-160.
+            
+            // Current `left` is at 255-224. Correct position.
+            // Current `right` is at 255-192. Needs to shift right by 32 bits (4 bytes) to start at 223.
+            
+            l := and(left, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            r := and(right, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+            
+            // Shift `right` right by 32 bits (4 bytes * 8 bits) to align after `left`
+            r := shr(32, r)
+            
+            // OR them together
+            result := or(l, r)
+        }
+    }

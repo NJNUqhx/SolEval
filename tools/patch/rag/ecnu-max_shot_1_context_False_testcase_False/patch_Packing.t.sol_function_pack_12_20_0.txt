@@ -1,0 +1,16 @@
+function pack_12_20(bytes12 left, bytes20 right) internal  pure returns (bytes32 result) {
+function pack_12_20(bytes12 left, bytes20 right) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Shift left by 160 bits (20 bytes) to place the 12-byte value in the upper 96 bits of the 32-byte word.
+            // bytes12 is stored in the lower 12 bytes of the slot, so shifting left by 160 moves it to the top.
+            let l := shl(160, left)
+            
+            // Shift left by 96 bits (12 bytes) to place the 20-byte value in the lower 160 bits of the 32-byte word.
+            // bytes20 is stored in the lower 20 bytes of the slot, so shifting left by 96 moves it to align below the first value.
+            let r := shl(96, right)
+            
+            // Combine the two values using bitwise OR.
+            result := or(l, r)
+        }
+    }

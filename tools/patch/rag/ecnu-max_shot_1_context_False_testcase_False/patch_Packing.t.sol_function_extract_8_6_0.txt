@@ -1,0 +1,15 @@
+function extract_8_6(bytes8 self, uint8 offset) internal  pure returns (bytes6 result) {
+function extract_8_6(bytes8 self, uint8 offset) internal  pure returns (bytes6 result) {
+if (offset > 2) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift left by 8 * offset bits to align the desired 6-byte segment to the most significant position
+            let shifted := shl(mul(8, offset), self)
+            // Mask to keep only the first 6 bytes (48 bits). 
+            // not(0) is all 1s. shl(208, ...) shifts 1s to the top 48 bits (256 - 48 = 208).
+            let mask := shl(208, not(0))
+            result := and(shifted, mask)
+        }
+    }

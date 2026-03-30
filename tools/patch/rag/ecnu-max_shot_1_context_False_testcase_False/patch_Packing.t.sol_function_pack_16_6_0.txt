@@ -1,0 +1,55 @@
+function pack_16_6(bytes16 left, bytes6 right) internal  pure returns (bytes22 result) {
+function pack_16_6(bytes16 left, bytes6 right) internal  pure returns (bytes22 result) {
+    assembly {
+        // Step 1: Mask the `left` value to ensure it fits within the first 16 bytes.
+        // Since `left` is already bytes16, we shift it to the upper 16 bytes of the 32-byte word
+        // to align with the start of the bytes22 result when viewed as a full word.
+        // bytes22 needs left in bits [255:128] (if considering 32 byte slot) or effectively 
+        // shifted left by 6 bytes (48 bits) so that right can fill the lower 6 bytes.
+        let leftVal := and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000) // Ensure clean 16 bytes though input type guarantees it.
+        
+        // Step 2: Mask the `right` value to ensure it fits within the last 6 bytes.
+        // Mask to keep only the last 6 bytes (48 bits).
+        let rightVal := and(right, 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+
+        // Step 3: Combine the masked `left` and `right` values.
+        // `left` is currently in the top 16 bytes of the 32-byte word.
+        // `right` is currently in the top 6 bytes of the 32-byte word (due to Solidity's left-alignment of fixed bytes).
+        // We need `left` to occupy the first 16 bytes of the 22-byte sequence and `right` the next 6.
+        // In a 32-byte word (256 bits):
+        // Target layout for bytes22 (left-aligned in the word for return):
+        // [0..15]: left
+        // [16..21]: right
+        // [22..31]: zeros
+        
+        // Current state in 32-bit word representation (big-endian view of the word):
+        // left (bytes16) is stored as: [left_data][16 zeros]
+        // right (bytes6) is stored as: [right_data][26 zeros]
+        
+        // We want result: [left_data][right_data][10 zeros]
+        
+        // Move left to correct position: It is already at the start (bits 255..128).
+        // Move right to correct position: It needs to be shifted right by 16 bytes (128 bits) 
+        // to sit immediately after left.
+        // Wait, Solidity fixed-size bytes are left-aligned in the 32-byte slot.
+        // left:  0xLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL00000000000000000000000000000000 (L=16 bytes)
+        // right: 0xRRRRRRRRRRRR0000000000000000000000000000000000000000000000000000 (R=6 bytes)
+        
+        // We want: 0xLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLRRRRRRRRRRRR000000000000000000000000
+        // This means `right` needs to be shifted right by 16 bytes (128 bits).
+        // 16 bytes = 128 bits.
+        
+        let shiftedRight := shr(128, rightVal)
+        
+        // Now combine using OR
+        result := or(leftVal, shiftedRight)
+        
+        // Note: The masking in steps 1 and 2 in the prompt description implies cleaning garbage bits 
+        // if inputs were larger, but since types are strict bytes16 and bytes6, the compiler ensures 
+        // upper bits are zeroed appropriately upon loading, but explicit masking via `and` with 
+        // the full word mask for that type is safe practice in assembly if reusing slots. 
+        // However, the `and` masks used above for `rightVal` were slightly off in the comment logic vs code.
+        // Let's refine the mask for right to be precise for bytes6 left-aligned:
+        // bytes6 mask: 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000
+        // The previous `rightVal` calculation `and(right, 0xFFFFFFFFFFFF...)` is correct for isolation.
+    }

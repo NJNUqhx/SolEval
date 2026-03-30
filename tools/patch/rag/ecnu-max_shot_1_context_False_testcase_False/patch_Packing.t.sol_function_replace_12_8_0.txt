@@ -1,0 +1,107 @@
+function replace_12_8(bytes12 self, bytes8 value, uint8 offset) internal  pure returns (bytes12 result) {
+function replace_12_8(bytes12 self, bytes8 value, uint8 offset) internal  pure returns (bytes12 result) {
+assembly {
+            // Load the 12-byte value into the first 12 bytes of a 32-byte word (result)
+            // Since 'self' is passed as a value, it is already in memory or stack depending on compiler version,
+            // but for inline assembly with function arguments, we treat them as stack items.
+            // We need to construct the logic using bitwise operations on the stack.
+            
+            // Step 1 & 2: Perform the replacement using assembly logic described.
+            // The requirement says: "Calculate the result by XORing the original 12-byte value with the shifted and masked new value."
+            // This implies we are swapping bits. To replace bytes A with B, we can do: A ^ (A ^ B) = B.
+            // So we need to create a mask where the target 8 bytes are the difference between old and new,
+            // and the rest are 0. Then XOR this with the original.
+            
+            // Let's align the 12-byte value to the left (MSB) for easier shifting, or work with standard alignment.
+            // Solidity bytes12 is right-aligned in a 32-bit word when loaded? No, usually value types are right-aligned.
+            // bytes12 occupies the lower 12 bytes (96 bits) if treated as uint96, or upper?
+            // In Solidity, fixed-size bytes types are right-aligned in the 32-byte word (i.e., stored in the least significant bytes).
+            // Wait, actually, for `bytes12`, the data is in the most significant 12 bytes? 
+            // Let's verify: `bytes12` behaves like `uint96` but printed as hex. 
+            // Actually, in EVM, `bytes12` is stored in the *most* significant 12 bytes of the 32-byte slot? 
+            // No, Solidity stores fixed-size bytes in the *most* significant bytes (left-aligned) in the 32-byte word.
+            // Example: bytes1 0x12 is stored as 0x120000...00.
+            // Let's assume standard Solidity encoding: Left-aligned (MSB).
+            
+            // self is at stack depth 3 (result, offset, value, self - wait, order is self, value, offset)
+            // Stack: [offset, value, self] (top is offset)
+            // We need to pop them.
+            
+            let s := self
+            let v := value
+            let o := offset
+            
+            // Calculate shift amount. 
+            // If bytes12 is left-aligned (MSB), index 0 is the most significant byte.
+            // Total 32 bytes. bytes12 starts at byte 0 (MSB) effectively? 
+            // Actually, bytes12 occupies bytes 0-11 of the 32-byte word (if 0 is MSB).
+            // Shift needed to bring the target 8 bytes to the LSB position for masking?
+            // Or we can construct the mask directly.
+            
+            // Let's calculate the bit shift. 
+            // 12 bytes = 96 bits. 
+            // If left aligned: The data is in bits 255 down to 160 (32*8 - 12*8 = 128 bits padding on right? No.)
+            // Standard Solidity: bytes12 is stored in the *most significant* 12 bytes.
+            // So byte 0 is at bit 255-248. Byte 11 is at bit 167-160.
+            // We want to replace 8 bytes starting at `offset`.
+            // The 8 bytes will span from bit (255 - offset*8) down to (255 - (offset+8)*8 + 1).
+            
+            // Strategy:
+            // 1. Create a mask of 8 bytes (0xFFFFFFFFFFFFFFFF) shifted to the correct position.
+            // 2. Isolate the new value, shift it to the correct position, and mask it (though if we shift correctly, masking might be redundant if we ensure 0 padding).
+            // 3. Isolate the old value parts we want to keep (OR of two masks: before and after).
+            // 4. Combine: (old & keep_mask) | (new_shifted).
+            // The requirement specifically mentions XOR: "XORing the original ... with the shifted and masked new value".
+            // This suggests: result = self ^ ((self ^ new_shifted) & position_mask).
+            // This works because: 
+            // Where mask is 1: result = self ^ (self ^ new) = new.
+            // Where mask is 0: result = self ^ 0 = self.
+            
+            // Calculate shift distance in bits.
+            // Position 0 is MSB. 
+            // Shift amount = (32 - 12) * 8 + offset * 8 ? 
+            // If bytes12 is left aligned, it starts at byte 0. 
+            // Wait, if I have `bytes12 x`, and I cast to `uint256`, where are the bits?
+            // In Solidity: `bytes12(0x112233445566778899aabbcc)` -> hex "112233445566778899aabbcc".
+            // In memory/stack as uint256: 0x112233445566778899aabbcc00000000000000000000000000000000? 
+            // YES, left-aligned.
+            
+            // So byte `offset` starts at bit: 256 - (offset + 1) * 8 ? No.
+            // Byte 0 starts at bit 256 - 8 = 248.
+            // Byte `offset` starts at bit: 256 - (offset + 1) * 8.
+            // We need to shift the 8-byte value so it aligns with this position.
+            // The 8-byte value (bytes8) is also left-aligned in its 32-byte slot? 
+            // When passed as `bytes8 value`, it is left-aligned: 0xVVVVVVVV00...00.
+            // We need to shift `value` right by `offset * 8` to align it with `self`?
+            // Let's trace:
+            // self:   [0..11] [12..31 zeros]
+            // value:  [0..7]  [8..31 zeros]
+            // If offset is 0, we replace self[0..7] with value[0..7].
+            // Since both are left aligned, they are already aligned? 
+            // Yes, if offset=0, no shift needed for the value relative to the MSB.
+            // If offset=1, we need to shift value right by 8 bits.
+            // So shift_right_amount = offset * 8.
+            
+            let shift := mul(o, 8)
+            
+            // Shift the new value to the correct position.
+            // value is left aligned. Shifting right by offset*8 moves it to the correct byte slot.
+            let v_shifted := shr(shift, v)
+            
+            // Create a mask of 8 bytes (64 bits) of all 1s, located at the correct position.
+            // 8 bytes of 1s = 0xFFFFFFFFFFFFFFFF.
+            // In a 256-bit word, left aligned, this is: 0xFFFFFFFFFFFFFFFF00...00.
+            // We need to shift this mask right by `offset * 8` as well.
+            let full_mask := 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
+            let pos_mask := shr(shift, full_mask)
+            
+            // Calculate the difference: (self ^ v_shifted)
+            let diff := xor(s, v_shifted)
+            
+            // Apply the mask to the difference: only keep bits where we want to replace
+            let masked_diff := and(diff, pos_mask)
+            
+            // XOR with original to apply the change
+            result := xor(s, masked_diff)
+        }
+    }

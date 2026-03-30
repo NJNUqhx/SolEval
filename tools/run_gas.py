@@ -9,7 +9,7 @@ from tqdm import tqdm
 from utils.logger import MyLogger
 
 if __name__ == '__main__':
-    GROUND_TRUTH_filename = '../data/GROUND_TRUTH.jsonl'
+    GROUND_TRUTH_filename = '/root/contract2solidity/SolEval/data/GROUND_TRUTH.jsonl'
     with open(GROUND_TRUTH_filename, 'r') as file:
         ground_truth = json.load(file)
     result_folder = "results/gas"
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     parser.add_argument("--context", type=str, default="y")
     parser.add_argument("--rag", type=str, default="true")
     parser.add_argument("--shot", type=int, default=1)
-    # parser.add_argument("--model", type=str, default="CodeLlama-34B")
+    parser.add_argument("--model", type=str, default="CodeLlama-34B")
     args = parser.parse_args()
     # context_or_not = input("Do you want to use context? (y/n/c): ")
     jsonl_files = [os.path.join(result_folder, f) for f in os.listdir(result_folder) if f.endswith('.jsonl')]
@@ -94,4 +94,8 @@ if __name__ == '__main__':
             # exit(0)
             # print("total_gas: ", total_gas)
             # print("func_number: ", func_number)
-        print("model_name:", model_name, ", average_gas: ", total_gas / func_number)
+        if func_number > 0:
+            print("model_name:", model_name, ", average_gas: ", total_gas / func_number)
+        else:
+            print(f"model_name: {model_name}, skipped (no valid functions in intersection)")
+        # print("model_name:", model_name, ", average_gas: ", total_gas / func_number)

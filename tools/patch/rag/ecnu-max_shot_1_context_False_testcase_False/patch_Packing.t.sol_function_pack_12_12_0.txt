@@ -1,0 +1,13 @@
+function pack_12_12(bytes12 left, bytes12 right) internal  pure returns (bytes24 result) {
+function pack_12_12(bytes12 left, bytes12 right) internal  pure returns (bytes24 result) {
+assembly {
+        // Clear upper 160 bits of left (keep lower 96 bits)
+        let l := and(left, 0xffffffffffffffffffffffff)
+        // Clear upper 160 bits of right (keep lower 96 bits)
+        let r := and(right, 0xffffffffffffffffffffffff)
+        // Shift right value by 96 bits to occupy the upper 12 bytes of the 24-byte result
+        let rShifted := shl(96, r)
+        // Combine left and shifted right using OR
+        result := or(l, rShifted)
+    }
+}

@@ -47,7 +47,7 @@ def set_seed(seed: int):
 
 
 if __name__ == '__main__':
-    with open('rubbish_bin/raw_data.json', 'r') as file:
+    with open('/root/contract2solidity/SolEval/data/raw_data.json', 'r') as file:
         data = json.load(file)
     if not os.path.exists("../patch/"):
         os.makedirs("../patch/")
@@ -116,6 +116,7 @@ if __name__ == '__main__':
             continue
         logger.info_white("file_path:\n" + file_path)
         for i in range(len(file_content)):
+            print(file_content[i])
             for method in tqdm(file_content[i]['methods'], colour='blue'):
                 # print("file_path", file_path)
                 # print("real_path_cargo[file_path]", real_path_cargo[file_path])

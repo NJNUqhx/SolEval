@@ -1,0 +1,29 @@
+function isValidERC1271SignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+function isValidERC1271SignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            // Store the ERC1271 magic value (`0x1626ba7e`) shifted to the correct position (selector).
+            mstore(m, 0x1626ba7e00000000000000000000000000000000000000000000000000000000)
+            // Store the hash in memory (argument 1).
+            mstore(add(m, 0x04), hash)
+            // Store the offset of the signature in memory (argument 2 offset).
+            // The signature data starts after the 4-byte selector and two 32-byte slots (hash + offset).
+            // Total header size = 4 + 32 + 32 = 68 bytes (0x44).
+            mstore(add(m, 0x24), 0x44)
+            // Store the length of the signature in memory.
+            mstore(add(m, 0x44), signature.length)
+            // Copy the signature from calldata to memory.
+            calldatacopy(add(m, 0x64), signature.offset, signature.length)
+
+            // Perform a static call to the signer's `isValidSignature` function.
+            // Target: signer
+            // Input: memory starting at m, size = 0x64 + signature.length
+            // Output: memory at 0x00, size 0x20
+            let success := staticcall(gas(), signer, m, add(0x64, signature.length), 0x00, 0x20)
+
+            // Check if the returned value matches the ERC1271 magic value and the call was successful.
+            // The magic value 0x1626ba7e must be right-aligned in the 32-byte return slot.
+            isValid := and(success, eq(mload(0x00), 0x1626ba7e00000000000000000000000000000000000000000000000000000000))
+        }
+    }

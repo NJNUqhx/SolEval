@@ -5,6 +5,7 @@ import json
 import os
 import random
 import re
+import sys
 import subprocess
 import warnings
 from collections import defaultdict
@@ -54,7 +55,7 @@ def set_seed(seed: int):
 
 
 if __name__ == '__main__':
-    with open('data/raw_data.json', 'r') as file:
+    with open('/root/contract2solidity/SolEval/data/raw_data.json', 'r') as file:
         data = json.load(file)
     if not os.path.exists("patch/"):
         os.makedirs("patch/")
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     parser.add_argument("--context", type=str, default="y")
     parser.add_argument("--rag", type=str, default="true")
     parser.add_argument("--shot", type=int, default=1)
-    parser.add_argument("--model", type=str, default="CodeLlama_7b")
+    parser.add_argument("--model", type=str, default="debug")
     args = parser.parse_args()
     context_or_not = args.context
     if context_or_not == "y":
@@ -100,9 +101,11 @@ if __name__ == '__main__':
     logger = MyLogger(f"logs/{rag_path}/{log_file}")
     logger.info_blue(f"Current context: {context}")
     set_seed(args.seed)
+    # LLM生成的次数
     num_return_sequences = args.sample
     log_dict = {}
     real_path_cargo = {}
+    
     for file_path, file_content in tqdm(data.items()):
         file_path = file_path.replace("/root/", "repository/")
         if "forge" in file_path:
@@ -131,6 +134,24 @@ if __name__ == '__main__':
     task_correct = defaultdict(int)
     task_compiled_correct = defaultdict(int)
     task_id = 0
+    
+    if args.model == "debug":
+        unique_paths = set()
+        for path in data.keys():
+            transformed_path = path.replace("/root/", "repository/")
+            unique_paths.add(transformed_path)
+        
+        logger.info_blue(f"原始文件数: {len(data)}, 转换后的唯一文件数: {len(unique_paths)}")
+        
+        # 使用列表推导式快速过滤统计
+        valid_files = [
+            p for p in data.keys() 
+            if "forge" not in p and (p.endswith(".t.sol") or "test" in p)
+        ]
+
+        logger.info_blue(f"符合测试条件的文件数量: {len(valid_files)}")
+        sys.exit(0)
+    
     for file_path, file_content in tqdm(data.items(), colour='green'):
         file_path = file_path.replace("/root/", "repository/")
         if file_path not in real_path_cargo.keys():
@@ -205,7 +226,7 @@ if __name__ == '__main__':
                 match_path = real_path_cargo[file_path].split('/')[-1]
                 cwd_key = "/".join(file_path.split('/')[0:3])
                 test_process = subprocess.run(['forge', 'test', '--match-path', f'{match_path}'],
-                                              capture_output=True, cwd=cwd_dir_cargo[cwd_key], timeout=120)
+                                              capture_output=True, cwd=cwd_dir_cargo[cwd_key], timeout=300)
                 captured_stdout = test_process.stdout.decode()
                 with open(f"{file_path}", 'w') as f:
                     f.write(source_bk)

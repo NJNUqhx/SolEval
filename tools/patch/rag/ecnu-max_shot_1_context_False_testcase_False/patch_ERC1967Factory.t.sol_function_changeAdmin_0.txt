@@ -1,0 +1,20 @@
+function changeAdmin(address proxy, address admin) public {
+function changeAdmin(address proxy, address admin) public {
+if (admin() != msg.sender) {
+            revert Unauthorized();
+        }
+
+        bytes32 slot = bytes32(uint256(keccak256("eip1967.proxy.admin")) - 1);
+
+        assembly {
+            sstore(slot, admin)
+            
+            let m := mload(0x40)
+            mstore(m, 0x7e644d7900000000000000000000000000000000000000000000000000000000) // AdminChanged(address,address) selector
+            mstore(add(m, 0x04), caller()) // old admin (current caller)
+            mstore(add(m, 0x24), admin)    // new admin
+            log1(m, 0x44)
+        }
+
+        emit AdminChanged(msg.sender, admin);
+    }

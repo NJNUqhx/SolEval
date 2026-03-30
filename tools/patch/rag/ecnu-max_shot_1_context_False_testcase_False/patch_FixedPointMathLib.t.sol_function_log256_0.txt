@@ -1,0 +1,12 @@
+function log256(uint256 x) internal  pure returns (uint256 r) {
+function log256(uint256 x) internal  pure returns (uint256 r) {
+if (x == 0) return 0;
+    assembly {
+        let y := shr(248, x)
+        r := mul(iszero(y), 31)
+        y := shr(sub(256, shl(3, r)), x)
+        r := add(r, shl(2, lt(0xffffffff, y)))
+        r := add(r, shl(1, lt(0xffff, shr(shl(2, r), y))))
+        r := add(r, lt(0xff, shr(shl(3, r), y)))
+    }
+}

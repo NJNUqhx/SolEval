@@ -1,0 +1,49 @@
+function length(AddressSet storage set) internal  view returns (uint256 result) {
+function length(AddressSet storage set) internal  view returns (uint256 result) {
+bytes32 root = set._inner._slots.slot;
+    assembly ("memory-safe") {
+        // Load the packed data from the root slot.
+        // The layout typically stores the length in the lower bits or a specific section.
+        // For OpenZeppelin's AddressSet (backed by EnumerableSet), the length is stored directly 
+        // in the first slot of the inner structure if it's a simple mapping, but EnumerableSet 
+        // packs length and values differently. 
+        // However, standard EnumerableSet implementation stores the length at `slot + 0` 
+        // where the value is the count of elements.
+        
+        // In the standard OpenZeppelin EnumerableSet implementation:
+        // The `_values` array length is stored at the slot derived from the base slot.
+        // But often, helper libraries pack the length in the root slot itself for optimization.
+        // Assuming the standard pattern where the root slot holds the length in the lower 256 bits 
+        // or we need to access the dynamic array length slot.
+        
+        // If `set._inner._slots` is the mapping slot, the length of the values array is usually 
+        // stored at `keccak256(root)`. But many optimized implementations store the length 
+        // directly in the root slot or a known offset.
+        
+        // Let's assume the requirement implies direct access to the length stored in the root slot
+        // or a standard derivation. Given the context of "packed data" and "shifting bits",
+        // it suggests a custom packed layout or the standard EnumerableSet where length is 
+        // retrieved via the array length mechanism.
+        
+        // Correction: In OpenZeppelin's EnumerableSet, the length is the length of the `_values` array.
+        // The slot of the `_values` array is `keccak256(root)`. The length is stored at that slot.
+        // However, the requirement mentions "packed data" and "extracting n", which implies 
+        // a specific storage layout where length might be packed with other flags or simply 
+        // stored directly.
+        
+        // If we follow the prompt's hint about "packed data" and "shifting":
+        // We load the root slot.
+        let data := sload(root)
+        
+        // If the length is stored in the lower bits (common in packed structs):
+        // result := and(data, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) 
+        // But usually, length is a full uint256.
+        
+        // Let's assume the standard OpenZeppelin EnumerableSet layout where the length 
+        // is stored in the slot corresponding to the dynamic array of values.
+        // The array slot is keccak256(root). The length is at sload(keccak256(root)).
+        
+        let arraySlot := keccak256(root)
+        result := sload(arraySlot)
+    }
+} 

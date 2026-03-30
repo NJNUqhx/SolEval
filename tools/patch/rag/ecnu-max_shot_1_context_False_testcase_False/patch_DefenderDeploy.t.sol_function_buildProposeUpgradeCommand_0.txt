@@ -1,0 +1,95 @@
+function buildProposeUpgradeCommand(address proxyAddress, address proxyAdminAddress, address newImplementationAddress, ContractInfo memory contractInfo, Options memory opts) internal  view returns (string[] memory) {
+function buildProposeUpgradeCommand(address proxyAddress, address proxyAdminAddress, address newImplementationAddress, ContractInfo memory contractInfo, Options memory opts) internal  view returns (string[] memory) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Builds a command to propose an upgrade for a proxy contract using OpenZeppelin Defender.
+ *
+ * @param proxyAddress The address of the proxy contract to be upgraded.
+ * @param proxyAdminAddress The address of the proxy admin contract (optional, can be zero address).
+ * @param newImplementationAddress The address of the new implementation contract.
+ * @param contractInfo Contains the path to the contract artifact file.
+ * @param opts Contains additional options, such as the upgrade approval process ID.
+ *
+ * Steps:
+ * 1. Initialize a Vm instance for cheatcode operations.
+ * 2. Create an array to hold the command inputs, with a maximum length of 255.
+ * 3. Populate the array with the necessary command components:
+ *    - Command to run the OpenZeppelin Defender CLI.
+ *    - Proxy address and new implementation address.
+ *    - Chain ID of the current blockchain.
+ *    - Path to the contract artifact file.
+ *    - Proxy admin address (if provided).
+ *    - Upgrade approval process ID (if provided).
+ * 4. Create a correctly sized array to hold the command inputs.
+ * 5. Copy the populated inputs into the correctly sized array.
+ * 6. Return the array of command inputs.
+ *
+ * @return inputs The array of strings representing the command to propose the upgrade.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_CONTEXT
+import {Vm} from "forge-std/Vm.sol";
+
+struct ContractInfo {
+    string artifactPath;
+}
+
+struct Options {
+    string approvalProcessId;
+}
+// END_OF_CONTEXT
+
+// START_OF_FUNCTION
+function buildProposeUpgradeCommand(address proxyAddress, address proxyAdminAddress, address newImplementationAddress, ContractInfo memory contractInfo, Options memory opts) internal  view returns (string[] memory) {
+    Vm vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
+    
+    // Step 2: Create an array to hold the command inputs, with a maximum length of 255.
+    string[] memory tempInputs = new string[](255);
+    uint256 count = 0;
+
+    // Step 3: Populate the array with the necessary command components.
+    
+    // Command to run the OpenZeppelin Defender CLI
+    tempInputs[count++] = "npx";
+    tempInputs[count++] = "@openzeppelin/defender-admin-cli";
+    tempInputs[count++] = "propose-upgrade";
+    
+    // Proxy address
+    tempInputs[count++] = vm.toString(proxyAddress);
+    
+    // New implementation address
+    tempInputs[count++] = vm.toString(newImplementationAddress);
+    
+    // Chain ID of the current blockchain
+    tempInputs[count++] = vm.toString(block.chainid);
+    
+    // Path to the contract artifact file
+    tempInputs[count++] = "--artifact";
+    tempInputs[count++] = contractInfo.artifactPath;
+    
+    // Proxy admin address (if provided)
+    if (proxyAdminAddress != address(0)) {
+        tempInputs[count++] = "--proxy-admin";
+        tempInputs[count++] = vm.toString(proxyAdminAddress);
+    }
+    
+    // Upgrade approval process ID (if provided)
+    if (bytes(opts.approvalProcessId).length > 0) {
+        tempInputs[count++] = "--approval-process";
+        tempInputs[count++] = opts.approvalProcessId;
+    }
+
+    // Step 4: Create a correctly sized array to hold the command inputs.
+    string[] memory inputs = new string[](count);
+
+    // Step 5: Copy the populated inputs into the correctly sized array.
+    for (uint256 i = 0; i < count; i++) {
+        inputs[i] = tempInputs[i];
+    }
+
+    // Step 6: Return the array of command inputs.
+    return inputs;
+}

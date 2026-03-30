@@ -1,0 +1,15 @@
+function ceilDiv(uint256 a, uint256 b) internal  pure returns (uint256) {
+function ceilDiv(uint256 a, uint256 b) internal  pure returns (uint256) {
+require(b != 0, "Division by zero");
+    unchecked {
+        // Calculate ceiling division: (a + b - 1) / b
+        // To avoid overflow when a + b, we use: (a - 1) / b + 1
+        // However, if a is 0, (a - 1) would underflow.
+        // The formula (a + b - 1) / b works if we handle a=0 separately or use safe math.
+        // A common safe pattern for ceilDiv is: (a == 0) ? 0 : (a - 1) / b + 1
+        
+        if (a == 0) {
+            return 0;
+        }
+        return (a - 1) / b + 1;
+    }

@@ -1,0 +1,30 @@
+function tryModExp(uint256 b, uint256 e, uint256 m) internal  view returns (bool success, uint256 result) {
+function tryModExp(uint256 b, uint256 e, uint256 m) internal  view returns (bool success, uint256 result) {
+if (m == 0) {
+    return (false, 0);
+}
+
+assembly ("memory-safe") {
+    let fmp := mload(0x40)
+    
+    // Store lengths of b, e, m (all 32 bytes)
+    mstore(fmp, 0x20)
+    mstore(add(fmp, 0x20), 0x20)
+    mstore(add(fmp, 0x40), 0x20)
+    
+    // Store values of b, e, m
+    mstore(add(fmp, 0x60), b)
+    mstore(add(fmp, 0x80), e)
+    mstore(add(fmp, 0xa0), m)
+    
+    // Perform static call to precompile 0x05 (ModExp)
+    // Input: fmp, size = 0xc0 (3 words for lengths + 3 words for values)
+    // Output: fmp, size = 0x20
+    success := staticcall(gas(), 0x05, fmp, 0xc0, fmp, 0x20)
+    
+    if success {
+        result := mload(fmp)
+    } else {
+        result := 0
+    }
+}

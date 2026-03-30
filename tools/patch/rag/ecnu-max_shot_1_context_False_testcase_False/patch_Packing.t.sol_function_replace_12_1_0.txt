@@ -1,0 +1,60 @@
+function replace_12_1(bytes12 self, bytes1 value, uint8 offset) internal  pure returns (bytes12 result) {
+function replace_12_1(bytes12 self, bytes1 value, uint8 offset) internal  pure returns (bytes12 result) {
+assembly {
+        // Extract the existing byte at the specified offset from the 12-byte sequence.
+        // bytes12 is stored in the lower 12 bytes of a 32-byte word.
+        // The byte at 'offset' (0-11) corresponds to the bit shift of (24 - offset) * 8 within the 32-byte word
+        // because Solidity aligns bytesN to the left (most significant bytes).
+        // However, for direct manipulation in assembly with bytes12, it's often easier to treat it as a value.
+        // Let's load 'self' into a variable. Since 'self' is passed as an argument, it is on the stack.
+        // We need to isolate the byte at 'offset'.
+        
+        // Calculate shift amount: (11 - offset) * 8. 
+        // bytes12 occupies bytes 0 to 11 (left-aligned in 32 bytes means bits 255 down to 16).
+        // Actually, in Solidity bytes12, index 0 is the most significant byte of the 12.
+        // In a 32-byte word (256 bits), bytes12 occupies bits 255 down to 160 (12 * 8 = 96 bits).
+        // Index 0 is at bits 255-248. Index 11 is at bits 167-160.
+        // Shift right needed to bring target byte to the least significant position: (11 - offset) * 8 + 160? 
+        // No, simpler logic:
+        // If we have a 32-byte word representing bytes12, the data is left-aligned.
+        // Byte 0 is at bit 255. Byte 11 is at bit 160.
+        // To get byte at 'offset', we shift right by (24 - offset) * 8.
+        // Wait, 32 bytes = 256 bits. 12 bytes = 96 bits.
+        // Padding is 20 bytes (160 bits) on the right? No, Solidity bytesN are left-aligned in the 32-byte slot.
+        // So bytes12 uses the top 12 bytes. Bits 255..160.
+        // Byte index 0 -> bits 255..248.
+        // Byte index k -> bits (255 - 8*k) .. (248 - 8*k).
+        // To move this to the lowest 8 bits, we shift right by (248 - 8*k).
+        // Let's verify: k=0, shift 248. k=11, shift 248-88 = 160. Correct.
+        
+        let shift := mul(sub(248, mul(offset, 8)), 1) // Just calculating the shift amount
+        
+        // Extract old byte
+        let oldByte := shr(shift, self)
+        oldByte := and(oldByte, 0xFF) // Ensure only 8 bits
+        
+        // Mask new value to 8 bits
+        let newByte := and(value, 0xFF)
+        
+        // If old and new are same, just return self
+        if eq(oldByte, newByte) {
+            result := self
+            leave
+        }
+        
+        // Create a mask to zero out the old byte position in the original word
+        // We want to XOR out the old byte and XOR in the new byte.
+        // Or: (self & ~(0xFF << shift)) | (newByte << shift)
+        
+        let mask := shl(shift, 0xFF)
+        let invertedMask := not(mask)
+        
+        // Clear the old byte
+        let cleared := and(self, invertedMask)
+        
+        // Position the new byte
+        let positionedNew := shl(shift, newByte)
+        
+        // Combine
+        result := or(cleared, positionedNew)
+    }

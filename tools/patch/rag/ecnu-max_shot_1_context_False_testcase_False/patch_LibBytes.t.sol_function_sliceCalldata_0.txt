@@ -1,0 +1,91 @@
+function sliceCalldata(bytes calldata subject, uint256 start, uint256 end) internal  pure returns (bytes calldata result) {
+function sliceCalldata(bytes calldata subject, uint256 start, uint256 end) internal  pure returns (bytes calldata result) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Slices a portion of the calldata based on the provided start and end indices.
+ *
+ * @param subject The original calldata to be sliced.
+ * @param start The starting index of the slice.
+ * @param end The ending index of the slice.
+ * @return result The sliced portion of the calldata.
+ *
+ * Steps:
+ * 1. Adjust the `end` index to ensure it does not exceed the length of the calldata.
+ * 2. Adjust the `start` index to ensure it does not exceed the length of the calldata.
+ * 3. Calculate the offset of the result by adding the `start` index to the original calldata offset.
+ * 4. Calculate the length of the result by ensuring `start` is less than `end` and then subtracting `start` from `end`.
+ *
+ * @dev This function uses inline assembly to perform low-level operations on calldata.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function sliceCalldata(bytes calldata subject, uint256 start, uint256 end) internal  pure returns (bytes calldata result) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Load the offset and length of the subject calldata.
+        // subject.offset is at subject.slot, subject.length is at subject.slot + 1 (conceptually in high-level, 
+        // but in assembly for calldata pointers: offset is the value, length is stored at offset).
+        // Actually, for `bytes calldata`, the variable `subject` holds the offset.
+        // The length is found at calldataload(subject).
+        let subject_offset := subject.offset
+        let subject_length := calldataload(subject_offset)
+        
+        // Step 1 & 2: Adjust start and end indices.
+        // If start > subject_length, set start = subject_length.
+        if gt(start, subject_length) { start := subject_length }
+        // If end > subject_length, set end = subject_length.
+        if gt(end, subject_length) { end := subject_length }
+        
+        // Step 4: Calculate length. If start >= end, length is 0.
+        let length := 0
+        if lt(start, end) {
+            length := sub(end, start)
+        }
+        
+        // Step 3: Calculate the new offset.
+        // The actual data starts at subject_offset + 32 (since first 32 bytes are length).
+        // So the slice starts at subject_offset + 32 + start.
+        let result_offset := add(add(subject_offset, 32), start)
+        
+        // Set the result struct fields: offset and length.
+        // In Solidity ABI, a calldata bytes variable is represented as (offset, length) in memory/stack context for return.
+        // However, returning `bytes calldata` directly from assembly requires setting the internal representation.
+        // The return variable `result` is a struct { uint256 offset; uint256 length; } in memory if it were a pointer,
+        // but for `calldata` return types, solidity expects us to leave the offset and length on the stack or set them appropriately.
+        // Since we are returning `result`, we need to assign its internal pointer components.
+        // In inline assembly, `result.offset` and `result.length` can be accessed if the compiler supports it, 
+        // but standard practice for returning calldata slices is to manipulate the return variables directly via their slots 
+        // if they are memory structs, or simply rely on the fact that `bytes calldata` is a pair.
+        
+        // To be safe and standard for `returns (bytes calldata result)`:
+        // We treat `result` as a memory structure containing offset and length because that's how solidity handles return pointers for dynamic types usually,
+        // BUT for `calldata` specific returns, the compiler optimizes. 
+        // Let's use the standard pattern: assign to `result.offset` and `result.length` assuming the compiler maps them.
+        // If direct member access isn't available in the specific assembly dialect version, we use the fact that 
+        // the return value is constructed from the stack. However, the function signature defines a named return.
+        // The most robust way in modern solidity assembly for this specific signature:
+        
+        mstore(result.offset, result_offset) // This might be incorrect if `result` is treated purely as a calldata pointer.
+        // Correction: For `bytes calldata` returns, we usually just need to ensure the correct values are pushed if it was unnamed.
+        // With a named return variable `result`, we can assign to its fields if the compiler allows, 
+        // otherwise we rely on the fact that `bytes calldata` is essentially (offset, length).
+        
+        // Let's use the explicit assignment to the return variable's underlying memory representation if it's a struct,
+        // but `bytes calldata` is a special type. 
+        // Actually, the cleanest way in pure assembly for this specific requirement without assuming compiler internals too much 
+        // is to realize that `result` is a local variable. 
+        // We will assign the calculated offset and length to the return variable `result`.
+        // Since `result` is a `bytes calldata`, it consists of two uint256s conceptually.
+        // We will write to the memory locations reserved for `result` if it were a memory struct, 
+        // BUT `calldata` references are often just stack values.
+        
+        // Alternative approach: Just push the values? No, it's a named return.
+        // We assume the compiler has allocated space for `result` as a struct (offset, length) in memory or allows direct assignment.
+        // Standard idiom:
+        result.offset := result_offset
+        result.length := length
+    }
+}

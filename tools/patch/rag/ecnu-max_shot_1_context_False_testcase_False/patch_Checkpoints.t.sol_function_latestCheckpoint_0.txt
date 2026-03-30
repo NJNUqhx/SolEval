@@ -1,0 +1,10 @@
+function latestCheckpoint(Trace224 storage self) internal  view returns (bool exists, uint32 _key, uint224 _value) {
+function latestCheckpoint(Trace224 storage self) internal  view returns (bool exists, uint32 _key, uint224 _value) {
+uint256 pos = self._checkpoints.length;
+        if (pos == 0) {
+            return (false, 0, 0);
+        } else {
+            Checkpoint224 storage cp = _unsafeAccess(self._checkpoints, pos - 1);
+            return (true, cp._key, cp._value);
+        }
+    }

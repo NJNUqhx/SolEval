@@ -1,0 +1,48 @@
+function p(List memory list, uint256 x) internal  pure returns (List memory result) {
+function p(List memory list, uint256 x) internal  pure returns (List memory result) {
+result = list;
+    result._data = x << 48;
+    _updateTail(result);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Check if x is too large (requires more than 208 bits, i.e., x > 2^208 - 1)
+        // We shift right by 208 bits. If the result is non-zero, x is too large.
+        if shr(208, x) {
+            let freeMem := mload(0x40)
+            // Store x in the new memory slot
+            mstore(freeMem, x)
+            // Update the free memory pointer (allocate 32 bytes)
+            mstore(0x40, add(freeMem, 0x20))
+            
+            // Pack the pointer with metadata.
+            // The requirement implies storing the pointer in the result list with additional metadata.
+            // Typically in such patterns (like Solady's List), the pointer is stored in _data or a specific slot
+            // with a flag indicating it's a reference. 
+            // Based on the shift logic (x << 48), the upper bits are used for flags/pointers.
+            // We assume the pattern: [Pointer (208 bits)] [Flag/Metadata (48 bits)].
+            // Or simply storing the pointer in the high bits of _data if it was overwritten, 
+            // but since we already did `result._data = x << 48`, we need to handle the large case separately.
+            
+            // Re-evaluating the flow: 
+            // 1. `result._data = x << 48` happens first. If x is large, this shifts out significant data.
+            // 2. The assembly block corrects this for large x.
+            
+            // Let's construct the packed value: (freeMem << 48) | FLAG
+            // Assuming a flag mechanism where the lower 48 bits indicate type/length or a specific marker.
+            // However, without the specific flag constant, we follow the logic of storing the pointer 
+            // in the high bits and ensuring the structure is valid.
+            // A common pattern for "large value" handling in packed lists is:
+            // result._data = (freeMem << 48) | SOME_MARKER
+            // Since the prompt doesn't specify the marker, we assume the logic requires 
+            // updating _data to hold the pointer if x was too large to fit in the remaining bits.
+            
+            // Actually, looking at the first line `result._data = x << 48`, if x is large, 
+            // the meaningful bits of x are lost. The assembly block is meant to overwrite `_data`
+            // with the pointer to the external storage.
+            
+            let packed := or(shl(48, freeMem), 0x01) // 0x01 as a hypothetical marker for "external storage"
+            mstore(add(result, 0x20), packed) // Assuming _data is at offset 0x20 in the List struct
+        }
+    }
+}

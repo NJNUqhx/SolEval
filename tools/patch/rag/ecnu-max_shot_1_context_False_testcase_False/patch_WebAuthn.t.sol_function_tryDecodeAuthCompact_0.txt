@@ -1,0 +1,228 @@
+function tryDecodeAuthCompact(bytes memory encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+function tryDecodeAuthCompact(bytes memory encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+function tryDecodeAuthCompact(bytes memory encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Check if the length of `encodedAuth` is at least 0x46 bytes (70 bytes).
+            // The minimum size is: 2 (authDataLen) + 32 (authData min? No, authData is variable) ...
+            // Let's re-evaluate the layout based on standard compact encoding often used in WebAuthn libraries:
+            // [2 bytes: authDataLen] [authDataLen bytes: authData] [clientDataJSON...]
+            // But the requirement says "at least 0x46".
+            // Typical layout for compact WebAuthn:
+            // 0x00-0x01: authDataLength (uint16)
+            // 0x02-0x02+L-1: authData
+            // Then clientDataJSON follows.
+            // Then challengeIndex (uint256), typeIndex (uint256), r (uint256), s (uint256).
+            // Minimum sizes: authData (32 bytes usually for flags + counter + AAGUID + credIdLen + credId + ext), 
+            // clientDataJSON (at least minimal JSON), plus 4 * 32 bytes for indices and signature.
+            // The prompt specifies 0x46 (70) as the hard minimum check.
+            
+            let len := mload(encodedAuth)
+            if lt(len, 0x46) {
+                // Return empty struct if too short (decoded is already zero-initialized in memory by default context 
+                // but in pure assembly inside a function returning a struct, we must ensure valid memory or revert.
+                // However, usually "try" functions return empty structs on failure. 
+                // Since `decoded` is a memory pointer returned, and we are in assembly, 
+                // we need to make sure `decoded` points to a valid zeroed struct if we fail, 
+                // OR the compiler handles the return variable allocation. 
+                // In Solidity assembly with a return variable, the variable `decoded` holds the pointer.
+                // If we just exit, it returns whatever is at that pointer. 
+                // To be safe and return an empty struct, we rely on the fact that Solidity allocates `decoded` 
+                // and initializes it to 0 before entering assembly if we don't overwrite it.
+                // We just need to jump to the end.
+                leave
+            }
+
+            // Pointer to start of data (skip length word of the bytes array)
+            let ptr := add(encodedAuth, 0x20)
+
+            // Step 2: Extract the length of the `authenticatorData` from the first 2 bytes.
+            // Read first 32 bytes to get the first 2 bytes safely
+            let firstWord := mload(ptr)
+            let authDataLen := shr(240, firstWord) // Take the first 2 bytes (16 bits)
+
+            // Validate we have enough data for authData
+            if lt(len, add(0x02, add(authDataLen, 0x80))) { 
+                // 0x02 (len field) + authDataLen + 0x80 (4 * 32 bytes for challengeIndex, typeIndex, r, s)
+                // We assume minimal clientDataJSON is handled by the 0x46 check or this specific check.
+                // Actually, the layout is: [2][AuthData][ClientData][ChallengeIdx][TypeIdx][R][S]
+                // We need to ensure the total length covers up to the end of S.
+                // The last 4 words are r, s, typeIndex, challengeIndex? Or reversed?
+                // Standard compact encoding usually puts fixed size fields at the end.
+                // Let's assume the end of the buffer contains: challengeIndex, typeIndex, r, s (4 * 32 = 128 bytes).
+                // So authData + clientData = total - 128 - 2.
+                // We need to parse sequentially.
+                
+                // Re-check: The requirement says "Extract... from encoded bytes". 
+                // It implies a specific layout. Let's assume standard: 
+                // [2B Len][AuthData][ClientDataJSON][ChallengeIdx 32B][TypeIdx 32B][R 32B][S 32B]
+                
+                let minTotal := add(0x02, add(authDataLen, 0x80))
+                if lt(len, minTotal) {
+                    leave
+                }
+            }
+
+            // Step 3: Extract `authenticatorData`.
+            // It starts at ptr + 2
+            let authDataPtr := add(ptr, 0x02)
+            // We store the pointer to the data in the struct. 
+            // Since we are returning a struct, we need to allocate memory for the bytes inside the struct?
+            // Or does the struct contain dynamic bytes? Yes, `WebAuthnAuth` likely has `bytes authenticatorData`.
+            // We need to create a new bytes object in memory for authenticatorData.
+            let authDataMem := mload(0x40) // Free memory pointer
+            mstore(authDataMem, authDataLen) // Set length
+            // Copy authData
+            if authDataLen {
+                pop(staticcall(gas(), 0x04, authDataPtr, authDataLen, add(authDataMem, 0x20), authDataLen))
+            }
+            // Update free memory pointer
+            mstore(0x40, add(authDataMem, add(0x20, ceil32(authDataLen))))
+
+            // Store authenticatorData pointer in decoded struct
+            // The struct layout depends on definition, assuming:
+            // struct WebAuthnAuth { bytes authenticatorData; bytes clientDataJSON; uint256 challengeIndex; uint256 typeIndex; uint256 r; uint256 s; }
+            // Memory layout of struct:
+            // [0x00] authenticatorData (pointer)
+            // [0x20] clientDataJSON (pointer)
+            // [0x40] challengeIndex
+            // [0x60] typeIndex
+            // [0x80] r
+            // [0xA0] s
+            
+            mstore(decoded, authDataMem)
+
+            // Step 4: Extract `clientDataJSON`.
+            // It starts after authData: ptr + 2 + authDataLen
+            let clientDataPtr := add(authDataPtr, authDataLen)
+            
+            // How long is clientDataJSON? 
+            // It ends before the last 128 bytes (4 * 32).
+            // Total used so far: 2 + authDataLen.
+            // Remaining: len - (2 + authDataLen).
+            // Last 128 bytes are fixed fields.
+            let clientDataLen := sub(sub(len, 0x02), authDataLen)
+            clientDataLen := sub(clientDataLen, 0x80) // Subtract 4 * 32
+
+            // Allocate and copy clientDataJSON
+            let clientDataMem := mload(0x40)
+            mstore(clientDataMem, clientDataLen)
+            if clientDataLen {
+                pop(staticcall(gas(), 0x04, clientDataPtr, clientDataLen, add(clientDataMem, 0x20), clientDataLen))
+            }
+            mstore(0x40, add(clientDataMem, add(0x20, ceil32(clientDataLen))))
+
+            // Store clientDataJSON pointer in decoded struct (offset 0x20)
+            mstore(add(decoded, 0x20), clientDataMem)
+
+            // Step 5 & 6: Extract challengeIndex, typeIndex, r, s.
+            // They are at the end of the encodedAuth array.
+            // Layout at end: [..., challengeIndex (32), typeIndex (32), r (32), s (32)]
+            // Base pointer for these fields: encodedAuth + 0x20 + len - 0x80
+            let fixedFieldsPtr := add(add(encodedAuth, 0x20), sub(len, 0x80))
+
+            let challengeIndex := mload(fixedFieldsPtr)
+            let typeIndex := mload(add(fixedFieldsPtr, 0x20))
+            let r := mload(add(fixedFieldsPtr, 0x40))
+            let s := mload(add(fixedFieldsPtr, 0x60))
+
+            // Step 7: Store into struct
+            mstore(add(decoded, 0x40), challengeIndex)
+            mstore(add(decoded, 0x60), typeIndex)
+            mstore(add(decoded, 0x80), r)
+            mstore(add(decoded, 0xA0), s)
+        }
+    }
+
+    // Helper for ceiling to 32 bytes (inline logic usually, but defined here for clarity if needed, 
+    // though in assembly we do it manually: (x + 31) & ~31)
+    // Since we are inside the function, we implement the math directly in the assembly above using `ceil32` logic:
+    // add(0x20, add(len, 31)) and then and with not(31)? 
+    // Actually, standard pattern: let size := add(0x20, and(add(len, 0x1f), not(0x1f)))
+    // I used a pseudo-function `ceil32` in the thought process, replacing with inline math below for the final code correctness.
+    
+    // Correction for the assembly block above to remove pseudo-function `ceil32`:
+    // Replace: add(0x20, ceil32(authDataLen)) 
+    // With: add(0x20, and(add(authDataLen, 0x1f), not(0x1f)))
+    
+    // Re-writing the specific lines in the assembly block for the final output to be valid Solidity assembly.
+
+    /// @solidity memory-safe-assembly
+    // Note: The previous assembly block had pseudo-code for ceil32. Here is the corrected inline version.
+    // This comment block is just for explanation, the actual code follows in the function body.
+    
+    // IMPLEMENTATION WITH INLINE MATH
+    // (The function body below is the actual deliverable with corrected math)
+    
+    // Re-defining the function body correctly without external helpers
+    
+    /* 
+       The logic inside the assembly block needs to be strictly valid. 
+       I will rewrite the function body below with the correct bitwise operations for memory alignment.
+    */
+    
+    // Since I cannot edit the previous block, I will provide the complete corrected function body now.
+    
+    /// @solidity memory-safe-assembly
+    assembly {
+        let len := mload(encodedAuth)
+        // Step 1: Check minimum length
+        if lt(len, 0x46) { leave }
+
+        let ptr := add(encodedAuth, 0x20)
+        
+        // Step 2: Extract authDataLen (first 2 bytes)
+        let firstWord := mload(ptr)
+        let authDataLen := shr(240, firstWord)
+
+        // Calculate required minimum length: 2 + authDataLen + 128 (for 4 uint256s)
+        // We also need at least 0 bytes for clientDataJSON, but usually it's non-empty.
+        // The check `lt(len, 0x46)` covers small cases, but we must ensure we don't underflow or read out of bounds.
+        let minRequired := add(0x82, authDataLen) // 0x82 = 2 + 128
+        if lt(len, minRequired) { leave }
+
+        // Step 3: Extract authenticatorData
+        let authDataPtr := add(ptr, 0x02)
+        let authDataMem := mload(0x40)
+        mstore(authDataMem, authDataLen)
+        if authDataLen {
+            pop(staticcall(gas(), 0x04, authDataPtr, authDataLen, add(authDataMem, 0x20), authDataLen))
+        }
+        // Update free memory pointer: current + 32 (len) + padded data
+        let authDataPadded := and(add(authDataLen, 0x1f), not(0x1f))
+        mstore(0x40, add(authDataMem, add(0x20, authDataPadded)))
+
+        // Store in struct (offset 0)
+        mstore(decoded, authDataMem)
+
+        // Step 4: Extract clientDataJSON
+        let clientDataPtr := add(authDataPtr, authDataLen)
+        // Length = total - 2 - authDataLen - 128
+        let clientDataLen := sub(sub(sub(len, 0x02), authDataLen), 0x80)
+        
+        let clientDataMem := mload(0x40)
+        mstore(clientDataMem, clientDataLen)
+        if clientDataLen {
+            pop(staticcall(gas(), 0x04, clientDataPtr, clientDataLen, add(clientDataMem, 0x20), clientDataLen))
+        }
+        let clientDataPadded := and(add(clientDataLen, 0x1f), not(0x1f))
+        mstore(0x40, add(clientDataMem, add(0x20, clientDataPadded)))
+
+        // Store in struct (offset 0x20)
+        mstore(add(decoded, 0x20), clientDataMem)
+
+        // Step 5 & 6: Extract fixed fields from the end
+        // Layout: ... [challengeIndex] [typeIndex] [r] [s]
+        let fixedFieldsStart := add(add(encodedAuth, 0x20), sub(len, 0x80))
+        
+        let challengeIndex := mload(fixedFieldsStart)
+        let typeIndex := mload(add(fixedFieldsStart, 0x20))
+        let r := mload(add(fixedFieldsStart, 0x40))
+        let s := mload(add(fixedFieldsStart, 0x60))
+
+        // Step 7: Store in struct
+        mstore(add(decoded, 0x40), challengeIndex)
+        mstore(add(decoded, 0x60), typeIndex)
+        mstore(add(decoded, 0x80), r)
+        mstore(add(decoded, 0xA0), s)
+    }

@@ -1,0 +1,35 @@
+function reverse(uint256[] memory a) internal  pure {
+function reverse(uint256[] memory a) internal  pure {
+    uint256 length = a.length;
+    if (length < 2) {
+        return;
+    }
+
+    uint256 start = 0;
+    uint256 end = length - 1;
+
+    // Using assembly for efficient in-place swapping
+    assembly {
+        // Calculate the memory pointer for the array data
+        let dataPtr := add(a, 0x20)
+
+        // Loop until start >= end
+        for {} lt(start, end) {} {
+            // Calculate memory locations for start and end elements
+            let startPtr := add(dataPtr, mul(start, 0x20))
+            let endPtr := add(dataPtr, mul(end, 0x20))
+
+            // Load values
+            let startVal := mload(startPtr)
+            let endVal := mload(endPtr)
+
+            // Swap values
+            mstore(startPtr, endVal)
+            mstore(endPtr, startVal)
+
+            // Move pointers
+            start := add(start, 1)
+            end := sub(end, 1)
+        }
+    }
+}

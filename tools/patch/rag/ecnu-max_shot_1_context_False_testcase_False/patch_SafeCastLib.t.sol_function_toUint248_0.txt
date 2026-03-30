@@ -1,0 +1,6 @@
+function toUint248(uint256 x) internal  pure returns (uint248) {
+function toUint248(uint256 x) internal  pure returns (uint248) {
+if (x >= (1 << 248)) {
+    _revertOverflow();
+}
+return uint248(x);

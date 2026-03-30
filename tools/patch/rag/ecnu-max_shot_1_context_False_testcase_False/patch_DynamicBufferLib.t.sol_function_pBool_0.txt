@@ -1,0 +1,9 @@
+function pBool(DynamicBuffer memory buffer, bool data) internal  pure returns (DynamicBuffer memory result) {
+function pBool(DynamicBuffer memory buffer, bool data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        uint256 casted;
+        assembly {
+            casted := iszero(iszero(data))
+        }
+        result = p(buffer, _single(casted, 1));
+    } 

@@ -1,0 +1,30 @@
+function replace_24_12(bytes24 self, bytes12 value, uint8 offset) internal  pure returns (bytes24 result) {
+function replace_24_12(bytes24 self, bytes12 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+            // Load the full 24-byte value into memory slot 0
+            mstore(0, self)
+            
+            // Calculate the bit shift amount: (24 - offset - 12) * 8
+            // This aligns the 12-byte segment to the left for easy extraction/masking
+            let shift := shl(3, sub(sub(24, offset), 12))
+            
+            // Extract the old 12-byte segment from the original value
+            // Shift left to remove lower bytes, then right to remove upper bytes
+            let oldSegment := shr(shift, shl(mul(offset, 8), self))
+            
+            // Mask the new value to ensure it is strictly 12 bytes (96 bits)
+            // 0xFFFFFFFFFFFFFFFFFFFFFFFF is the mask for 12 bytes
+            let maskedValue := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFF)
+            
+            // Prepare the new segment shifted to the correct position
+            let newSegment := shl(shift, maskedValue)
+            
+            // Prepare the old segment shifted to the correct position (for XOR removal)
+            let oldSegmentShifted := shl(shift, oldSegment)
+            
+            // Perform the replacement:
+            // 1. XOR original with oldSegmentShifted to clear the target area (set to 0)
+            // 2. XOR result with newSegment to set the new value
+            result := xor(xor(self, oldSegmentShifted), newSegment)
+        }
+    }

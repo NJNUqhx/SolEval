@@ -1,0 +1,38 @@
+function replace_28_20(bytes28 self, bytes20 value, uint8 offset) internal  pure returns (bytes28 result) {
+function replace_28_20(bytes28 self, bytes20 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+        // Load the original 28-byte value into 'res'
+        let res := mload(add(self, 32))
+        // Load the new 20-byte value into 'val' (it will be right-aligned in the 32-byte slot)
+        let val := mload(add(value, 32))
+        
+        // Calculate the shift amount: (28 - offset - 20) * 8 bits
+        // The 28-byte value occupies bits 224 down to 0 (if we consider a 32-byte word aligned to the left)
+        // However, Solidity stores bytesN right-aligned in a 32-byte slot for loading, but here we treat the 28 bytes as a contiguous block.
+        // In a 32-byte slot, 28 bytes occupy the lower 224 bits (bits 0 to 223) if we consider standard uint interpretation, 
+        // BUT bytes28 is typically handled such that the first byte is the most significant of the 28.
+        // Let's align based on the requirement: "offset" is in bytes from the start of the 28-byte sequence.
+        // Start position from the right (LSB) = (28 - offset - 20) * 8.
+        let shift := mul(sub(sub(28, offset), 20), 8)
+        
+        // Create a mask for 20 bytes: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF (shifted appropriately)
+        // 20 bytes = 160 bits. Mask = (1 << 160) - 1
+        let mask := sub(shl(160, 1), 1)
+        
+        // Shift the mask to the correct position
+        let shiftedMask := shl(shift, mask)
+        
+        // Extract the old 20-byte segment at the offset
+        let oldSegment := and(res, shiftedMask)
+        
+        // Shift the new value to the correct position
+        let shiftedVal := shl(shift, val)
+        
+        // Perform the replacement: (res - oldSegment) + shiftedVal
+        // Using XOR is also valid if we know the bits don't overlap incorrectly, but subtraction/addition is clearer for replacement
+        // Actually, XOR works perfectly: res ^ oldSegment ^ shiftedVal
+        res := xor(xor(res, oldSegment), shiftedVal)
+        
+        // Store the result
+        mstore(add(result, 32), res)
+    }

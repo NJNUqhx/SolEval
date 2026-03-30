@@ -1,0 +1,6 @@
+function tAddress(bytes32 tSlot) internal  pure returns (TAddress storage ptr) {
+function tAddress(bytes32 tSlot) internal  pure returns (TAddress storage ptr) {
+assembly {
+            ptr.slot := tSlot
+        }
+    }

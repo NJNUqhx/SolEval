@@ -1,0 +1,26 @@
+function pack_16_16(bytes16 left, bytes16 right) internal  pure returns (bytes32 result) {
+function pack_16_16(bytes16 left, bytes16 right) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear upper 128 bits of left (though bytes16 input should already be clean, this ensures safety)
+            let l := and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            // Clear upper 128 bits of right
+            let r := and(right, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            // Shift right value to the lower 128 bits position (it's already there, but conceptually we are packing left|right)
+            // Actually, we want left in upper 128 bits and right in lower 128 bits.
+            // left is already in the upper bits of a 32-byte word if we just cast it? 
+            // No, `left` variable holds the value aligned to the right in the 32-byte slot in solidity assembly usually, 
+            // but since it's bytes16, it occupies the lower 16 bytes of the 32-byte slot when loaded as a single word?
+            // Wait, in Solidity assembly, `bytes16` variables are stored right-aligned in a 32-byte slot (i.e., in the lower 16 bytes).
+            // So `left` is 0x0000...0000[16 bytes of data].
+            // We need `left` to be in the upper 16 bytes: [16 bytes of data]0000...0000.
+            // So we shift `left` left by 128 bits (16 bytes * 8 bits).
+            l := shl(128, l)
+            
+            // `right` is already in the lower 16 bytes: 0x0000...0000[16 bytes of data].
+            // This is exactly where we want it for the lower half of the result.
+            
+            // Combine them
+            result := or(l, r)
+        }
+    }

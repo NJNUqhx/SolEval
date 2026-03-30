@@ -1,0 +1,21 @@
+function extract_20_4(bytes20 self, uint8 offset) internal  pure returns (bytes4 result) {
+function extract_20_4(bytes20 self, uint8 offset) internal  pure returns (bytes4 result) {
+if (offset > 16) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift the 20-byte value left by (offset * 8) bits to align the target 4 bytes
+            // to the most significant position of the 32-byte word.
+            // Since `self` is loaded as a uint256, shifting left moves higher indices to lower significance
+            // in terms of byte position within the word, but we want to isolate specific bytes.
+            // Actually, for a bytes20 stored in a slot:
+            // Byte 0 is at the most significant end (bit 255 down to 248).
+            // To extract 4 bytes starting at `offset`, we need to shift left by `offset * 8`.
+            // Then we shift right by (256 - 32) = 224 bits to move those 4 bytes to the least significant position.
+            
+            let val := self
+            let shifted := shl(mul(offset, 8), val)
+            result := shr(224, shifted)
+        }
+    }

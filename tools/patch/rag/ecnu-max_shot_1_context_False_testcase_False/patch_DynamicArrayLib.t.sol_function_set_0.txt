@@ -1,0 +1,8 @@
+function set(uint256[] memory a, uint256 i, uint256 data) internal  pure returns (uint256[] memory result) {
+function set(uint256[] memory a, uint256 i, uint256 data) internal  pure returns (uint256[] memory result) {
+result = a;
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(add(add(result, 0x20), shl(5, i)), data)
+        }
+    }

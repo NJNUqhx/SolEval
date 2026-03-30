@@ -1,0 +1,86 @@
+function extract_24_8(bytes24 self, uint8 offset) internal  pure returns (bytes8 result) {
+function extract_24_8(bytes24 self, uint8 offset) internal  pure returns (bytes8 result) {
+if (offset > 16) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift the 24-byte value left by (offset * 8) bits to align the desired segment to the top.
+            // Then shift right by 128 bits (256 - 128) to move the 8-byte segment to the lowest 8 bytes.
+            // Alternatively: Shift left by (offset * 8), then mask with 0xFF...FF (64 bits) to keep only the last 8 bytes.
+            // Since `self` is in the lower 192 bits of the 256-bit slot, we treat it as a full 256-bit integer for shifting.
+            
+            // Calculate shift amount: offset * 8
+            let shift := mul(offset, 8)
+            
+            // Shift left to move the target segment to the most significant position relative to the 24 bytes,
+            // effectively moving it to the upper part of the 256-bit word.
+            // Then we need to isolate the 8 bytes. 
+            // Strategy: Shift left by (offset * 8), then shift right by (256 - 64) = 192 to get the 8 bytes at the bottom.
+            // Wait, `self` occupies bits 0 to 191. 
+            // If offset is 0, we want bits 184-191 (the last 8 bytes of the 24). No, standard extraction usually means:
+            // bytes24: [B0, B1, ..., B23]
+            // offset 0 -> [B0...B7]
+            // offset 16 -> [B16...B23]
+            // In memory/storage representation (big-endian interpretation for slicing):
+            // B0 is the most significant byte of the 24-byte sequence.
+            // In a uint256 slot, if we load bytes24, B0 is at the highest bit of the used range? 
+            // Actually, in Solidity `bytes24` stored in a `uint256` slot aligns to the LEFT (most significant bits) if treated as a number?
+            // No, `bytesN` types are left-aligned in the 32-byte word when loaded via assembly if they come from storage/memory directly?
+            // Let's stick to the logical shift described in requirements: "Shift left by 8 * offset".
+            // If we have value V. We want 8 bytes starting at `offset`.
+            // If we shift left by `offset * 8`, the byte at `offset` moves to the position of the original byte 0.
+            // Then we need to extract the top 8 bytes of the 24-byte range? Or the bottom 8?
+            // Standard pattern for `bytes24` -> `bytes8` extraction at offset `i`:
+            // (self << (i * 8)) >> (128) ? 
+            // Let's re-evaluate based on "Shift left... then mask".
+            // If `self` is treated as a number where the first byte is the most significant of the 24:
+            // To get slice at `offset`, we shift left by `offset * 8`. This moves the desired slice to the front (most significant).
+            // Then we shift right by (24 - 8) * 8 = 128 bits to align it to the least significant 8 bytes.
+            
+            let val := self
+            let shifted := shl(shift, val)
+            // Now the desired 8 bytes are at the most significant end of the original 24-byte block.
+            // The 24-byte block starts at bit 256-192 = 64? No, `bytes24` in a variable usually sits in the lower 192 bits? 
+            // Actually, in Solidity inline assembly, if `self` is a `bytes24` argument, it is right-aligned (padded with zeros on the left) in the 256-bit word?
+            // NO. `bytesN` are left-aligned in the 32-byte word (padded with zeros on the right).
+            // Example: bytes1 0x12 is stored as 0x120000...00.
+            // So `bytes24` occupies the top 24 bytes (bits 255 down to 32).
+            // Bits 255..32 are data. Bits 31..0 are zero.
+            // We want to extract 8 bytes starting at `offset` (0-indexed from the left).
+            // Byte 0 is at bits 255-248.
+            // Byte `offset` is at bits (255 - 8*offset) down to ...
+            // We want to move this segment to the top (bits 255-200) so we can just shift right by 192 to get it into a `bytes8` (which is left aligned).
+            // Current position of start byte: 255 - 8*offset.
+            // Target position: 255.
+            // Shift left by: 8*offset.
+            // After `shl(shift, val)`, the desired byte is at 255. The 8 bytes occupy 255..200.
+            // Now we shift right by (24 - 8) * 8 = 128? No.
+            // A `bytes8` result should be left-aligned (bits 255..200).
+            // So after shifting left by `offset*8`, the data is already in the correct position for `bytes8` IF the original was left aligned.
+            // Wait, if I shift left, I push zeros in from the right.
+            // Original: [D0 ... D23][0...0] (D0 at bit 255)
+            // Shift left by 8*offset: [D_offset ... D23][0...0][D0...D_offset-1] (Wait, no, shifts drop overflow).
+            // Shifting left by 8*offset moves D_offset to bit 255.
+            // The sequence becomes [D_offset, ..., D23, 0, 0, ...].
+            // We only want 8 bytes. The result `bytes8` expects data in bits 255..200.
+            // The shifted value has D_offset at 255, D_offset+7 at 200.
+            // So simply shifting left is enough? 
+            // But we must ensure no garbage from the right (if any) or ensure we mask.
+            // The requirement says: "Shift left... then mask".
+            // Mask to keep only the first 8 bytes (bits 255..200).
+            // Mask = ~((1 << (256 - 64)) - 1) = ~((1 << 192) - 1). 
+            // Or simply `and(shifted, not(sub(shl(192, 1), 1)))`? 
+            // Easier mask: `0xFFFFFFFFFFFFFFFF0000...`? No, we want the TOP 8 bytes.
+            // Mask for top 8 bytes: `0xFFFFFFFFFFFFFFFF` followed by 24 zeros? No, that's bottom.
+            // Top 8 bytes mask: `0xFFFFFFFFFFFFFFFF` shifted left by 192? 
+            // Yes: `shl(192, sub(shl(64, 1), 1))`.
+            // Actually, since the result variable `result` is `bytes8`, Solidity will automatically take the top 8 bytes if we assign a uint256?
+            // No, explicit masking is safer and requested.
+            
+            // Let's refine the mask. We want bits 255 down to 200.
+            // Mask = 0xFFFFFFFFFFFFFFFF << 192.
+            let mask := shl(192, sub(shl(64, 1), 1))
+            result := and(shifted, mask)
+        }
+    }

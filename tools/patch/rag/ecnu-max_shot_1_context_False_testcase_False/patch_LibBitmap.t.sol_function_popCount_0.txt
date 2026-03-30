@@ -1,0 +1,63 @@
+function popCount(Bitmap storage bitmap, uint256 start, uint256 amount) internal  view returns (uint256 count) {
+function popCount(Bitmap storage bitmap, uint256 start, uint256 amount) internal  view returns (uint256 count) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Calculate the bucket index (start / 256)
+            let bucket := shr(8, start)
+            
+            // Step 2: Calculate the shift amount within the bucket (start % 256)
+            let shift := and(start, 0xff)
+            
+            // Step 3: Check if the range exceeds the current bucket
+            // If (amount + shift) > 256, we span multiple buckets
+            if gt(add(amount, shift), 256) {
+                // Calculate bits remaining in the first bucket: 256 - shift
+                let firstBucketBits := sub(256, shift)
+                
+                // Load the current bucket value
+                let val := sload(add(bitmap.slot, bucket))
+                
+                // Create a mask to isolate bits from 'shift' to the end of the bucket
+                // Mask = ~((1 << shift) - 1) which clears the lower 'shift' bits
+                let mask := not(sub(shl(shift, 1), 1))
+                
+                // Apply mask and count
+                count := popcount(and(val, mask))
+                
+                // Update amount to remove the bits counted in the first bucket
+                amount := sub(amount, firstBucketBits)
+                
+                // Move to the next bucket
+                bucket := add(bucket, 1)
+                
+                // Process full buckets (256 bits each)
+                // While amount >= 256
+                for {} gt(amount, 255) {} {
+                    val := sload(add(bitmap.slot, bucket))
+                    count := add(count, popcount(val))
+                    amount := sub(amount, 256)
+                    bucket := add(bucket, 1)
+                }
+                
+                // Recalculate shift for the final partial bucket (it starts at 0 relative to the new bucket)
+                shift := 0
+            }
+            
+            // Step 4: Calculate pop count for the remaining bits in the final bucket
+            if amount {
+                let val := sload(add(bitmap.slot, bucket))
+                
+                // If we need to skip some bits at the start of this bucket (only happens if we didn't cross buckets earlier)
+                if shift {
+                    // Shift right to discard the lower 'shift' bits
+                    val := shr(shift, val)
+                }
+                
+                // Create a mask to keep only 'amount' bits
+                // Mask = (1 << amount) - 1
+                let mask := sub(shl(amount, 1), 1)
+                
+                count := add(count, popcount(and(val, mask)))
+            }
+        }
+    }

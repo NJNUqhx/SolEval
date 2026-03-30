@@ -1,0 +1,77 @@
+function replace_22_12(bytes22 self, bytes12 value, uint8 offset) internal  pure returns (bytes22 result) {
+function replace_22_12(bytes22 self, bytes12 value, uint8 offset) internal  pure returns (bytes22 result) {
+    assembly {
+        // Load the entire 22-byte value into a temporary variable.
+        // Since bytes22 is a static type, it is stored directly in the stack variable `self`.
+        let original := self
+
+        // Mask the input `value` to ensure only the lower 12 bytes are used.
+        // 12 bytes = 96 bits. We shift left by (256 - 96) = 160 bits, then shift back right.
+        // This clears any upper bits if the input was somehow larger (though bytes12 prevents this at compile time).
+        let maskedValue := and(value, sub(shl(96, 1), 1))
+
+        // Calculate the bit shift amount for the offset.
+        // Each byte is 8 bits. The offset is from the left (most significant byte) in the context of the 22-byte string?
+        // Usually, in Solidity bytesNN, index 0 is the most significant byte (leftmost).
+        // If offset 0 means replacing bytes [0..11] (the most significant 12 bytes of the 22),
+        // then the shift amount for the *start* of the 12-byte segment within the 256-bit word needs calculation.
+        //
+        // Layout of bytes22 in a 256-bit word (right-aligned/padded with zeros on the right):
+        // [ Byte 0 ][ Byte 1 ] ... [ Byte 21 ][ 0 ... 0 ]
+        // MSB                                                          LSB
+        //
+        // Total significant bits = 22 * 8 = 176 bits.
+        // The value is effectively stored as: (value << (256 - 176)) = (value << 80).
+        //
+        // If offset `o` means starting at byte index `o` (0-indexed from MSB):
+        // The segment starts at bit position: (22 - o - 12) * 8 from the LSB of the significant data?
+        // Let's re-evaluate standard Solidity bytesN layout.
+        // bytes22 `x`: x[0] is the most significant byte of the 176 bits.
+        // In the 256-bit slot, x[0] is at bit 248 (if we consider 256 bits), but since it's 22 bytes,
+        // the data occupies bits [248:73] (176 bits). Wait, 256-176 = 80 bits of padding at the bottom.
+        // So x[0] is at bit (255 - 0*8) = 255? No.
+        // Solidity stores static bytesN left-aligned in the 32-byte word?
+        // Actually, for `bytes22`, the value is treated as an integer.
+        // x[0] corresponds to the highest order byte of the 22 bytes.
+        // If we treat the 22 bytes as a number, x[0] is the most significant.
+        // In a 256-bit word, if we have 22 bytes, they occupy the top 176 bits?
+        // Let's check: `bytes32` fills the whole word. `bytes1` fills the top 8 bits?
+        // YES. Static bytes types are left-aligned (padded with zeros on the right/LSB side).
+        // So `self` has data in bits [255:80] (176 bits). Bits [79:0] are zero.
+        //
+        // Offset `offset` (0 to 10) refers to the byte index within the 22 bytes.
+        // Byte 0 is the MSB. Byte 21 is the LSB of the data.
+        // We want to replace 12 bytes starting at `offset`.
+        // The start position from the MSB (bit 255) is `offset * 8`.
+        // The number of bits to shift the `maskedValue` to align it with the target position:
+        // The `maskedValue` (12 bytes) if placed in a 256-bit word naturally sits at [255:160].
+        // We need to shift it RIGHT by `offset * 8` to move it to the correct position.
+        //
+        // Example: offset = 0. Target is [255:160]. Shift = 0.
+        // Example: offset = 10. Target is last 12 bytes of the 22.
+        // The 22 bytes end at bit 80 (since 256-176=80).
+        // The last 12 bytes start at byte index 10 (22-12=10).
+        // Bit position of start of replacement: 255 - (10 * 8) = 175.
+        // End of replacement: 255 - (22 * 8) + 1 = 80.
+        // Length 12 bytes = 96 bits. 175 - 80 + 1 = 96. Correct.
+        // So we shift `maskedValue` right by `offset * 8`.
+
+        let shift := mul(offset, 8)
+        let shiftedValue := shr(shift, maskedValue)
+
+        // Create a mask to clear the 12-byte segment in the original value.
+        // We need a mask of 12 bytes (96 bits) of 1s, shifted to the correct position, then inverted.
+        // 12 bytes of 1s: sub(shl(96, 1), 1) -> this gives 1s in the top 96 bits [255:160].
+        // Shift this mask right by `shift` to align with the target segment.
+        // Then invert (~) to get 0s in the target segment and 1s elsewhere.
+        let segmentMask := sub(shl(96, 1), 1) // 12 bytes of 1s at MSB
+        segmentMask := shr(shift, segmentMask) // Align to offset
+        let clearMask := not(segmentMask)      // Invert: 0s at target, 1s elsewhere
+
+        // Clear the target segment in the original value
+        let clearedOriginal := and(original, clearMask)
+
+        // Combine the cleared original with the new shifted value
+        result := or(clearedOriginal, shiftedValue)
+    }
+}

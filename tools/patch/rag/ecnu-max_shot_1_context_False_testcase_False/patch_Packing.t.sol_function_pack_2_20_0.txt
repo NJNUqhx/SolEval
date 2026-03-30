@@ -1,0 +1,142 @@
+function pack_2_20(bytes2 left, bytes20 right) internal  pure returns (bytes22 result) {
+function pack_2_20(bytes2 left, bytes20 right) internal  pure returns (bytes22 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Clear the lower 16 bits of `left` (keep only the upper 16 bits of the 32-byte word).
+            // `left` is in the lower 2 bytes of the 32-byte slot. We want them in the upper 2 bytes of the final 22-byte result.
+            // Actually, standard Solidity `bytes2` is left-aligned in a 32-byte word (bits 240-255).
+            // To pack into `bytes22` (bits 192-255 for the first 2 bytes, bits 32-191 for the next 20),
+            // we need to arrange them carefully.
+            
+            // Let's re-evaluate the bit positions for `bytes22` returned as `uint256` underlying type:
+            // `bytes22` occupies the first 22 bytes of the 32-byte return slot (bits 255 down to 96).
+            // `left` (bytes2) should occupy bits 255-240.
+            // `right` (bytes20) should occupy bits 239-96.
+            
+            // Solidity `bytes2` argument `left`: stored in bits 255-240 (upper 2 bytes). Lower bits are 0.
+            // Solidity `bytes20` argument `right`: stored in bits 255-96 (upper 20 bytes). Lower bits are 0.
+            
+            // Requirement Step 1: "Clear the lower 16 bits of the `left` value".
+            // Since `left` is `bytes2`, it's already left-aligned. If passed as full uint256, it might have noise? 
+            // No, Solidity cleans up. But let's follow instructions strictly using masks if needed.
+            // `left` is effectively (val << 240). We want it at (val << 240). It's already there.
+            // Wait, the requirement says "Clear the lower 16 bits of the `left` value". 
+            // If `left` is treated as a raw 256-bit integer from assembly `mload`, it might not be cleaned if not careful, 
+            // but function arguments are clean. 
+            // However, maybe the requirement implies a specific bit manipulation logic described generically.
+            // Let's look at Step 3: "shifting `right` 16 bits to the right".
+            // If `right` is `bytes20` (bits 255-96), shifting right by 16 bits moves it to bits 239-80.
+            // Then OR with `left` (bits 255-240). Result occupies bits 255-80. That is 22 bytes (176 bits).
+            // 255 - 80 + 1 = 176 bits = 22 bytes. This matches `bytes22`.
+            
+            // So the plan:
+            // 1. Ensure `left` only has data in top 16 bits (bits 255-240). Mask: `0xFFFF...0000` (top 16 bits set).
+            //    Actually, `left` as `bytes2` is already in top 16 bits. We can just AND it with a mask to be safe/clear lower bits if any garbage.
+            //    Mask for top 16 bits: `0xFFFF000000000000000000000000000000000000000000000000000000000000`.
+            // 2. Ensure `right` only has data in top 20 bits (bits 255-96). Mask: `0xFFFFFFFF...` (top 20 bytes set).
+            //    Then shift right by 16 bits (128 - 112? No, 16 bits).
+            //    `right` is at 255-96. Shift right 16 -> 239-80.
+            // 3. OR them.
+            
+            let l := left
+            let r := right
+            
+            // Step 1: Clear lower bits of left (keep top 16 bits).
+            // Mask: 0xFFFF << 240
+            l := and(l, 0xFFFF000000000000000000000000000000000000000000000000000000000000)
+            
+            // Step 2: Clear higher bits of right? The requirement says "Clear the higher 96 bits".
+            // `right` is `bytes20`. In a 32-byte word, it occupies the top 20 bytes (bits 255-96).
+            // The "higher 96 bits" of what? If we consider the target space or the input?
+            // Input `right` (bytes20) has zeros in the lower 12 bytes (96 bits).
+            // Maybe the requirement phrasing is slightly inverted or refers to ensuring no overflow into the area where `left` sits after shift?
+            // Let's re-read: "Clear the higher 96 bits of the `right` value to ensure it fits into the lower-order 160 bits of the result."
+            // This sounds like we are treating `right` as a 256-bit value where we want to keep the lower 160 bits?
+            // But `bytes20` is naturally in the HIGH 160 bits of the 256-bit word in Solidity.
+            // If we interpret "lower-order 160 bits of the result" relative to the 22-byte container?
+            // Let's stick to the bit manipulation described in Step 3 which is precise: "shifting `right` 16 bits to the right".
+            // If `right` is standard Solidity `bytes20` (left-aligned), shifting right 16 bits aligns it immediately after `left`.
+            // The "Clear higher 96 bits" might refer to ensuring that if `right` was somehow full 256 bits, we only take the relevant part?
+            // Or perhaps the requirement assumes `right` is provided in the LOWER 20 bytes? No, signature is `bytes20`.
+            // Let's assume standard Solidity encoding (left-aligned).
+            // `right` is bits 255-96.
+            // We want it at bits 239-80.
+            // Shift right by 16.
+            // Before shifting, do we need to mask? `right` is already clean (lower 96 bits are 0).
+            // The requirement "Clear the higher 96 bits" is confusing if `right` is left-aligned.
+            // UNLESS: The requirement implies we should treat the input as if it might have garbage in the top 96 bits? 
+            // But `bytes20` cannot have garbage in top 96 bits if it's the whole value?
+            // Wait, 32 bytes = 256 bits. 20 bytes = 160 bits.
+            // If `right` is left aligned, it uses bits 255..96. The lower 96 bits (95..0) are zero.
+            // The "higher 96 bits" would be 255..160. That's part of the data.
+            // Maybe the requirement meant "Clear the LOWER 96 bits"? Yes, that makes sense for left-aligned `bytes20` to ensure it doesn't interfere? But they are already 0.
+            // Let's look at the result layout again.
+            // Result `bytes22`: Bits 255..96 (22 bytes).
+            // Left (2 bytes): 255..240.
+            // Right (20 bytes): 239..80.
+            // If we shift `right` (255..96) right by 16, we get 239..80. Perfect.
+            // The "Clear higher 96 bits" instruction might be a generic description for "Ensure the value fits in 160 bits" before shifting?
+            // If we mask `right` with `0x000000FFFFFFFF...` (lower 160 bits), that would destroy the data because Solidity stores `bytes20` in the UPPER 160 bits.
+            // Hypothesis: The requirement description might be written assuming right-aligned values or a specific context, BUT Step 3 "shift right 16" strongly implies left-aligned inputs to produce a left-aligned output.
+            // Let's follow Step 3 primarily as it's mechanically specific.
+            // And Step 1 "Clear lower 16 bits of left": `left` is 2 bytes (16 bits). In 256-bit word, it's top 16. Lower 240 bits are 0. So "lower 16 bits" of the 256-bit word? Those are already 0.
+            // Maybe "lower 16 bits of the `left` value" means the lower 16 bits of the 2-byte value itself? No, we want to preserve the value.
+            // Let's assume the requirement text is slightly abstract and implement the logical packing for `bytes2` + `bytes20` -> `bytes22` using the shift method which is standard and gas efficient.
+            // We will apply masks to be strictly compliant with "Clear" instructions if they make sense in a safety context.
+            // Mask for `left`: Keep top 16 bits. `0xFFFF << 240`.
+            // Mask for `right`: Keep top 20 bits? `0xFFFFFFFF... << 96`.
+            // The requirement says "Clear higher 96 bits of right". If `right` is 256 bits, higher 96 are 255-160. That cuts off the first 12 bytes of the address/data. That seems wrong for `bytes20`.
+            // Alternative interpretation: The requirement describes packing into a 256-bit word where the result is right-aligned?
+            // If result is right aligned (bits 175-0):
+            // Left (2 bytes) at 175-160. Right (20 bytes) at 159-0.
+            // Input `left` (bytes2) is left aligned (255-240). Shift right 80 -> 175-160.
+            // Input `right` (bytes20) is left aligned (255-96). Shift right 96 -> 159-0.
+            // Step 3 says "shift `right` 16 bits to the right". This doesn't match right-alignment (needs 96).
+            // So it must be left-aligned packing.
+            // Why "Clear higher 96 bits of right"?
+            // Maybe it means "Clear the bits that would overlap with `left` after shift"?
+            // If we shift `right` right by 16, bit 255 moves to 239. Bit 240 moves to 224.
+            // `left` is at 255-240.
+            // There is no overlap if `right` is shifted.
+            // Perhaps the "higher 96 bits" refers to the unused space in the final 256-bit word? (Bits 95-0).
+            // `right` (255-96) shifted right 16 becomes (239-80). Bits 79-0 are 0.
+            // Bits 255-240 are filled by `left`.
+            // Bits 239-80 filled by `right`.
+            // Bits 79-0 are 0.
+            // Total used: 255-80 = 176 bits = 22 bytes.
+            // The "higher 96 bits" phrase is likely an error in the requirement text or refers to masking out potential noise if the input wasn't clean, but specifically "higher" is weird.
+            // HOWEVER, looking at Step 1: "Clear the lower 16 bits of `left`". If `left` is `bytes2`, it has 16 bits of data. Clearing lower 16 bits of the *value* would zero it out.
+            // It must mean "Clear the lower bits of the 256-bit word holding `left` except the top 16". Which is already true.
+            // Let's just implement the robust bitwise operations that achieve the packing described in Step 3, adding masks that correspond to "keeping the relevant parts" to satisfy the "Clear" verbiage safely.
+            // Mask `left` to ensure only top 16 bits are set (satisfies "clear lower..." if interpreted as "clear everything else").
+            // Mask `right` to ensure only top 20 bits are set (satisfies "clear ... to fit 160 bits").
+            // Then shift and OR.
+
+            // Mask for top 16 bits: 0xFFFF000000000000000000000000000000000000000000000000000000000000
+            l := and(l, 0xFFFF000000000000000000000000000000000000000000000000000000000000)
+            
+            // Mask for top 20 bits (160 bits): 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000000000000000000000000000 -- wait count.
+            // 20 bytes = 40 hex chars.
+            // FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000000000000000000000000000
+            // Let's calculate: 32 bytes total. 20 bytes data. 12 bytes zero.
+            // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000000000000000000000000000?
+            // No, simpler: `left` is 2 bytes, `right` is 20 bytes.
+            // We just need to ensure `right` doesn't have bits set in the bottom 96 bits (which it shouldn't) and top bits are clean?
+            // Let's apply a mask that keeps the top 160 bits: `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000000000000000000000000000` is wrong length.
+            // 20 bytes = 160 bits. Mask should have 160 ones followed by 96 zeros.
+            // Hex: 40 'F's followed by 24 '0's.
+            // 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000000000000000000000000000 -> 40 Fs?
+            // Count: 8*5 = 40. Yes.
+            // But wait, `right` is `bytes20`. Solidity guarantees it is left-aligned.
+            // The requirement "Clear the higher 96 bits" is extremely suspicious. 
+            // Could it mean the input `right` is passed in the LOWER 20 bytes? No, standard Solidity.
+            // Let's ignore the confusing "higher/lower" textual description if it contradicts standard types and follow the mechanical Step 3 which works perfectly for standard types.
+            // Step 3: `right` >> 16.
+            // We will just do the shift and OR, maybe adding a mask on `right` to zero out the bottom 96 bits just in case (though they are 0), to satisfy "Clear ... to fit".
+            // Actually, if I mask `right` to keep top 160 bits, that is `0xFFFFFFFF...` (40 Fs) `<< 96`.
+            r := and(r, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000000000000000000000000000) // Keeps top 160 bits.
+
+            // Step 3: Shift right 16 bits and OR.
+            result := or(l, shr(16, r))
+        }
+    }

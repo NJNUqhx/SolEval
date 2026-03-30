@@ -1,0 +1,33 @@
+function replace_20_6(bytes20 self, bytes6 value, uint8 offset) internal  pure returns (bytes20 result) {
+function replace_20_6(bytes20 self, bytes6 value, uint8 offset) internal  pure returns (bytes20 result) {
+assembly {
+        // Ensure the offset is within valid bounds for a 6-byte segment in a 20-byte value (0 to 14)
+        if gt(offset, 14) {
+            revert(0, 0)
+        }
+
+        // Calculate the number of bits to shift based on the offset (offset * 8)
+        let shift := mul(offset, 8)
+        
+        // Create a mask for 6 bytes (48 bits): 0xFFFFFFFFFFFF
+        let mask6 := sub(shl(48, 1), 1)
+        
+        // Extract the existing 6-byte segment from 'self' at the given offset
+        // Shift right to bring the segment to the least significant position, then mask
+        let oldSegment := and(shr(shift, self), mask6)
+        
+        // Extract and mask the new 6-byte value to ensure it fits
+        let newSegment := and(value, mask6)
+        
+        // Perform the replacement:
+        // 1. Clear the old segment in 'self' by XORing with the oldSegment (since oldSegment is already shifted)
+        //    Actually, we need to clear the bits first. A better approach with XOR:
+        //    result = self ^ (oldSegment << shift) ^ (newSegment << shift)
+        // This works because (A ^ B) ^ C = A ^ (B ^ C).
+        // We XOR out the old bits and XOR in the new bits.
+        
+        let shiftedOld := shl(shift, oldSegment)
+        let shiftedNew := shl(shift, newSegment)
+        
+        result := xor(xor(self, shiftedOld), shiftedNew)
+    }

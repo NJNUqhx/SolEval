@@ -1,0 +1,15 @@
+function log2(uint256 x) internal  pure returns (uint256 r) {
+function log2(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+        if eq(x, 0) { revert(0, 0) }
+        r := 0
+        if iszero(lt(x, 0x100000000000000000000000000000000)) { x := shr(128, x); r := or(r, 128) }
+        if iszero(lt(x, 0x10000000000000000)) { x := shr(64, x); r := or(r, 64) }
+        if iszero(lt(x, 0x100000000)) { x := shr(32, x); r := or(r, 32) }
+        if iszero(lt(x, 0x10000)) { x := shr(16, x); r := or(r, 16) }
+        if iszero(lt(x, 0x100)) { x := shr(8, x); r := or(r, 8) }
+        if iszero(lt(x, 0x10)) { x := shr(4, x); r := or(r, 4) }
+        if iszero(lt(x, 0x4)) { x := shr(2, x); r := or(r, 2) }
+        if iszero(lt(x, 0x2)) { r := or(r, 1) }
+    }
+}

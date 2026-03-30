@@ -1,0 +1,61 @@
+function replace_2_1(bytes2 self, bytes1 value, uint8 offset) internal  pure returns (bytes2 result) {
+function replace_2_1(bytes2 self, bytes1 value, uint8 offset) internal  pure returns (bytes2 result) {
+    assembly {
+        // Extract the existing byte at the specified offset (0 or 1)
+        // For bytes2, byte(0, ...) gets the first byte, byte(1, ...) gets the second
+        let oldByte := byte(offset, self)
+        
+        // Mask the new value to ensure it's a single byte (though bytes1 input should already be safe)
+        let newByte := and(value, 0xFF)
+        
+        // Calculate the shift amount: if offset is 0, shift is 8 bits (leftmost byte in 256-bit word context for bytes2 alignment)
+        // Actually, in solidity bytes2 stored in a word:
+        // bytes2 "AB" is stored as 0x414200...00
+        // byte(0, self) returns 0x41 (A)
+        // byte(1, self) returns 0x42 (B)
+        // To replace via XOR:
+        // We need to construct a mask that has the oldByte at the correct position and newByte at the correct position.
+        // However, the `byte()` function extracts from the 32-byte word representation.
+        // A simpler approach in assembly for fixed-size bytes:
+        // Clear the target byte in `self` and OR in the `newByte` shifted to the correct position.
+        
+        // Position in the 32-byte word:
+        // bytes2 occupies the highest 2 bytes of the 32-byte word? No.
+        // Solidity stores bytesN left-aligned? 
+        // Let's verify: bytes2 x = 0x1234; byte(0, x) == 0x12, byte(1, x) == 0x34.
+        // In the 256-bit slot, 0x1234 is stored as 0x12340000...0000? 
+        // No, `byte(0, x)` extracts the byte at index 0 of the ABI-encoded value.
+        // For static types like bytes2, they are right-padded in memory/stack? 
+        // Actually, `byte(i, x)` where x is a value:
+        // If x = 0x123400...00 (left aligned), byte(0) is 0x12.
+        // If x = 0x...00001234 (right aligned), byte(30) is 0x12.
+        // Solidity `bytes2` in assembly as a raw value: 
+        // If I do `let x := 0x1234`, `byte(0, x)` returns 0x00 because 0x1234 is at the end of the 32 bytes.
+        // Wait, the function argument `self` is a `bytes2`. When passed to assembly, it is treated as a 32-byte word.
+        // Solidity cleans padding. So `bytes2(0x1234)` becomes `0x12340000...`? 
+        // Let's assume standard behavior: `bytes2` values are left-aligned in the 32-byte word when using `byte()` index?
+        // Actually, `byte(0, x)` accesses the most significant byte if x is treated as a big-endian number?
+        // No, `byte(i, x)` extracts the i-th byte of the 32-byte representation of x, where 0 is the most significant byte.
+        // So if `self` is `0x1234`, and it's a `bytes2`, the compiler ensures it is `0x12340000...`?
+        // Let's test the logic: If `self` is `0x1234` (as bytes2), internally it is `0x123400...00`.
+        // Then `byte(0, self)` is `0x12`. `byte(1, self)` is `0x34`.
+        // To replace byte at `offset`:
+        // We need to shift the `newByte` to the correct position.
+        // Position from left (MSB): `offset`.
+        // Shift amount (bits) = (31 - offset) * 8? No.
+        // Byte 0 is bits 248-255. Byte 1 is bits 240-247.
+        // Shift = (31 - offset) * 8.
+        // Let's try: offset=0 -> shift = 31*8 = 248. offset=1 -> shift = 30*8 = 240.
+        
+        // Step 1: Clear the byte at `offset` in `self`.
+        // Create a mask with 0xFF at the target position, then invert it.
+        let shift := mul(sub(31, offset), 8)
+        let mask := shl(shift, 0xFF)
+        let cleared := and(self, not(mask))
+        
+        // Step 2: Shift the new byte to the target position.
+        let shiftedNew := shl(shift, newByte)
+        
+        // Step 3: Combine.
+        result := or(cleared, shiftedNew)
+    }

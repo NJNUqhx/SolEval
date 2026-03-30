@@ -1,0 +1,5 @@
+function toUint232(uint256 x) internal  pure returns (uint232) {
+function toUint232(uint256 x) internal  pure returns (uint232) {
+if (x >= 2**232) revert("Overflow: uint256 exceeds uint232 range");
+        return uint232(x);
+    } 

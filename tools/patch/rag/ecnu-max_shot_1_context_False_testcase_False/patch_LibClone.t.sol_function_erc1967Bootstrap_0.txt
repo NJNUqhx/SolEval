@@ -1,0 +1,17 @@
+function erc1967Bootstrap(address authorizedUpgrader) internal   returns (address bootstrap) {
+function erc1967Bootstrap(address authorizedUpgrader) internal   returns (address bootstrap) {
+bytes memory initCode = initCodeERC1967Bootstrap(authorizedUpgrader);
+        bytes32 salt = keccak256(abi.encodePacked(authorizedUpgrader));
+        bootstrap = predictDeterministicAddress(initCode, salt);
+
+        if (extcodesize(bootstrap) == 0) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                bootstrap := create2(0, add(initCode, 0x20), mload(initCode), salt)
+                if iszero(bootstrap) {
+                    mstore(0x00, 0x30116425) // `DeploymentFailed()`.
+                    revert(0x1c, 0x04)
+                }
+            }
+        }
+    }

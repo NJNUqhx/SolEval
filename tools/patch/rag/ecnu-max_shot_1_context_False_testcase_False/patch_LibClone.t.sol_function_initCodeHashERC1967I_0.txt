@@ -1,0 +1,44 @@
+function initCodeHashERC1967I(address implementation) internal  pure returns (bytes32 hash) {
+function initCodeHashERC1967I(address implementation) internal  pure returns (bytes32 hash) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Cache the free memory pointer to restore later
+            let ptr := mload(0x40)
+            
+            // Step 2: Store pre-defined bytecode for ERC1967 logic in memory.
+            // The bytecode corresponds to: PUSH20 0x0000000000000000000000000000000000000000 (placeholder) PUSH1 0x00 SLOAD
+            // Offset 0x0c: PUSH20 opcode (0x73)
+            mstore(add(ptr, 0x0c), 0x730000000000000000000000000000000000000000)
+            // Offset 0x20: Placeholder address will be overwritten next.
+            // Offset 0x34: PUSH1 0x00 SLOAD opcodes (0x600054) shifted to align correctly after the address.
+            // We construct the full sequence: 0x73 <20 bytes addr> 0x60 0x00 0x54
+            // Memory layout at `ptr`:
+            // [ptr + 0x0c] = 0x7300000000000000000000000000000000000000006000540000000000000000
+            // We need to carefully place the address in the middle.
+            
+            // Let's write the static parts first.
+            // Sequence: PUSH20 (1 byte) + Address (20 bytes) + PUSH1 (1 byte) + 0x00 (1 byte) + SLOAD (1 byte)
+            // Total length = 24 bytes.
+            
+            // Write the prefix: PUSH20
+            mstore8(add(ptr, 0x0c), 0x73)
+            
+            // Write the address at offset 0x0d (0x0c + 1)
+            mstore(add(ptr, 0x0d), shl(96, implementation))
+            
+            // Write the suffix: PUSH1 0x00 SLOAD
+            // 0x600054 needs to be placed immediately after the address.
+            // Address ends at 0x0d + 20 = 0x21.
+            // So suffix starts at 0x21.
+            mstore8(add(ptr, 0x21), 0x60)
+            mstore8(add(ptr, 0x22), 0x00)
+            mstore8(add(ptr, 0x23), 0x54)
+
+            // Step 3 & 4: Compute the keccak256 hash of the 24 bytes starting from ptr + 0x0c
+            hash := keccak256(add(ptr, 0x0c), 0x18)
+
+            // Step 5: Restore the free memory pointer and zero out the used memory slot for safety/cleanliness
+            mstore(ptr, 0)
+            mstore(0x40, ptr)
+        }
+    }

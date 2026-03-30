@@ -1,0 +1,11 @@
+function emptySignature() internal  pure returns (bytes calldata signature) {
+function emptySignature() internal  pure returns (bytes calldata signature) {
+assembly {
+            // Set the length of the calldata slice to 0.
+            // The `signature` variable holds the offset and length in calldata.
+            // We directly manipulate the length slot which is at `signature + 32`.
+            mstore(add(signature, 32), 0)
+        }
+        // The `signature` variable now represents a calldata slice with length 0.
+        // Solidity automatically returns the value of the `signature` parameter.
+    }

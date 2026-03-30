@@ -6,7 +6,7 @@ from pprint import pprint
 result_folder = "results/gas"
 jsonl_files = [os.path.join(result_folder, f) for f in os.listdir(result_folder) if f.endswith('.jsonl')]
 pprint(jsonl_files)
-GROUND_TRUTH_filename = '../../data/GROUND_TRUTH.jsonl'
+GROUND_TRUTH_filename = '/root/contract2solidity/SolEval/data/GROUND_TRUTH.jsonl'
 
 
 with open(GROUND_TRUTH_filename, 'r') as f:
@@ -34,3 +34,4 @@ for json_file in jsonl_files:
             # print("if patch_path in intersect_list:", patch_path in intersect_list)
 
 pickle.dump(intersect_list, open(os.path.join(result_folder, "intersect_gas.p"), "wb"))
+print(len(intersect_list))

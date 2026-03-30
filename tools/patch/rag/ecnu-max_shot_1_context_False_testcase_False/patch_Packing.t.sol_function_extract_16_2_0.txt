@@ -1,0 +1,12 @@
+function extract_16_2(bytes16 self, uint8 offset) internal  pure returns (bytes2 result) {
+function extract_16_2(bytes16 self, uint8 offset) internal  pure returns (bytes2 result) {
+require(offset <= 14, "OutOfRangeAccess");
+        assembly {
+            // Shift the 16-byte value left by (8 * offset) bits to align the target 2 bytes to the most significant position.
+            // Since `self` is 16 bytes, shifting left moves the desired segment to the top.
+            let shifted := shl(mul(offset, 8), self)
+            // Mask the result to keep only the top 16 bits (2 bytes).
+            // 0xFFFF0000000000000000000000000000 corresponds to the top 2 bytes of a 32-byte word.
+            result := and(shifted, 0xffff0000000000000000000000000000)
+        }
+    }

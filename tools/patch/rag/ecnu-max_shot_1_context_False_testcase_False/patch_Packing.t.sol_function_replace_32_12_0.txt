@@ -1,0 +1,34 @@
+function replace_32_12(bytes32 self, bytes12 value, uint8 offset) internal  pure returns (bytes32 result) {
+function replace_32_12(bytes32 self, bytes12 value, uint8 offset) internal  pure returns (bytes32 result) {
+    assembly {
+        // Calculate the bit shift amount: (20 - offset) * 8
+        // Since we are working with a 32-byte (256-bit) word, and we want to place
+        // the 12-byte value starting at 'offset'.
+        // The 12 bytes occupy positions [offset, offset+12).
+        // In big-endian representation (Solidity's default for bytes32):
+        // Byte 0 is the most significant.
+        // To align the 12-byte value to 'offset', we need to shift it left by (20 - offset) * 8 bits.
+        // Why 20? Because 32 (total bytes) - 12 (value bytes) = 20.
+        // If offset is 0, shift is 20 * 8 = 160 bits.
+        // If offset is 20, shift is 0 * 8 = 0 bits.
+        
+        let shift := mul(sub(20, offset), 8)
+        
+        // Create a mask for the 12-byte segment at the specific offset.
+        // 12 bytes = 96 bits. A mask of 96 ones is (2^96 - 1).
+        // In hex: 0xFFFFFFFFFFFFFFFFFFFFFFFF (24 hex chars = 12 bytes).
+        // We shift this mask to the same position as our value.
+        let mask := shl(shift, 0xFFFFFFFFFFFFFFFFFFFFFFFF)
+        
+        // Clear the 12-byte segment in the original 'self' value.
+        // self = self & (~mask)
+        let cleared := and(self, not(mask))
+        
+        // Shift the new 'value' to the correct position.
+        // Note: 'value' is bytes12, loaded as the lower 96 bits of a 256-bit word.
+        let shiftedValue := shl(shift, value)
+        
+        // Combine the cleared original value with the shifted new value.
+        result := or(cleared, shiftedValue)
+    }
+}

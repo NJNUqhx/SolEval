@@ -1,0 +1,4 @@
+function diffDays(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+function diffDays(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+result = (toTimestamp - fromTimestamp) / 86400;
+    } 

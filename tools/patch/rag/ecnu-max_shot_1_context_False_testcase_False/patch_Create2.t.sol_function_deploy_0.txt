@@ -1,0 +1,53 @@
+function deploy(uint256 amount, bytes32 salt, bytes memory bytecode) internal   returns (address addr) {
+function deploy(uint256 amount, bytes32 salt, bytes memory bytecode) internal   returns (address addr) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Deploys a new contract using the CREATE2 opcode with the provided bytecode and salt.
+ *
+ * @param amount The amount of Ether to send with the deployment.
+ * @param salt A unique salt to ensure deterministic address generation.
+ * @param bytecode The bytecode of the contract to be deployed.
+ * @return addr The address of the newly deployed contract.
+ *
+ * Steps:
+ * 1. Check if the contract has sufficient balance to cover the deployment cost. If not, revert with `InsufficientBalance` error.
+ * 2. Check if the provided bytecode is empty. If so, revert with `Create2EmptyBytecode` error.
+ * 3. Use inline assembly to deploy the contract using the CREATE2 opcode:
+ *    - Pass the amount of Ether, bytecode, and salt to the CREATE2 opcode.
+ *    - If the deployment fails and returndata is not empty, revert with the returned error data.
+ * 4. If the deployment address is `address(0)`, revert with `FailedDeployment` error.
+ * 5. Return the address of the deployed contract.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function deploy(uint256 amount, bytes32 salt, bytes memory bytecode) internal   returns (address addr) {
+    if (address(this).balance < amount) {
+        revert InsufficientBalance();
+    }
+
+    if (bytecode.length == 0) {
+        revert Create2EmptyBytecode();
+    }
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        let data := add(bytecode, 0x20)
+        let size := mload(bytecode)
+
+        addr := create2(amount, data, size, salt)
+
+        if iszero(addr) {
+            let rSize := returndatasize()
+            if rSize {
+                let rData := mload(0x40)
+                returndatacopy(rData, 0, rSize)
+                revert(rData, rSize)
+            }
+            mstore(0x00, 0x30116425) // `DeploymentFailed()` selector or similar generic failure
+            revert(0x1c, 0x04)
+        }
+    }
+}

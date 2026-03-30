@@ -1,0 +1,17 @@
+function replace_8_1(bytes8 self, bytes1 value, uint8 offset) internal  pure returns (bytes8 result) {
+function replace_8_1(bytes8 self, bytes1 value, uint8 offset) internal  pure returns (bytes8 result) {
+    assembly {
+        // Extract the existing byte at the specified offset
+        let oldByte := and(shr(mul(sub(7, offset), 8), self), 0xFF)
+        
+        // Ensure the new value is masked to 1 byte
+        let newByte := and(value, 0xFF)
+        
+        // Calculate the shift amount for the specific byte position
+        let shift := mul(sub(7, offset), 8)
+        
+        // Create a mask to clear the old byte and XOR in the new byte
+        // Formula: result = self ^ (oldByte << shift) ^ (newByte << shift)
+        // Which simplifies to: self ^ ((oldByte ^ newByte) << shift)
+        result := xor(self, shl(shift, xor(oldByte, newByte)))
+    }

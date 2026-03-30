@@ -1,0 +1,15 @@
+function set(bytes32[] memory buffer, uint256 i, bytes32 value) internal  pure returns (bytes32[] memory) {
+function set(bytes32[] memory buffer, uint256 i, bytes32 value) internal  pure returns (bytes32[] memory) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Calculate the memory address of the element at index i.
+            // The array data starts at `add(buffer, 32)` (skipping the length slot).
+            // Each element is 32 bytes (0x20), so the offset is `i * 32`.
+            // Using `shl(5, i)` is equivalent to `i * 32`.
+            let offset := add(add(buffer, 0x20), shl(5, i))
+            
+            // Store the value at the calculated offset.
+            mstore(offset, value)
+        }
+        return buffer;
+    }

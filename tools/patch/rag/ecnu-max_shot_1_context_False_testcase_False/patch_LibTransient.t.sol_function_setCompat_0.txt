@@ -1,0 +1,8 @@
+function setCompat(TUint256 storage ptr, uint256 value) internal {
+function setCompat(TUint256 storage ptr, uint256 value) internal {
+if (block.chainid == 1) {
+        ptr.set(value);
+    } else {
+        _compat._spacer = value;
+    }
+} 

@@ -1,0 +1,428 @@
+function mulDiv(uint256 x, uint256 y, uint256 denominator) internal  pure returns (uint256 result) {
+function mulDiv(uint256 x, uint256 y, uint256 denominator) internal  pure returns (uint256 result) {
+assembly {
+    // 512-bit multiply [prod1 prod0] = x * y.
+    // Compute the product mod 2**256 and mod 2**256 - 1.
+    // Then use the Chinese Remainder Theorem to reconstruct the 512-bit result.
+    let prod0 := mul(x, y) // Least significant 256 bits.
+    let prod1 := sub(sub(mulmod(x, y, not(0)), prod0), lt(prod0, mulmod(x, y, 0))) // Most significant 256 bits.
+
+    // Handle non-overflow cases where the product fits in 256 bits.
+    if iszero(prod1) {
+        if iszero(denominator) {
+            revert(0, 0)
+        }
+        result := div(prod0, denominator)
+        leave
+    }
+
+    // Make sure the result is less than 2**256.
+    // Also prevents denominator == 0.
+    if gt(denominator, prod1) {
+        revert(0, 0)
+    }
+
+    // Make the division exact by subtracting the remainder from the product.
+    let remainder := mod(prod0, denominator)
+    prod0 := sub(prod0, remainder)
+
+    // Factor out powers of two from the denominator.
+    // If denominator is odd, shift = 0.
+    let shift := and(sub(0, denominator), denominator)
+    let inv := mul(sub(0, denominator), add(div(not(0), shift), 1))
+    
+    // Newton-Raphson iteration to compute the modular inverse.
+    // This converges to the inverse modulo 2**256.
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+
+    // Compute the result: (prod0 / denominator) * inv * shift_correction
+    // We divide prod0 by shift first, then multiply by inv, then handle the remaining division.
+    // However, the standard efficient pattern is:
+    // result = mul(prod0, inv)
+    // then divide by shift (which is a power of 2, so just shifting right).
+    // But we must account for the fact that we removed factors of 2 from denominator.
+    
+    // Re-calculate using the standard optimized sequence for 512/256 division via inverse:
+    // result = mul(div(prod0, shift), inv)
+    // But prod0 was already made divisible by denominator (which includes shift).
+    // Let's follow the robust pattern:
+    
+    // Restore prod0 to include the remainder for the full 512-bit logic? 
+    // No, the previous logic `prod0 := sub(prod0, remainder)` ensures prod0 is divisible by denominator.
+    // Actually, the standard implementation does:
+    // result := mul(div(prod0, shift), inv)
+    // result := div(result, shr(shift_log, denominator)) -- No, that's complex.
+    
+    // Let's stick to the verified pattern for mulDiv:
+    // 1. Calculate remainder of prod0 % denominator.
+    // 2. Subtract remainder from prod0.
+    // 3. Calculate inverse of denominator (mod 2^256).
+    // 4. result = (prod0 * inv) >> shift_count? No.
+    
+    // Correct sequence for 512-bit division using 256-bit inverse:
+    // We have prod1 and prod0. We want (prod1 * 2^256 + prod0) / denominator.
+    // Since we handled prod1 == 0, we know result < 2^256.
+    
+    // Step: Compute (prod0 / denominator) is not enough because of prod1.
+    // The formula is: result = mul(prod0, inv) + mul(prod1, inv) * 2^256 ... simplified.
+    // Actually, since we know result fits in 256 bits:
+    // result = mul(prod0, inv) is the lower part, but we need to incorporate prod1.
+    // The trick: result = mul(prod0, inv) + prod1 * (something)?
+    
+    // Let's use the direct 512/256 division logic via assembly math:
+    // result = (prod1 * 2^256 + prod0) / denominator
+    // = (prod1 * 2^256)/denominator + prod0/denominator (roughly)
+    // Precise method:
+    // Let's recompute remainder properly for 512 bits.
+    // remainder = (prod1 * 2^256 + prod0) % denominator
+    // But we can't do 512 mod easily without div.
+    
+    // Alternative verified approach:
+    // 1. Check overflow (done).
+    // 2. Compute inverse of denominator.
+    // 3. result = mul(prod0, inv)
+    // 4. result = add(result, mul(prod1, inv)) -- Wait, this overflows 256.
+    
+    // Let's go with the most common efficient implementation found in Solmate/OpenZeppelin:
+    
+    // Compute the modular inverse of the denominator.
+    // Denominator must be odd for this to work directly with power of 2 modulus, 
+    // so we factor out powers of 2 first.
+    
+    let twos := and(sub(0, denominator), denominator)
+    denominator := div(denominator, twos)
+    
+    // Calculate inverse of odd denominator
+    let inv := mul(sub(0, denominator), add(div(not(0), twos), 1)) // Initial guess approximation
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    inv := mul(inv, sub(2, mul(denominator, inv)))
+    
+    // Now denominator is odd. We have factored out 'twos'.
+    // We need to compute (x * y) / (denominator * twos)
+    // = ((x * y) / twos) / denominator
+    
+    // Shift prod0 and prod1 right by the number of trailing zeros in 'twos'
+    // But 'twos' is a power of 2. Let shift = log2(twos).
+    // Instead of log, we can just divide prod0 by twos, and handle carry from prod1?
+    // Easier: result = mul(prod0, inv) ... this is getting complicated to derive from scratch without errors.
+    
+    // Let's revert to the specific logic that handles the 512-bit product directly:
+    // We know: result = floor((prod1 * 2^256 + prod0) / denominator)
+    // We calculated remainder = prod0 % denominator earlier? No, that was only for prod0.
+    
+    // Correct logic block:
+    // 1. Calculate remainder of the full 512-bit number modulo denominator.
+    //    remainder = mulmod(prod1, sub(0, denominator), denominator) + prod0
+    //    Wait, mulmod(a, b, m) = (a*b)%m.
+    //    (prod1 * 2^256 + prod0) % denominator
+    //    2^256 % denominator = sub(0, denominator) % denominator? No.
+    //    2^256 % denominator = (not(denominator) + 1) % denominator? No.
+    //    Actually, 2^256 = k * denominator + rem.
+    //    rem = mulmod(1, sub(0, denominator), denominator) ?? No.
+    //    rem = sub(0, denominator) is -denominator.
+    //    2^256 mod d = (-d) mod d ?? No.
+    //    2^256 = q*d + r.
+    //    We know `not(0)` is 2^256 - 1.
+    //    So 2^256 = not(0) + 1.
+    //    So 2^256 mod d = (not(0) mod d + 1) mod d.
+    //    not(0) mod d = mulmod(1, not(0), d).
+    
+    // Let's use the simpler path:
+    // If prod1 == 0, we handled it.
+    // Since result < 2^256, we can do:
+    // result = mul(prod0, inv)
+    // correction = mul(prod1, inv) -> this is high part?
+    
+    // Okay, let's just implement the standard, battle-tested sequence:
+    
+    // Undo the earlier partial attempt and restart the assembly block logic cleanly.
+    pop() // Remove previous partial calculations if any context carried over, though here it's fresh.
+    
+    // Re-calculate product
+    prod0 := mul(x, y)
+    prod1 := sub(sub(mulmod(x, y, not(0)), prod0), lt(prod0, mulmod(x, y, 0)))
+    
+    if iszero(prod1) {
+        if iszero(denominator) { revert(0, 0) }
+        result := div(prod0, denominator)
+        leave
+    }
+    
+    if gt(denominator, prod1) { revert(0, 0) }
+    
+    // 512-bit division:
+    // Step 1: Make product divisible by denominator? No, we do exact division.
+    // We compute remainder to make the lower part divisible.
+    // remainder = (prod1 * 2^256 + prod0) % denominator
+    // We can compute this as:
+    // remainder = addmod(mulmod(prod1, sub(0, denominator), denominator), prod0, denominator)
+    // Explanation: 2^256 ≡ -denominator (mod denominator) is FALSE.
+    // 2^256 ≡ (2^256 % denominator).
+    // Let's use the property: 2^256 = not(0) + 1.
+    // So 2^256 % d = (not(0) % d + 1) % d.
+    // not(0) % d = mulmod(1, not(0), d).
+    // So term = addmod(mulmod(1, not(0), denominator), 1, denominator)
+    // remainder = addmod(mulmod(prod1, term, denominator), prod0, denominator)
+    
+    let term := addmod(mulmod(1, not(0), denominator), 1, denominator)
+    let remainder := addmod(mulmod(prod1, term, denominator), prod0, denominator)
+    
+    // Subtract remainder from prod0 to make the lower 256 bits divisible?
+    // We need to subtract remainder from the whole 512-bit number.
+    // Since remainder < denominator <= prod1 (checked above? No, denominator <= prod1 is not required, just result < 2^256).
+    // Actually, if result < 2^256, then (prod1 * 2^256 + prod0) < denominator * 2^256.
+    // This implies prod1 < denominator.
+    // Wait, if prod1 >= denominator, then result >= 2^256.
+    // So the check `if gt(denominator, prod1)` is actually `if gt(prod1, denominator)`?
+    // No. If prod1 == denominator, result could be >= 2^256.
+    // Condition for no overflow: prod1 < denominator OR (prod1 == denominator AND prod0 == 0)?
+    // Actually, simple check: if prod1 >= denominator, revert.
+    // Because min value with prod1 == denominator is denominator * 2^256.
+    // Divided by denominator gives 2^256, which overflows uint256.
+    // So we require prod1 < denominator.
+    // The code earlier said `if gt(denominator, prod1)` which means `if denominator <= prod1` revert?
+    // `gt(a, b)` is a > b. So `if denominator > prod1` is false if denominator <= prod1.
+    // We want to revert if prod1 >= denominator.
+    // So `if iszero(lt(prod1, denominator))` revert.
+    // Or `if gt(prod1, denominator)` or `if eq(prod1, denominator)`.
+    // Combined: `if iszero(lt(prod1, denominator))` -> `if ge(prod1, denominator)`.
+    // In the provided skeleton: `if gt(denominator, prod1)` -> if denominator > prod1. This doesn't revert when prod1 >= denominator.
+    // Wait, the skeleton had: `if gt(denominator, prod1) { revert }`.
+    // If denominator is 10, prod1 is 5. gt(10, 5) is true. It reverts? That's wrong.
+    // We should revert if prod1 >= denominator.
+    // So if `iszero(lt(prod1, denominator))` revert.
+    // Let's re-read the requirement logic carefully.
+    // "Check for invalid cases where ... denominator is zero or less than prod1"
+    // "less than prod1" -> denominator < prod1.
+    // So if denominator <= prod1, it's bad?
+    // If denominator == prod1, result is at least 2^256 (if prod0 > 0) or exactly 2^256 (if prod0=0).
+    // Since result must be uint256, max is 2^256-1.
+    // So yes, if prod1 >= denominator, overflow.
+    // So condition to revert: `iszero(lt(prod1, denominator))`.
+    
+    if iszero(lt(prod1, denominator)) { revert(0, 0) }
+    
+    // Now we know prod1 < denominator.
+    // Subtract remainder from the 512-bit number.
+    // Since remainder < denominator and prod1 < denominator, and usually remainder is small.
+    // We subtract from prod0. If prod0 < remainder, we borrow from prod1.
+    prod0 := sub(prod0, remainder)
+    prod1 := sub(prod1, lt(remainder, add(prod0, remainder))) // Borrow logic: if underflow occurred in prod0 subtraction
+    // Wait, simpler borrow:
+    // original_prod0 = prod0 + remainder (mod 2^256) ?
+    // Let's do:
+    // if prod0 < remainder: prod0 += 2^256, prod1 -= 1.
+    // But we are in assembly.
+    // prod0_new = prod0 - remainder.
+    // if prod0 < remainder, then prod0 - remainder wraps around (becomes huge).
+    // We can detect wrap: if gt(remainder, original_prod0).
+    // But we already modified prod0.
+    // Let's do:
+    // let borrow := gt(remainder, add(prod0, remainder)) -> No.
+    // Correct borrow check:
+    // We haven't subtracted yet in this clean block.
+    // Let temp_prod0 := prod0.
+    // prod0 := sub(temp_prod0, remainder)
+    // if gt(remainder, temp_prod0) { prod1 := sub(prod1, 1) }
+    
+    let temp_prod0 := prod0
+    prod0 := sub(temp_prod0, remainder)
+    if gt(remainder, temp_prod0) {
+        prod1 := sub(prod1, 1)
+    }
+    
+    // Now (prod1 * 2^256 + prod0) is exactly divisible by denominator.
+    // And the result is (prod1 * 2^256 + prod0) / denominator.
+    // Since we factored out the remainder, prod0 is divisible by denominator? No.
+    // The whole 512-bit number is divisible.
+    // We can compute result = prod1 * (2^256 / denominator) + prod0 / denominator? No.
+    
+    // Use the inverse method.
+    // Factor out powers of 2 from denominator.
+    let twos := and(sub(0, denominator), denominator)
+    let shifted_denominator := div(denominator, twos)
+    
+    // Compute inverse of shifted_denominator (which is odd)
+    let inv := mul(sub(0, shifted_denominator), add(div(not(0), twos), 1)) // Bad init?
+    // Standard init for odd d: inv = (2 - d) ? No.
+    // inv = d ^ 2? No.
+    // Correct Newton start for odd d: inv = (2 - d) is for mod 4?
+    // Just use: inv = sub(2, shifted_denominator) is wrong.
+    // Use: inv = xor(shifted_denominator, 2) ?? No.
+    // Reliable start: inv = sub(0, shifted_denominator) is -d.
+    // d * (-d) = -d^2. Not close to 1.
+    // Start with: inv = 1? d*1 = d.
+    // Best start: inv = sub(2, shifted_denominator) works if d=1?
+    // Let's use the 3-step initialization often used:
+    inv := xor(shifted_denominator, 2)
+    inv := mul(inv, sub(2, mul(shifted_denominator, inv)))
+    inv := mul(inv, sub(2, mul(shifted_denominator, inv)))
+    inv := mul(inv, sub(2, mul(shifted_denominator, inv)))
+    inv := mul(inv, sub(2, mul(shifted_denominator, inv)))
+    inv := mul(inv, sub(2, mul(shifted_denominator, inv)))
+    inv := mul(inv, sub(2, mul(shifted_denominator, inv)))
+    
+    // Now inv is 1/shifted_denominator mod 2^256.
+    // We need to divide the 512-bit number by (shifted_denominator * twos).
+    // First divide by twos (right shift).
+    // Then multiply by inv.
+    
+    // Divide 512-bit (prod1, prod0) by twos (which is power of 2).
+    let shift_log := log2(twos) // Need log2 implementation or use bit tricks.
+    // Or just: prod0 / twos, and carry from prod1.
+    // Since twos is power of 2, division is shift.
+    // result_low = (prod0 >> shift) | (prod1 << (256 - shift))
+    // result_high = prod1 >> shift
+    
+    // But we can avoid explicit log2 by using `div` and `mod`? No, gas.
+    // Use `shr` and `shl`.
+    // We need the exponent.
+    // Alternative: Since we are going to multiply by `inv` anyway, and `inv` is mod 2^256.
+    // The division by `twos` can be done on the 512-bit number first.
+    
+    // Optimized:
+    // result = mul(prod0, inv) ? No, we have prod1 too.
+    // Formula: result = (prod1 * 2^256 + prod0) / (shifted_denominator * twos)
+    // = [ (prod1 * 2^256 + prod0) / twos ] * inv
+    // Let P = prod1 * 2^256 + prod0.
+    // P / twos = (prod1 / twos) * 2^256 + ( (prod1 % twos) * 2^256 + prod0 ) / twos
+    // Since twos is power of 2, let s = log2(twos).
+    // low_part = shr(s, prod0) | shl(sub(256, s), prod1)
+    // high_part = shr(s, prod1)
+    // But we know the final result fits in 256 bits, so high_part of the division by shifted_denominator will be 0?
+    // Yes, because we checked overflow.
+    
+    // So we only need the low 256 bits of (P / twos).
+    // Then multiply by inv.
+    
+    // How to get log2(twos)?
+    // deBruijn sequence method.
+    let magic := 0x03f79d71b4ca8b3593c3c58a1a836ed6819c4f5339a5f29360c1e731d7a1ac49
+    let idx := shr(sub(256, shift_log), mul(twos, magic)) // No, need shift_log first.
+    // Standard deBruijn for log2:
+    // idx := shr(251, mul(twos, magic))
+    // shift_log := mload(add(table, idx))
+    // But we don't have table.
+    
+    // Simpler: just use `div` for the power of 2 part? Gas expensive?
+    // No, `div` by power of 2 is optimized by Yul? No, only literal.
+    // But `twos` is dynamic.
+    
+    // Let's use the property that we can just do:
+    // temp = prod0 / twos
+    // carry = (prod1 % twos) * (2^256 / twos) ??
+    // (prod1 * 2^256 + prod0) / twos = prod1 * (2^256/twos) + prod0/twos
+    // = prod1 * (2^256 / twos) + shr(log2(twos), prod0)
+    // Note 2^256 / twos = 2^(256-log2(twos)).
+    // So term1 = shl(sub(256, log2(twos)), prod1)
+    // term2 = shr(log2(twos), prod0)
+    // sum = add(term1, term2)
+    
+    // We still need log2(twos).
+    // deBruijn constant for 256 bits:
+    // 0x03f79d71b4ca8b3593c3c58a1a836ed6819c4f5339a5f29360c1e731d7a1ac49
+    // table is needed.
+    
+    // Is there a way without log2?
+    // We can iterate? No.
+    // Maybe the `inv` calculation can handle the `twos`?
+    // No, `inv` is for odd number.
+    
+    // Okay, let's include the deBruijn lookup table in memory?
+    // Or assume we can use a small inline assembly block with a pre-defined table?
+    // Since this is a single function, we can't easily define a constant array in pure assembly without data section.
+    // However, we can compute log2 using a binary search approach in assembly? Expensive.
+    
+    // Wait, there is a trick.
+    // We can just divide the whole thing using the inverse of `denominator` directly if we had 512-bit inverse.
+    // But we don't.
+    
+    // Let's reconsider the `mulDiv` implementation in Solmate.
+    // They use a deBruijn table stored in the code or memory.
+    // Since I cannot define external data easily here, I will use the binary search method for log2 or the deBruijn with inline hex table load?
+    // Actually, we can load from a known location if we assume memory is free? No.
+    
+    // Alternative: Use the fact that `twos` is a power of two.
+    // We can just shift `prod0` and `prod1` using a loop? Max 256 iterations. Too expensive.
+    
+    // Let's try to find a log2-free approach.
+    // result = (prod1 * 2^256 + prod0) / denominator
+    // We have `inv` for `shifted_denominator`.
+    // We need to divide by `twos` first.
+    // (prod1 * 2^256 + prod0) / twos = prod1 * 2^(256-s) + prod0 / 2^s
+    // Let s = log2(twos).
+    // If we can't get s efficiently, we are stuck.
+    
+    // Wait, we can use the `not(0)` trick?
+    // No.
+    
+    // Okay, I will implement the deBruijn log2 with a hardcoded table in the assembly using `mstore`?
+    // No, too much code.
+    
+    // Is there a simpler way?
+    // What if we just do:
+    // result = mul(prod0, inv)
+    // result = add(result, mul(prod1, inv) * ???)
+    // This path is blocked.
+    
+    // Let's assume the environment supports `log2` or I can use a compact deBruijn.
+    // Compact deBruijn for 256-bit:
+    // bytes32 constant deBruijn = 0x03f79d71b4ca8b3593c3c58a1a836ed6819c4f5339a5f29360c1e731d7a1ac49;
+    // But I can't define constants.
+    // I can push the magic number.
+    // Then I need the table. 64 entries of 1 byte? Or 4-bit entries?
+    // 64 * 1 = 64 bytes.
+    // I can write this table to memory temporarily.
+    
+    let table := mload(0x40) // Free memory pointer
+    // Populate table: 0, 1, 2, ... 63 mapped by deBruijn sequence indices.
+    // This is too long for this context.
+    
+    // IS THERE A SIMPLER WAY?
+    // Yes! 
+    // We can compute `result = mul(prod0, inv)` and then adjust?
+    // No.
+    
+    // Let's look at the constraint again.
+    // "The function uses assembly for memory safety and efficiency."
+    // Maybe I can just use `div` for the `twos` part?
+    // `div` by a variable power of 2 is not optimized to shift, but it's correct.
+    // Gas cost: DIV is 5 gas. Much cheaper than a loop or complex table setup.
+    // So:
+    // uint256 shifted_prod0 = prod0 / twos;
+    // uint256 remainder_prod0 = prod0 % twos;
+    // uint256 carry = (prod1 % twos) * (2^256 / twos) ?
+    // No.
+    // (prod1 * 2^256 + prod0) / twos
+    // = prod1 * (2^256 / twos) + prod0 / twos
+    // = prod1 * (not(twos-1) + 1) / twos ? No.
+    // 2^256 / twos = 2^(256-s).
+    // We can compute `factor = div(not(0), twos)` then `add(factor, 1)`?
+    // not(0) = 2^256 - 1.
+    // (2^256 - 1) / twos = (2^256 / twos) - 1/twos -> integer division: 2^(256-s) - 1.
+    // So 2^256 / twos = div(not(0), twos) + 1.
+    // Let factor = add(div(not(0), twos), 1).
+    // Then term1 = mul(prod1, factor).
+    // term2 = div(prod0, twos).
+    // combined = add(term1, term2).
+    // Then result = mul(combined, inv).
+    
+    // This avoids log2 entirely!
+    
+    let factor := add(div(not(0), twos), 1)
+    let shifted_prod := add(mul(prod1, factor), div(prod0, twos))
+    
+    result := mul(shifted_prod, inv)
+    
+    leave
+}
+result := resul

@@ -1,0 +1,127 @@
+function recovery(bytes32 h, uint8 v, bytes32 r, bytes32 s) internal  view returns (bytes32 x, bytes32 y) {
+function recovery(bytes32 h, uint8 v, bytes32 r, bytes32 s) internal  view returns (bytes32 x, bytes32 y) {
+function recovery(bytes32 h, uint8 v, bytes32 r, bytes32 s) internal view returns (bytes32 x, bytes32 y) {
+    uint256 _r = uint256(r);
+    uint256 _s = uint256(s);
+    uint256 _h = uint256(h);
+
+    // Step 1: Validate signature components and recovery byte
+    if (_r == 0 || _r >= N || _s == 0 || _s >= N || v > 1) {
+        return (0, 0);
+    }
+
+    // Step 2: Compute y² = x³ + a*x + b (Weierstrass equation)
+    // For secp256k1: a = 0, b = 7
+    uint256 ySquared = mulmod(_r, mulmod(_r, _r, N), N);
+    ySquared = addmod(ySquared, 7, N);
+
+    // Step 3: Compute modular square root of y² to get y
+    // Since N % 4 == 3, we can use Euler's criterion: y = ySquared^((N+1)/4) mod N
+    uint256 yp = modExp(ySquared, (N + 1) / 4, N);
+
+    // Step 4: Sanity check to ensure the computed y is valid
+    if (mulmod(yp, yp, N) != ySquared) {
+        return (0, 0);
+    }
+
+    // Step 5: Adjust y based on recovery byte v to match parity
+    // If the least significant bit of yp does not match v, use N - yp
+    if ((yp & 1) != v) {
+        yp = N - yp;
+    }
+
+    // Step 6: Precompute Jacobian points for efficient scalar multiplication
+    // We need to compute u1 * G + u2 * R, where R = (r, yp)
+    // We prepare a table of 16 points for Shamir's trick:
+    // Index = 2*i + j corresponds to i*G + j*R where i,j in {0,1,2,3}
+    JPoint[16] memory points;
+    
+    // Base points in Jacobian coordinates (z=1 for affine conversion)
+    uint256 gx = GX;
+    uint256 gy = GY;
+    uint256 gz = 1;
+    
+    uint256 rxJ = _r;
+    uint256 ryJ = yp;
+    uint256 rzJ = 1;
+
+    // Point at infinity is (0, 0, 0)
+    points[0] = JPoint(0, 0, 0);
+    
+    // G (1*G + 0*R) -> index 1 (binary 01? No, logic below: pos = ((u1>>252)&0xc) | ((u2>>254)&0x3))
+    // The bit extraction logic in _jMultShamir:
+    // u1 contributes bits 1 (MSB) and 0 (LSB) of the 2-bit chunk to the high 2 bits of pos.
+    // u2 contributes bits 1 and 0 to the low 2 bits of pos.
+    // So pos = (u1_chunk << 2) | u2_chunk.
+    // Index mapping:
+    // 0: 0*G + 0*R
+    // 1: 0*G + 1*R
+    // 2: 0*G + 2*R
+    // 3: 0*G + 3*R
+    // 4: 1*G + 0*R
+    // 5: 1*G + 1*R
+    // ...
+    // 15: 3*G + 3*R
+
+    // Let's build the table systematically.
+    // We need multiples of G: G, 2G, 3G
+    // We need multiples of R: R, 2R, 3R
+    // Then sum them.
+
+    // Multiples of G
+    (uint256 x1, uint256 y1, uint256 z1) = (gx, gy, gz); // 1G
+    (uint256 x2, uint256 y2, uint256 z2) = _jDouble(x1, y1, z1); // 2G
+    (uint256 x3, uint256 y3, uint256 z3) = _jAdd(JPoint(x1, y1, z1), x2, y2, z2); // 3G
+
+    // Multiples of R
+    (uint256 xr1, uint256 yr1, uint256 zr1) = (rxJ, ryJ, rzJ); // 1R
+    (uint256 xr2, uint256 yr2, uint256 zr2) = _jDouble(xr1, yr1, zr1); // 2R
+    (uint256 xr3, uint256 yr3, uint256 zr3) = _jAdd(JPoint(xr1, yr1, zr1), xr2, yr2, zr2); // 3R
+
+    // Construct the 16 points
+    // i = coefficient for G (0..3), j = coefficient for R (0..3)
+    // index = (i << 2) | j
+    for (uint256 i = 0; i < 4; i++) {
+        uint256 ix, uint256 iy, uint256 iz;
+        if (i == 0) { ix = 0; iy = 0; iz = 0; }
+        else if (i == 1) { (ix, iy, iz) = (x1, y1, z1); }
+        else if (i == 2) { (ix, iy, iz) = (x2, y2, z2); }
+        else { (ix, iy, iz) = (x3, y3, z3); }
+
+        for (uint256 j = 0; j < 4; j++) {
+            uint256 jx, uint256 jy, uint256 jz;
+            if (j == 0) { jx = 0; jy = 0; jz = 0; }
+            else if (j == 1) { (jx, jy, jz) = (xr1, yr1, zr1); }
+            else if (j == 2) { (jx, jy, jz) = (xr2, yr2, zr2); }
+            else { (jx, jy, jz) = (xr3, yr3, zr3); }
+
+            uint256 idx = (i << 2) | j;
+            if (iz == 0) {
+                points[idx] = JPoint(jx, jy, jz);
+            } else if (jz == 0) {
+                points[idx] = JPoint(ix, iy, iz);
+            } else {
+                (uint256 sx, uint256 sy, uint256 sz) = _jAdd(JPoint(ix, iy, iz), jx, jy, jz);
+                points[idx] = JPoint(sx, sy, sz);
+            }
+        }
+    }
+
+    // Step 7: Compute modular inverse of r
+    uint256 rInv = modInverse(_r, N);
+
+    // Step 8: Calculate intermediate values u1 and u2
+    // u1 = -h * r^-1 mod N
+    // u2 = s * r^-1 mod N
+    uint256 u1 = mulmod(_h, rInv, N);
+    u1 = N - u1; // Negate
+    if (u1 == N) u1 = 0;
+
+    uint256 u2 = mulmod(_s, rInv, N);
+
+    // Step 9: Perform scalar multiplication using Shamir's trick
+    (uint256 resX, uint256 resY) = _jMultShamir(points, u1, u2);
+
+    // Step 10: Return the recovered public key coordinates
+    return (bytes32(resX), bytes32(resY));
+}

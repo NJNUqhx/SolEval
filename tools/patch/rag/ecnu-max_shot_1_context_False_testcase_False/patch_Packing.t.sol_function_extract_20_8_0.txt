@@ -1,0 +1,74 @@
+function extract_20_8(bytes20 self, uint8 offset) internal  pure returns (bytes8 result) {
+function extract_20_8(bytes20 self, uint8 offset) internal  pure returns (bytes8 result) {
+    if (offset > 12) {
+            revert("OutOfRangeAccess");
+        }
+
+        assembly {
+            // Shift left by (offset * 8) bits to align the desired 8 bytes to the most significant position
+            // Then shift right by (12 * 8) = 96 bits to move them to the least significant position of the 20-byte slot
+            // Since we want exactly 8 bytes (64 bits) at the end, we can also mask if necessary, 
+            // but shifting a 20-byte value (stored in the lower 160 bits of a 32-byte word) 
+            // requires careful handling.
+            
+            // self is in the lower 160 bits.
+            // We want 8 bytes starting at `offset`.
+            // Total bytes = 20. We want bytes [offset, offset+7].
+            // In a 32-byte word, `self` occupies bits 0 to 159 (where 0 is LSB).
+            // To get the slice, we can shift left to push unwanted lower bytes out, 
+            // then shift right to push unwanted upper bytes out.
+            
+            // Number of bits to shift left: offset * 8
+            let shiftLeft := mul(offset, 8)
+            
+            // Number of bits to shift right: (20 - (offset + 8)) * 8 = (12 - offset) * 8
+            // Alternatively, since we are returning bytes8, we just need the top 64 bits of the shifted value 
+            // if we treat the 20 bytes as left-aligned, but solidity stores them right-aligned.
+            
+            // Approach:
+            // 1. Move `self` to the top of the 32-byte word? No, let's work with the standard layout.
+            // `self` is right-aligned (LSB at bit 0).
+            // We want 8 bytes starting at `offset`.
+            // If we shift left by `offset * 8`, the byte at `offset` moves to position 0 (LSB side relative to the start of the window)? 
+            // No. Shifting left moves bits towards MSB.
+            // Example: offset=0. We want bytes 0-7. They are currently at bits 0-63? 
+            // Wait, bytes20 layout: Byte 0 is the MOST significant of the 20 bytes? 
+            // In Solidity `bytes20`, index 0 is the most significant byte of the 20.
+            // So `self` = 0x0000000000000000000000000000000000000000[B0][B1]...[B19]
+            // B0 is at bit 152 (19*8). B19 is at bit 0.
+            // We want 8 bytes starting at `offset`. So we want B[offset] ... B[offset+7].
+            // B[offset] is at bit (19-offset)*8.
+            // We want to extract these 8 bytes and return them as `bytes8`.
+            // `bytes8` result will have its first byte (index 0) at the most significant position of the 8 bytes.
+            
+            // Strategy:
+            // 1. Shift left by `(offset * 8)` bits. This moves B[offset] to the position where B[0] was.
+            //    Current pos of B[offset]: (19-offset)*8.
+            //    After shift left by offset*8: (19-offset)*8 + offset*8 = 19*8 = 152.
+            //    Now the desired 8 bytes are at the top of the 20-byte range (bits 152 down to 96).
+            // 2. Shift right by `(12 * 8)` = 96 bits. This moves the 8 bytes from bits 152-96 to bits 56-0?
+            //    Wait, `bytes8` return value expects the first byte at the most significant bit of the 8-byte segment?
+            //    Actually, `bytes8` is just 8 bytes. If we return a `uint64` or similar, it's right aligned.
+            //    But `bytes8` type in memory/return is just 8 bytes.
+            //    Let's just ensure the 8 bytes we want end up in the lowest 64 bits of the variable `result`?
+            //    No, `bytes8` variable `result` is 32 bytes on stack, but only lower 8 bytes matter?
+            //    Actually, for `bytes8`, the value is left-aligned in the 32-byte slot? 
+            //    No, Solidity types like `bytesN` are right-aligned in the 32-byte word (padded with zeros on the left).
+            //    Wait, let's verify. `bytes1` 0xFF is 0x00...00FF. Yes, right aligned.
+            //    So we need our 8 bytes to be in the lowest 64 bits (bits 0-63).
+            
+            // Re-evaluating positions:
+            // Original: B0 (bit 152) ... B19 (bit 0).
+            // Target: B[offset] ... B[offset+7] should end up in bits 63..0.
+            // B[offset] is originally at bit (19-offset)*8.
+            // We want it at bit 63 (the highest bit of the resulting 8 bytes).
+            // Shift amount = Current Pos - Target Pos = (19-offset)*8 - 63? No, that's not a multiple of 8.
+            // Wait, B[offset] is the MOST significant byte of the result.
+            // So B[offset] should be at bit 56 (if result is 8 bytes, bits 0-63, MSB is 56? No, 63-7=56).
+            // Yes, byte 0 of result is bits 56-63.
+            // So we need B[offset] (originally at (19-offset)*8) to move to 56.
+            // Shift right by: ((19-offset)*8) - 56 = 152 - 8*offset - 56 = 96 - 8*offset = 8 * (12 - offset).
+            
+            result := shr(mul(sub(12, offset), 8), self)
+        }
+    }

@@ -1,0 +1,15 @@
+function extract_22_8(bytes22 self, uint8 offset) internal  pure returns (bytes8 result) {
+function extract_22_8(bytes22 self, uint8 offset) internal  pure returns (bytes8 result) {
+    if (offset > 14) {
+        revert OutOfRangeAccess();
+    }
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Shift left by (8 * offset) bits to align the desired 8-byte segment to the most significant position.
+        // Then shift right logically by 192 bits (256 - 64) to isolate the 8 bytes.
+        // Equivalent to: (self << (8 * offset)) >> 192
+        let shifted := shl(mul(8, offset), self)
+        result := shr(192, shifted)
+    }
+}

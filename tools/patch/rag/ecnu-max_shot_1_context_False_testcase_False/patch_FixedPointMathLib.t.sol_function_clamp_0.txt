@@ -1,0 +1,17 @@
+function clamp(uint256 x, uint256 minValue, uint256 maxValue) internal  pure returns (uint256 z) {
+function clamp(uint256 x, uint256 minValue, uint256 maxValue) internal  pure returns (uint256 z) {
+    assembly {
+        // Step 1 & 2: If x < minValue, set z = minValue, else z = x
+        // This is equivalent to: z = x < minValue ? minValue : x
+        z := x
+        if lt(x, minValue) {
+            z := minValue
+        }
+
+        // Step 3: If z > maxValue, set z = maxValue
+        // Since z is already >= minValue, we just need to cap it at maxValue
+        if gt(z, maxValue) {
+            z := maxValue
+        }
+    }
+} 

@@ -1,0 +1,44 @@
+function replace_20_8(bytes20 self, bytes8 value, uint8 offset) internal  pure returns (bytes20 result) {
+function replace_20_8(bytes20 self, bytes8 value, uint8 offset) internal  pure returns (bytes20 result) {
+assembly {
+            // Load the 20-byte value into a slot (left-aligned in a 32-byte word for easier manipulation)
+            // self is stored in the first 20 bytes of a 32-byte word.
+            let original := shl(96, self)
+            
+            // Calculate the shift amount for the 8-byte segment.
+            // The 20-byte value starts at bit 96 (32 - 20 = 12 bytes = 96 bits).
+            // The offset is relative to the start of the 20-byte sequence.
+            // So the absolute bit position from the right is: (20 - offset - 8) * 8 + 96
+            // Simplified: (12 - offset) * 8 + 96 = (12 - offset) * 8 + 96
+            // Actually, let's think in terms of bytes from the left of the 32-byte word.
+            // The 20-byte value occupies bytes 12 to 31 (0-indexed).
+            // If offset is 0, we replace bytes 12-19.
+            // If offset is 12, we replace bytes 24-31.
+            // The byte index in the 32-byte word is: 12 + offset.
+            // The bit shift required to align the 8-byte segment to the least significant position is:
+            // (32 - (12 + offset) - 8) * 8 = (12 - offset) * 8.
+            
+            let shift := mul(sub(12, offset), 8)
+            
+            // Extract the old 8-byte segment
+            let oldSegment := shr(shift, original)
+            oldSegment := and(oldSegment, 0xFFFFFFFFFFFFFFFF) // Mask to 8 bytes
+            
+            // Prepare the new 8-byte value
+            let newSegment := and(value, 0xFFFFFFFFFFFFFFFF)
+            
+            // Clear the old segment in the original value
+            // Create a mask of 8 bytes of 0s at the target position and 1s elsewhere
+            let mask := not(shl(shift, 0xFFFFFFFFFFFFFFFF))
+            let cleared := and(original, mask)
+            
+            // Shift the new segment to the correct position
+            let shiftedNew := shl(shift, newSegment)
+            
+            // Combine cleared original with the new segment
+            let combined := or(cleared, shiftedNew)
+            
+            // Store the result back into the return variable (right-align to fit bytes20)
+            result := shr(96, combined)
+        }
+    }

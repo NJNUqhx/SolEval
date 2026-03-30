@@ -1,0 +1,15 @@
+function pack_4_6(bytes4 left, bytes6 right) internal  pure returns (bytes10 result) {
+function pack_4_6(bytes4 left, bytes6 right) internal  pure returns (bytes10 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Mask left to ensure only the lower 4 bytes are used (though bytes4 is already 4 bytes)
+            // Shift left by 6 bytes (48 bits) to make room for the right part
+            let shiftedLeft := shl(48, and(left, 0xFFFFFFFF))
+            
+            // Mask right to ensure only the lower 6 bytes are used
+            let maskedRight := and(right, 0xFFFFFFFFFFFF)
+            
+            // Combine the shifted left part and the right part
+            result := or(shiftedLeft, maskedRight)
+        }
+    }

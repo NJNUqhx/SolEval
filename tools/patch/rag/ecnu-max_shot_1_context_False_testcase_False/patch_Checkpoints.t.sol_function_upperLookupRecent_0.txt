@@ -1,0 +1,32 @@
+function upperLookupRecent(Trace224 storage self, uint32 key) internal  view returns (uint224) {
+function upperLookupRecent(Trace224 storage self, uint32 key) internal  view returns (uint224) {
+uint256 length = self._checkpoints.length;
+        if (length == 0) {
+            return 0;
+        }
+
+        uint256 low = 0;
+        uint256 high = length;
+
+        // Optimization for larger arrays to narrow the search range
+        if (length > 5) {
+            uint256 mid = Math.sqrt(length);
+            if (_unsafeAccess(self._checkpoints, mid)._key >= key) {
+                high = mid;
+            } else {
+                low = mid;
+            }
+        }
+
+        // Perform the upper binary lookup to find the insertion point
+        uint256 pos = _upperBinaryLookup(self._checkpoints, key, low, high);
+
+        // If pos is 0, no checkpoint with key <= target exists
+        if (pos == 0) {
+            return 0;
+        }
+
+        // Return the value of the checkpoint immediately before the insertion point
+        // _upperBinaryLookup returns the index of the first element > key, so pos-1 is <= key
+        return _unsafeAccess(self._checkpoints, pos - 1)._value;
+    }

@@ -1,0 +1,179 @@
+function smallest(Heap storage heap, uint256 k) internal  view returns (uint256[] memory a) {
+function smallest(Heap storage heap, uint256 k) internal  view returns (uint256[] memory a) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Helper to get the index stored at heap position `i`.
+            // We assume the heap stores values directly, so index == value for this context 
+            // OR the requirement implies a specific structure. Given the previous `_set` function 
+            // operates on `uint256 value` directly, this "smallest" function likely just extracts values.
+            // However, the requirement mentions "pIndex", "pValue", "pSet" suggesting a complex heap 
+            // where nodes might store {value, original_index}. 
+            // BUT, looking at `_set`, it stores `uint256` directly. 
+            // The requirement text seems to describe a generic algorithm, but the implementation 
+            // must match the storage layout of `_set`.
+            // `_set` layout: heap.slot = length, heap.slot + keccak256(slot) + i = value.
+            // To get the smallest k efficiently without modifying the original heap (view function),
+            // we need a temporary min-heap in memory to traverse the tree.
+            
+            // Let's interpret the requirement's "priority queue" as a memory-based traversal helper.
+            // We will store pairs (value, tree_index) in memory to navigate the binary tree in the heap.
+            // Memory layout for the traversal heap `h`:
+            // h_len at h_ptr
+            // Elements at h_ptr + 32, each element is 64 bytes: [value, tree_index]
+            
+            let h_ptr := mload(0x40) // Free memory pointer
+            let h_len := 0
+            
+            // Load heap length
+            let n := sload(heap.slot)
+            
+            // Calculate storage offset for heap array
+            mstore(0x00, heap.slot)
+            let sOffset := keccak256(0x00, 0x20)
+            
+            // Determine number of elements to retrieve
+            let m := k
+            if gt(m, n) { m := n }
+            
+            // Allocate result array
+            a := mload(0x40)
+            mstore(a, m)
+            let res_ptr := add(a, 32)
+            
+            // If nothing to return, update free memory and return
+            if iszero(m) {
+                mstore(0x40, add(a, 32))
+                leave
+            }
+
+            // Initialize traversal heap with root if exists
+            // Push (root_value, 1) to memory heap
+            if gt(n, 0) {
+                let root_val := sload(add(sOffset, 1)) // 1-based index for root
+                // Store at h_ptr + 32 + h_len * 64
+                let slot := add(add(h_ptr, 32), mul(h_len, 64))
+                mstore(slot, root_val)
+                mstore(add(slot, 32), 1) // tree index
+                h_len := 1
+            }
+
+            // Iterate m times to find m smallest
+            for { let i := 0 } lt(i, m) { i := add(i, 1) } {
+                // Extract min from memory heap (root of memory heap)
+                let head_slot := add(h_ptr, 32)
+                let min_val := mload(head_slot)
+                let min_idx := mload(add(head_slot, 32))
+                
+                // Store in result
+                mstore(add(res_ptr, mul(i, 32)), min_val)
+                
+                // Remove head from memory heap: move last element to head
+                h_len := sub(h_len, 1)
+                if gt(h_len, 0) {
+                    let last_slot := add(add(h_ptr, 32), mul(h_len, 64))
+                    mstore(head_slot, mload(last_slot))
+                    mstore(add(head_slot, 32), mload(add(last_slot, 32)))
+                    
+                    // Sift down in memory heap
+                    let curr := 0
+                    for {} 1 {} {
+                        let left := add(add(curr, 1), curr) // 2*curr + 1
+                        if ge(left, h_len) { break }
+                        
+                        let right := add(left, 1)
+                        let smallest_child := left
+                        
+                        if lt(right, h_len) {
+                            let left_slot := add(add(h_ptr, 32), mul(left, 64))
+                            let right_slot := add(add(h_ptr, 32), mul(right, 64))
+                            if lt(mload(left_slot), mload(right_slot)) {
+                                // left is smaller
+                            } else {
+                                smallest_child := right
+                            }
+                        }
+                        
+                        let curr_slot := add(add(h_ptr, 32), mul(curr, 64))
+                        let child_slot := add(add(h_ptr, 32), mul(smallest_child, 64))
+                        
+                        if iszero(lt(mload(child_slot), mload(curr_slot))) { break }
+                        
+                        // Swap
+                        let tmp_val := mload(curr_slot)
+                        let tmp_idx := mload(add(curr_slot, 32))
+                        mstore(curr_slot, mload(child_slot))
+                        mstore(add(curr_slot, 32), mload(add(child_slot, 32)))
+                        mstore(child_slot, tmp_val)
+                        mstore(add(child_slot, 32), tmp_idx)
+                        
+                        curr := smallest_child
+                    }
+                }
+                
+                // Add children of the extracted node to memory heap
+                let left_child_idx := add(add(min_idx, min_idx), 1) // 2*idx + 1
+                let right_child_idx := add(left_child_idx, 1)      // 2*idx + 2
+                
+                // Check left child
+                if iszero(gt(left_child_idx, n)) {
+                    let val := sload(add(sOffset, left_child_idx))
+                    let slot := add(add(h_ptr, 32), mul(h_len, 64))
+                    mstore(slot, val)
+                    mstore(add(slot, 32), left_child_idx)
+                    h_len := add(h_len, 1)
+                    
+                    // Sift up for new element
+                    let curr := sub(h_len, 1)
+                    for {} gt(curr, 0) {} {
+                        let parent := shr(1, sub(curr, 1))
+                        let curr_slot := add(add(h_ptr, 32), mul(curr, 64))
+                        let parent_slot := add(add(h_ptr, 32), mul(parent, 64))
+                        
+                        if iszero(lt(mload(curr_slot), mload(parent_slot))) { break }
+                        
+                        // Swap
+                        let tmp_val := mload(curr_slot)
+                        let tmp_idx := mload(add(curr_slot, 32))
+                        mstore(curr_slot, mload(parent_slot))
+                        mstore(add(curr_slot, 32), mload(add(parent_slot, 32)))
+                        mstore(parent_slot, tmp_val)
+                        mstore(add(parent_slot, 32), tmp_idx)
+                        
+                        curr := parent
+                    }
+                }
+                
+                // Check right child
+                if iszero(gt(right_child_idx, n)) {
+                    let val := sload(add(sOffset, right_child_idx))
+                    let slot := add(add(h_ptr, 32), mul(h_len, 64))
+                    mstore(slot, val)
+                    mstore(add(slot, 32), right_child_idx)
+                    h_len := add(h_len, 1)
+                    
+                    // Sift up for new element
+                    let curr := sub(h_len, 1)
+                    for {} gt(curr, 0) {} {
+                        let parent := shr(1, sub(curr, 1))
+                        let curr_slot := add(add(h_ptr, 32), mul(curr, 64))
+                        let parent_slot := add(add(h_ptr, 32), mul(parent, 64))
+                        
+                        if iszero(lt(mload(curr_slot), mload(parent_slot))) { break }
+                        
+                        // Swap
+                        let tmp_val := mload(curr_slot)
+                        let tmp_idx := mload(add(curr_slot, 32))
+                        mstore(curr_slot, mload(parent_slot))
+                        mstore(add(curr_slot, 32), mload(add(parent_slot, 32)))
+                        mstore(parent_slot, tmp_val)
+                        mstore(add(parent_slot, 32), tmp_idx)
+                        
+                        curr := parent
+                    }
+                }
+            }
+            
+            // Update free memory pointer
+            mstore(0x40, add(res_ptr, mul(m, 32)))
+        }
+    }

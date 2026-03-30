@@ -1,0 +1,14 @@
+function extract_6_1(bytes6 self, uint8 offset) internal  pure returns (bytes1 result) {
+function extract_6_1(bytes6 self, uint8 offset) internal  pure returns (bytes1 result) {
+if (offset > 5) {
+            revert OutOfRangeAccess();
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Shift left by (8 * offset) bits to move the target byte to the most significant position.
+            // Then mask with 0xFF00000000000000000000000000000000000000000000000000000000000000 (shl(248, not(0)))
+            // to isolate the first byte.
+            result := and(shl(mul(8, offset), self), shl(248, not(0)))
+        }
+    }

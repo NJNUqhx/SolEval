@@ -1,0 +1,56 @@
+function canonicalHashCalldata(bytes calldata signature) internal  pure returns (bytes32 result) {
+function canonicalHashCalldata(bytes calldata signature) internal  pure returns (bytes32 result) {
+function canonicalHashCalldata(bytes calldata signature) internal  pure returns (bytes32 result) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        let len := calldataload(signature.offset)
+        let ptr := add(signature.offset, 0x20)
+        
+        // Load r (first 32 bytes)
+        let r := calldataload(ptr)
+        
+        // Load s (next 32 bytes)
+        let s := calldataload(add(ptr, 0x20))
+        
+        // Load v (next byte, if exists)
+        let v := 0
+        if eq(len, 65) {
+            v := byte(0, calldataload(add(ptr, 0x40)))
+        } else if eq(len, 64) {
+            // For 64-byte signatures, derive v from the highest bit of s
+            // If highest bit of s is set, v = 28, else v = 27
+            v := add(27, shr(255, s))
+            // Mask out the highest bit of s to normalize it
+            s := and(s, 0x7fffffffffffffffffffffffffffffff7fffffffffffffffffffffffffffffff)
+        } else {
+            // Invalid length: return a uniquely corrupted hash
+            // We hash the original data and XOR with a specific error code
+            result := xor(keccak256(ptr, len), 0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef)
+            leave
+        }
+
+        // Canonicalize: if s > _HALF_N_PLUS_1, flip s and adjust v
+        // _HALF_N_PLUS_1 = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A1 + 1
+        // Actually, the standard check is s > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
+        // Let's define the constant for secp256k1 order / 2 + 1 roughly or just the standard bound.
+        // Standard bound: 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
+        let half_n := 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
+        
+        if gt(s, half_n) {
+            s := sub(0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141, s) // secp256k1 N - s
+            v := xor(v, 1) // Flip the last bit of v (27<->28)
+        }
+
+        // Pack r, s, v into memory for hashing
+        let m := mload(0x40)
+        mstore(m, r)
+        mstore(add(m, 0x20), s)
+        mstore8(add(m, 0x40), v)
+        
+        // Compute keccak256(r, s, v) -> total 65 bytes (0x41)
+        result := keccak256(m, 0x41)
+        
+        // Clean up memory pointer if needed (optional in pure/internal usually)
+        // mstore(0x40, add(m, 0x60)) 
+    }
+}

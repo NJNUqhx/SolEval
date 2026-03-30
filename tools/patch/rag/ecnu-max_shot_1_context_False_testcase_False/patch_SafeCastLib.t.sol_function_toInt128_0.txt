@@ -1,0 +1,7 @@
+function toInt128(int256 x) internal  pure returns (int128) {
+function toInt128(int256 x) internal  pure returns (int128) {
+if (x < type(int128).min || x > type(int128).max) {
+            revert SafeCastOverflow();
+        }
+        return int128(x);
+    }

@@ -1,0 +1,6 @@
+function toUint144(uint256 x) internal  pure returns (uint144) {
+function toUint144(uint256 x) internal  pure returns (uint144) {
+if (x >= 2**144) {
+    revert("Overflow: value exceeds uint144 range");
+}
+return uint144(x);

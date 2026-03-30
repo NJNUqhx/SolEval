@@ -1,0 +1,22 @@
+function pop(DynamicArray memory a) internal  pure returns (uint256 result) {
+function pop(DynamicArray memory a) internal  pure returns (uint256 result) {
+assembly {
+        // Load the base pointer of the array data (offset by 32 bytes from the struct pointer)
+        let o := add(a, 0x20)
+        // Load the length of the array (stored at the struct pointer)
+        let n := mload(a)
+
+        // If the array is not empty
+        if n {
+            // Decrement the length
+            n := sub(n, 1)
+            // Update the length in memory
+            mstore(a, n)
+            // Calculate the address of the last element: base + (new_length * 32)
+            // Since we decremented n, this points to the element that was previously last
+            let pos := add(o, mul(n, 0x20))
+            // Load the value at that position
+            result := mload(pos)
+        }
+    }
+}

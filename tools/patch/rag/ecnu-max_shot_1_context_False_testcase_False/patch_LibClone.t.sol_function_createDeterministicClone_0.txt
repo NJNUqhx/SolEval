@@ -1,0 +1,4 @@
+function createDeterministicClone(address implementation, bytes memory args, bytes32 salt) internal   returns (bool alreadyDeployed, address instance) {
+function createDeterministicClone(address implementation, bytes memory args, bytes32 salt) internal   returns (bool alreadyDeployed, address instance) {
+    return createDeterministicClone(0, implementation, args, salt);
+} 

@@ -1,0 +1,7 @@
+function toInt176(int256 x) internal  pure returns (int176) {
+function toInt176(int256 x) internal  pure returns (int176) {
+        if (x < type(int176).min || x > type(int176).max) {
+            revert("Overflow");
+        }
+        return int176(x);
+    } 

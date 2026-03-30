@@ -1,0 +1,7 @@
+function toInt24(int256 x) internal  pure returns (int24) {
+function toInt24(int256 x) internal  pure returns (int24) {
+unchecked {
+        int24 result = int24(x);
+        require(int256(result) == x, "toInt24 overflow");
+        return result;
+    }

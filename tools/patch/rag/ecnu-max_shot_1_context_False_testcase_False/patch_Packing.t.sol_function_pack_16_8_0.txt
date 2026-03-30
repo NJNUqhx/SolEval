@@ -1,0 +1,38 @@
+function pack_16_8(bytes16 left, bytes8 right) internal  pure returns (bytes24 result) {
+function pack_16_8(bytes16 left, bytes8 right) internal  pure returns (bytes24 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear lower 128 bits of left (keep upper 16 bytes)
+            // Since left is bytes16, it occupies the upper 16 bytes of a 32-byte slot.
+            // We ensure no garbage in lower bits by masking, though input type usually guarantees this.
+            // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+            let cleanLeft := and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000)
+
+            // Clear lower 192 bits of right (keep upper 8 bytes)
+            // Since right is bytes8, it occupies the upper 8 bytes of a 32-byte slot.
+            // Mask: 0xFF00000000000000000000000000000000000000000000000000000000000000
+            let cleanRight := and(right, 0xFF00000000000000000000000000000000000000000000000000000000000000)
+
+            // Shift right to the correct position (lower 8 bytes of the 24-byte result)
+            // The 24-byte result layout in a 32-byte word:
+            // [0..7] : Unused (0)
+            // [8..23]: Left (16 bytes) -> Currently at [0..15] in cleanLeft, needs to move to [8..23] (shift right by 8 bytes = 64 bits)
+            // [24..31]: Right (8 bytes) -> Currently at [0..7] in cleanRight, needs to move to [24..31] (shift right by 24 bytes = 192 bits)
+            
+            // Wait, standard Solidity bytesN packing in a return value (bytes24) places data left-aligned in the 32-byte slot.
+            // bytes24 result layout:
+            // Bytes 0-23 contain the data. Bytes 24-31 are zero.
+            // Input `left` (bytes16): Data is in bits 255..128 (bytes 0..15 of the slot).
+            // Input `right` (bytes8): Data is in bits 255..192 (bytes 0..7 of the slot).
+            
+            // Target `result` (bytes24):
+            // `left` should occupy bytes 0..15 of the result (bits 255..128). This matches `left`'s current position.
+            // `right` should occupy bytes 16..23 of the result (bits 127..64).
+            // Currently `right` is at bits 255..192. We need to shift it right by 16 bytes (128 bits).
+            
+            let shiftedRight := shr(128, cleanRight)
+            
+            // Combine using OR
+            result := or(cleanLeft, shiftedRight)
+        }
+    

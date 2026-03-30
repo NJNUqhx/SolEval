@@ -1,0 +1,5 @@
+function getTimeElapsedForCompletionOfLevel(address player, address level) public  levelExistsCheck(level) returns (uint256) {
+function getTimeElapsedForCompletionOfLevel(address player, address level) public  levelExistsCheck(level) returns (uint256) {
+require(levelFirstCompletionTime[player][level] != 0, "Level not completed");
+        return levelFirstCompletionTime[player][level] - levelFirstInstanceCreationTime[player][level];
+    }

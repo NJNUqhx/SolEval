@@ -1,0 +1,5 @@
+function pAddress(DynamicBuffer memory buffer, address data) internal  pure returns (DynamicBuffer memory result) {
+function pAddress(DynamicBuffer memory buffer, address data) internal  pure returns (DynamicBuffer memory result) {
+    _deallocate(result);
+    result = p(buffer, _single(uint256(uint160(data)), 20));
+}

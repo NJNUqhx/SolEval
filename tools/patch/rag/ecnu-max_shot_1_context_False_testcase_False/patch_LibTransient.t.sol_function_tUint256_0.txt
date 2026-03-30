@@ -1,0 +1,6 @@
+function tUint256(bytes32 tSlot) internal  pure returns (TUint256 storage ptr) {
+function tUint256(bytes32 tSlot) internal  pure returns (TUint256 storage ptr) {
+assembly {
+    ptr.slot := tSlot
+}
+    

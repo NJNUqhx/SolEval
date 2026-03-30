@@ -1,0 +1,7 @@
+function or(bool x, bool y) internal  pure returns (bool z) {
+function or(bool x, bool y) internal  pure returns (bool z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := or(iszero(iszero(x)), iszero(iszero(y)))
+        }
+    }

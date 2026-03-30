@@ -1,0 +1,28 @@
+function replace_16_1(bytes16 self, bytes1 value, uint8 offset) internal  pure returns (bytes16 result) {
+function replace_16_1(bytes16 self, bytes1 value, uint8 offset) internal  pure returns (bytes16 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Ensure offset is within bounds (0-15). If not, behavior is undefined per typical low-level ops, 
+            // but we assume valid input as per requirement context.
+            
+            // Calculate the shift amount: (15 - offset) * 8
+            // bytes16 is 16 bytes. Index 0 is the most significant byte in the uint256 representation used by EVM.
+            // To target byte at `offset` (0-indexed from left), we shift left by (15 - offset) * 8.
+            let shift := shl(3, sub(15, offset))
+            
+            // Create a mask for the single byte at the target position: 0xFF shifted to the correct position
+            let mask := shl(shift, 0xFF)
+            
+            // Extract the old byte at the target position
+            let oldByte := and(self, mask)
+            
+            // Prepare the new byte: shift the input `value` (which is in the lowest 8 bits) to the target position
+            let newByte := shl(shift, value)
+            
+            // Perform the replacement:
+            // 1. Clear the old byte: AND with NOT(mask)
+            // 2. Set the new byte: OR with newByte
+            // Alternatively using XOR: (self ^ oldByte) ^ newByte
+            result := xor(xor(self, oldByte), newByte)
+        }
+    }

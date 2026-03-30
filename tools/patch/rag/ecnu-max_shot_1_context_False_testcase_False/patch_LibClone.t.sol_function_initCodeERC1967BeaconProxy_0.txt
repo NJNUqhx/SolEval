@@ -1,0 +1,21 @@
+function initCodeERC1967BeaconProxy(address beacon) internal  pure returns (bytes memory c) {
+function initCodeERC1967BeaconProxy(address beacon) internal  pure returns (bytes memory c) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1 & 5: Allocate memory for the bytecode (0x37 bytes total)
+            c := mload(0x40)
+            mstore(0x40, add(c, 0x37))
+
+            // Step 2: Store the precomputed bytecode segments
+            // ERC1967 Beacon Proxy creation code prefix
+            mstore(add(c, 0x20), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73)
+            // Beacon address placeholder position (next 20 bytes)
+            // Step 3: Store the beacon address in the appropriate position
+            mstore(add(c, 0x34), shl(96, beacon))
+            // ERC1967 Beacon Proxy creation code suffix
+            mstore(add(c, 0x48), 0x5af43d82803e903d91602b57fd5bf3)
+
+            // Step 4: Store the length of the bytecode (0x17 = 23 bytes of actual code)
+            mstore(c, 0x17)
+        }
+    }

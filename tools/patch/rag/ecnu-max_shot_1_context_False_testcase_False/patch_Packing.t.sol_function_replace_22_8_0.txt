@@ -1,0 +1,36 @@
+function replace_22_8(bytes22 self, bytes8 value, uint8 offset) internal  pure returns (bytes22 result) {
+function replace_22_8(bytes22 self, bytes8 value, uint8 offset) internal  pure returns (bytes22 result) {
+    assembly {
+        // Load the 22-byte value into memory slot 0.
+        // bytes22 is stored left-aligned in a 32-byte slot.
+        mstore(0, self)
+        
+        // Load the new 8-byte value.
+        // bytes8 is also stored left-aligned.
+        let newVal := value
+        
+        // Calculate the shift amount in bits.
+        // Each byte is 8 bits. The offset is in bytes.
+        // Since data is left-aligned, to access byte at `offset`, we shift left by `offset * 8`.
+        let shift := mul(offset, 8)
+        
+        // Create a mask for 8 bytes (64 bits) positioned at the correct offset.
+        // 0xFFFFFFFFFFFFFFFF is 8 bytes of 1s.
+        // We shift this mask left by `shift` to align with the target segment.
+        let mask := shl(shift, 0xFFFFFFFFFFFFFFFF)
+        
+        // Extract the old 8-byte segment from the original value.
+        let oldVal := and(mload(0), mask)
+        
+        // Prepare the new value to be placed at the correct position.
+        // Shift the new 8-byte value left by `shift`.
+        let shiftedNew := shl(shift, newVal)
+        
+        // Calculate the difference (XOR) between the old segment and the new segment.
+        let diff := xor(oldVal, shiftedNew)
+        
+        // Apply the difference to the original value using XOR.
+        // This effectively replaces the old segment with the new one.
+        result := xor(mload(0), diff)
+    }
+}

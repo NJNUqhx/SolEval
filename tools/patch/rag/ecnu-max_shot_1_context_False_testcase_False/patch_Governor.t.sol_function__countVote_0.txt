@@ -1,0 +1,25 @@
+function _countVote(uint256 proposalId, address account, uint8 support, uint256 totalWeight, bytes memory params) internal virtual  returns (uint256) {
+function _countVote(uint256 proposalId, address account, uint8 support, uint256 totalWeight, bytes memory params) internal virtual  returns (uint256) {
+require(proposalId < _proposals.length, "Governor: unknown proposal id");
+    require(support <= 2, "Governor: invalid vote type");
+
+    VoteDetails storage proposal = _proposals[proposalId];
+    Receipt storage receipt = proposal._receipts[account];
+
+    require(!receipt.hasVoted, "Governor: vote already cast");
+    receipt.hasVoted = true;
+    receipt.support = support;
+    receipt.votes = totalWeight;
+
+    if (support == 0) {
+        proposal.forVotes += totalWeight;
+    } else if (support == 1) {
+        proposal.againstVotes += totalWeight;
+    } else if (support == 2) {
+        proposal.abstainVotes += totalWeight;
+    }
+
+    _afterCastVote(account, proposalId, support, totalWeight, params);
+
+    return totalWeight;
+}

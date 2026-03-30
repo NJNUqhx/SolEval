@@ -1,0 +1,14 @@
+function extract_12_2(bytes12 self, uint8 offset) internal  pure returns (bytes2 result) {
+function extract_12_2(bytes12 self, uint8 offset) internal  pure returns (bytes2 result) {
+if (offset > 10) {
+    revert("OutOfRangeAccess");
+}
+
+assembly {
+    // Shift left by (8 * offset) to move the target 2 bytes to the most significant position
+    let shifted := shl(mul(offset, 8), self)
+    // Mask to keep only the top 2 bytes (16 bits)
+    result := and(shifted, 0xFFFF0000000000000000000000000000)
+    // Shift right to align the result to the least significant position for bytes2
+    result := shr(240, result)
+}

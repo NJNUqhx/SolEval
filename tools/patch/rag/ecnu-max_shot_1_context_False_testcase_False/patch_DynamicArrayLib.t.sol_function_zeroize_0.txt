@@ -1,0 +1,7 @@
+function zeroize(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+function zeroize(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+result = a;
+        assembly {
+            codecopy(add(result, 0x20), codesize(), shl(5, mload(result)))
+        }
+    }

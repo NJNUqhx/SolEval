@@ -12,22 +12,20 @@ from tqdm import tqdm
 from transformers import BertTokenizer, BertModel
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_name = 'bert-base-uncased'
+model_name = "/root/contract2solidity/download/model/bert-base-uncased/google-bert/bert-base-uncased"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertModel.from_pretrained(model_name).to(device)
 
-
-# if torch.cuda.device_count() > 1:
-# print(f"Using {torch.cuda.device_count()} GPUs!")
-# model = nn.DataParallel(model)
 
 def init_bert_model():
     print("init bert model...")
     document_list = []
     func_list = []
     task_id = 0
-    with open('data/example.json', 'r') as file:
+    
+    with open('/root/contract2solidity/SolEval/data/example.json', 'r') as file:
         data = json.load(file)
+        
     for file_path, file_content in tqdm(data.items(), desc="Loading document_list..."):
         for method in file_content:
             task_id += 1
@@ -37,7 +35,11 @@ def init_bert_model():
                                                                             'human_labeled_comment'].strip() + "\n */"
             document_list.append(human_labeled_comment)
             func_list.append(method)
+            
     original_document_list = copy.deepcopy(document_list)
+
+    print(original_document_list.__len__())
+    
     if os.path.exists('../prebuilt/cls_embeddings.npy'):
         cls_embeddings = np.load('../prebuilt/cls_embeddings.npy')
         cls_embeddings = torch.tensor(cls_embeddings).to(device)
@@ -49,9 +51,7 @@ def init_bert_model():
         cls_embeddings = last_hidden_states[:, 0, :]
         np.save('prebuilt/cls_embeddings.npy', cls_embeddings.cpu().numpy())
     torch.cuda.empty_cache()
-    # from numba import cuda
-    # device = cuda.get_current_device()
-    # device.reset()
+    
     return cls_embeddings, original_document_list, func_list
 
 

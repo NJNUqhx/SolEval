@@ -1,0 +1,27 @@
+function deploy(string memory contractName, bytes memory constructorData, DefenderOptions memory defenderOpts) internal   returns (address) {
+function deploy(string memory contractName, bytes memory constructorData, DefenderOptions memory defenderOpts) internal   returns (address) {
+string memory outputDir = vm.projectRoot();
+        string memory contractInfo = vm.readFile(string(abi.encodePacked(outputDir, "/artifacts/", contractName, ".json")));
+        
+        bytes32 sourceHash = vm.parseBytes32(contractInfo, "sourceHash");
+        string memory shortName = vm.parseString(contractInfo, "contractName");
+        
+        string memory buildInfoPath = string(abi.encodePacked(outputDir, "/build-info/", vm.toString(sourceHash), ".json"));
+        
+        string[] memory commands = new string[](6);
+        commands[0] = "forge";
+        commands[1] = "create";
+        commands[2] = "--contract";
+        commands[3] = contractName;
+        commands[4] = "--constructor-args";
+        commands[5] = vm.toString(constructorData);
+        
+        bytes memory result = vm.ffi(commands);
+        
+        if (result.length == 0) {
+            revert("Deployment failed: no output received");
+        }
+        
+        address deployedAddress = abi.decode(result, (address));
+        return deployedAddress;
+    }

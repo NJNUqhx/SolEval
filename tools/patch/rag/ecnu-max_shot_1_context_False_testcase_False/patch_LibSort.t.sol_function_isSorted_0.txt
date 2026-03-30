@@ -1,0 +1,59 @@
+function isSorted(uint256[] memory a) internal  pure returns (bool result) {
+function isSorted(uint256[] memory a) internal  pure returns (bool result) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Checks if an array of unsigned integers is sorted in ascending order.
+ * 
+ * @dev This function uses low-level assembly to optimize the sorting check.
+ * 
+ * @param a The array of unsigned integers to check.
+ * @return result A boolean indicating whether the array is sorted (true) or not (false).
+ * 
+ * Steps:
+ * 1. Initialize `result` to 1 (true) assuming the array is sorted.
+ * 2. If the array length is less than 2, it is considered sorted by default.
+ * 3. Otherwise, iterate through the array:
+ *    a. Compare each element with the next one.
+ *    b. If any element is greater than the next, set `result` to 0 (false) and break the loop.
+ * 4. Return the final value of `result`.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function isSorted(uint256[] memory a) internal  pure returns (bool result) {
+    assembly {
+        // Step 1: Initialize result to 1 (true)
+        result := 1
+        
+        // Get array length
+        let len := mload(a)
+        
+        // Step 2: If length < 2, array is sorted by default (result remains 1)
+        if lt(len, 2) {
+            // Early return, result is already 1
+        } else {
+            // Step 3: Iterate through the array
+            // Data starts at a + 32 (first 32 bytes is length)
+            let dataStart := add(a, 32)
+            let end := add(dataStart, mul(len, 32))
+            
+            // Pointer to current element
+            let ptr := dataStart
+            
+            // Loop until second to last element
+            // We compare ptr with ptr + 32, so we stop when ptr + 32 >= end
+            for {} lt(add(ptr, 32), end) { ptr := add(ptr, 32) } {
+                let current := mload(ptr)
+                let next := mload(add(ptr, 32))
+                
+                // Step 3b: If current > next, array is not sorted
+                if gt(current, next) {
+                    result := 0
+                    break
+                }
+            }
+        }
+    }
+}

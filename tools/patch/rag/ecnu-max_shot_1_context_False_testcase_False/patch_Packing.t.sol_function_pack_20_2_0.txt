@@ -1,0 +1,20 @@
+function pack_20_2(bytes20 left, bytes2 right) internal  pure returns (bytes22 result) {
+function pack_20_2(bytes20 left, bytes2 right) internal  pure returns (bytes22 result) {
+assembly {
+            // Mask `left` to ensure it is exactly 20 bytes (clear any upper bits if present, though bytes20 should be clean).
+            let l := and(left, 0x0000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffff)
+            
+            // Mask `right` to ensure it is exactly 2 bytes.
+            let r := and(right, 0x000000000000000000000000000000000000000000000000000000000000ffff)
+            
+            // Shift `left` to the higher bits of the 22-byte space.
+            // 22 bytes = 176 bits. 2 bytes = 16 bits. So shift left by 16 bits (or 2 hex digits in byte terms, but 16 in bit terms).
+            // Actually, we want `left` in the most significant 20 bytes and `right` in the least significant 2 bytes.
+            // Total width 22 bytes = 176 bits.
+            // `left` (20 bytes) needs to be shifted left by 16 bits (2 bytes) to make room for `right`.
+            let shiftedLeft := shl(16, l)
+            
+            // Combine using OR.
+            result := or(shiftedLeft, r)
+        }
+    }

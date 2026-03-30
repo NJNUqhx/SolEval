@@ -1,0 +1,25 @@
+function mulDivUp(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+function mulDivUp(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+function mulDivUp(uint256 x, uint256 y, uint256 d) internal pure returns (uint256 z) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Check for division by zero
+        if iszero(d) {
+            mstore(0x00, 0x32688220) // `MulDivFailed()` selector
+            revert(0x1c, 0x04)
+        }
+
+        // Multiply x * y
+        let product := mul(x, y)
+
+        // Check for overflow: if x != 0 and product / x != y, then overflow occurred
+        if and(iszero(iszero(x)), iszero(eq(div(product, x), y))) {
+            mstore(0x00, 0x32688220) // `MulDivFailed()` selector
+            revert(0x1c, 0x04)
+        }
+
+        // Calculate result = (product + d - 1) / d to round up
+        // This avoids branching and handles the remainder correctly
+        z := div(add(add(product, sub(d, 1)), 0), d)
+    }
+}

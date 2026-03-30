@@ -1,0 +1,12 @@
+function extract_4_1(bytes4 self, uint8 offset) internal  pure returns (bytes1 result) {
+function extract_4_1(bytes4 self, uint8 offset) internal  pure returns (bytes1 result) {
+require(offset <= 3, "OutOfRangeAccess");
+        assembly {
+            // Shift the 4-byte value left by (8 * offset) bits.
+            // Since `self` is right-aligned in the 32-bit word, shifting left moves the target byte to the most significant position.
+            let shifted := shl(mul(8, offset), self)
+            // Mask to isolate the most significant byte (0xFF000000... -> 0x00000000...FF)
+            // 0xFF is achieved by shifting 1 left 248 times (256 - 8), or equivalently `shl(248, not(0))` as hinted.
+            result := and(shifted, shl(248, not(0)))
+        }
+    }

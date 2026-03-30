@@ -1,0 +1,36 @@
+function toHexString(uint256 value) internal  pure returns (string memory) {
+function toHexString(uint256 value) internal  pure returns (string memory) {
+    if (value == 0) {
+        return "0";
+    }
+
+    // Calculate the number of hex digits needed.
+    // Math.log256(value) gives the highest power of 256, which corresponds to byte count.
+    // Each byte is 2 hex characters. However, leading zeros in the most significant byte are not printed.
+    // A more direct way for hex length: find the highest non-zero nibble.
+    // Using assembly or bit manipulation to find the position of the highest set bit.
+    // Number of bits = log2(value) + 1. Number of hex digits = ceil(bits / 4).
+    
+    uint256 temp = value;
+    uint256 length = 0;
+    while (temp != 0) {
+        length++;
+        temp >>= 4;
+    }
+
+    // Allocate memory for the string
+    bytes memory buffer = new bytes(length);
+    
+    // Hex character lookup table
+    bytes16 hexChars = "0123456789abcdef";
+
+    // Fill the buffer from right to left
+    unchecked {
+        for (uint256 i = 0; i < length; i++) {
+            buffer[length - 1 - i] = hexChars[value & 0xf];
+            value >>= 4;
+        }
+    }
+
+    return string(buffer);
+}

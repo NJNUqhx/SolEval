@@ -1,0 +1,10 @@
+function extract_20_16(bytes20 self, uint8 offset) internal  pure returns (bytes16 result) {
+function extract_20_16(bytes20 self, uint8 offset) internal  pure returns (bytes16 result) {
+require(offset <= 4, "OutOfRangeAccess");
+    assembly {
+        // Shift left by 8 * offset to align the desired 16-byte segment to the most significant position
+        let shifted := shl(mul(8, offset), self)
+        // Mask to keep only the first 16 bytes (128 bits)
+        result := and(shifted, not(sub(0, shl(128, 1))))
+    }
+}

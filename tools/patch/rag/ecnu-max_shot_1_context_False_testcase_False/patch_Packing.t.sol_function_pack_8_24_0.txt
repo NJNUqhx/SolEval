@@ -1,0 +1,57 @@
+function pack_8_24(bytes8 left, bytes24 right) internal  pure returns (bytes32 result) {
+function pack_8_24(bytes8 left, bytes24 right) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear the lower 192 bits of `left` (keep only the top 64 bits).
+            // Since `left` is bytes8, it occupies the top 64 bits of a 32-byte word when loaded.
+            // We ensure the lower 24 bytes are zeroed out, though casting usually handles alignment.
+            // To be explicit per requirements: mask left to keep top 64 bits.
+            // 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
+            let leftCleaned := and(left, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+
+            // Clear the lower 64 bits of `right`? 
+            // Requirement says: "Clears the lower 64 bits of the `right` bytes24 value."
+            // However, logically, to pack bytes24 into the *lower* order bits of the result (bits 0-191),
+            // and given the next step says "shifting `right` 64 bits to the right", there seems to be a 
+            // contradiction in the textual requirement vs standard packing logic if we interpret "lower 64 bits" 
+            // as the least significant bits of the *input* variable which might contain garbage in upper bits if not clean.
+            // But `bytes24` in Solidity is right-aligned in a 32-byte word (upper 8 bytes are zero).
+            // Let's follow the bitwise operations described strictly:
+            // 1. Clear lower 192 bits of left -> Keep top 64.
+            // 2. Clear lower 64 bits of right -> This would zero out the last 8 bytes of the 32-byte word representation.
+            //    Wait, if `right` is bytes24, it is stored in the lower 24 bytes? No, Solidity types are right-padded with zeros in memory/load context?
+            //    Actually, when passed as arguments in assembly, `bytes8` and `bytes24` are padded to 32 bytes.
+            //    `bytes8`: value is in the most significant 8 bytes (bits 255-192). Lower 192 bits are 0.
+            //    `bytes24`: value is in the most significant 24 bytes? No.
+            //    In Solidity, fixed-size bytes types are left-aligned in their 32-byte slot? 
+            //    Let's re-verify Solidity ABI encoding for fixed bytes:
+            //    `bytes8`: The value is placed in the most significant 8 bytes. (Left aligned).
+            //    `bytes24`: The value is placed in the most significant 24 bytes. (Left aligned).
+            //    So `right` (bytes24) has data in bits 255 down to 64. Bits 63-0 are zero.
+            //    Requirement: "Clears the lower 64 bits of the `right` bytes24 value." -> They are already zero.
+            //    Requirement: "shifting `right` 64 bits to the right". 
+            //    If `right` is left-aligned (data in top 24 bytes), shifting right by 64 bits moves the data to occupy bits 255-64? 
+            //    No, shifting right by 64 moves data from [255:64] to [191:0].
+            //    This aligns perfectly. The top 8 bytes become zero, and the 24 bytes of data move to the lower 24 bytes of the 32-byte word.
+            
+            // Let's re-read the specific requirement text carefully: 
+            // "Clears the lower 64 bits of the `right` bytes24 value." 
+            // If `right` is left-aligned, the lower 64 bits are already 0. This step is effectively a no-op or a sanity check.
+            // Maybe the requirement implies `right` might have garbage? But it's a typed parameter.
+            // Let's assume standard behavior and apply the shift.
+            
+            // Shift `right` 64 bits to the right to move the 24-byte value (currently at top) to the lower 24 bytes position?
+            // If `right` is `0x1122...` (24 bytes) followed by 8 zero bytes.
+            // SHR(64, right) -> 8 zero bytes followed by `0x1122...` (24 bytes).
+            // This places the `right` value in the least significant 24 bytes? 
+            // No, 32 bytes = 256 bits. 
+            // Original `right`: [24 bytes data][8 bytes 0].
+            // SHR 64: [8 bytes 0][24 bytes data].
+            // This results in the data occupying bits 191 down to 0. Correct.
+            
+            let rightShifted := shr(64, right)
+
+            // Combine using OR
+            result := or(leftCleaned, rightShifted)
+        }
+    } 

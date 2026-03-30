@@ -1,0 +1,105 @@
+function replace_28_12(bytes28 self, bytes12 value, uint8 offset) internal  pure returns (bytes28 result) {
+function replace_28_12(bytes28 self, bytes12 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+        // Ensure the offset is within valid bounds (0 to 16, since 28 - 12 = 16)
+        if gt(offset, 16) {
+            mstore(0x00, 0x4e487b71) // Selector for Panic(uint256)
+            mstore(0x20, 0x32) // Panic code 0x32 (array out of bounds)
+            revert(0x1c, 0x24)
+        }
+
+        // Load the full 28-byte value into a temporary variable (using first 32 bytes of memory or register)
+        // Since `self` is bytes28, it occupies the first 28 bytes of a 32-byte slot.
+        let original := mload(add(self, 0x20)) // Assuming `self` is memory pointer, but signature says `bytes28 self` (value type in newer solidity or passed by value in older). 
+        // Correction: In Solidity, `bytes28` as an argument is passed by value (in the stack/calldata depending on context, but here `internal pure` usually means stack).
+        // However, the function signature `function replace_28_12(bytes28 self, ...)` implies `self` is the value itself if it's a value type, 
+        // BUT in assembly, if `self` is declared as `bytes28`, it is treated as a 32-byte word on the stack.
+        // Let's assume `self` is on the stack as a 32-byte word padded with zeros at the end.
+        
+        // Actually, for `bytes28 self` in a function argument, `self` is the value on the stack.
+        // We need to construct the mask and shift amounts based on `offset`.
+        
+        // Calculate shift amount for the 12-byte segment. 
+        // Bytes are numbered 0 (MSB) to 27 (LSB) conceptually in the 28-byte sequence, 
+        // but in a uint256/bytes32 representation:
+        // Byte 0 is at bit 248 (32*8 - 8), Byte 27 is at bit 7.
+        // If offset is 0, we replace bytes 0-11. These are the MOST significant 12 bytes of the 28.
+        // In a 32-bit word (padded with 4 zero bytes at the end), these correspond to bits 248 down to 152.
+        // Shift right needed to align LSB of segment to bit 0: (28 - offset - 12) * 8.
+        // Wait, let's look at standard layout.
+        // Value: [0...27] (28 bytes). Padded to 32 bytes: [0...27][0][0][0][0].
+        // Bit positions: Byte 0 is bits 248-255. Byte 27 is bits 7-15.
+        // We want to replace 12 bytes starting at `offset`.
+        // The segment starts at byte `offset` and ends at `offset + 11`.
+        // The LSB of this segment is at byte `offset + 11`.
+        // The position of the LSB of byte `k` (0-indexed from left) in a 32-byte word is: (31 - k) * 8.
+        // So LSB of segment is at bit: (31 - (offset + 11)) * 8 = (20 - offset) * 8.
+        // Let's verify: if offset=0, LSB is byte 11. Bit pos = (31-11)*8 = 20*8 = 160.
+        // If offset=16, LSB is byte 27. Bit pos = (31-27)*8 = 4*8 = 32.
+        
+        // Strategy:
+        // 1. Create a mask of 12 ones (96 bits).
+        // 2. Shift the mask to the correct position.
+        // 3. Clear the bits in `self` using the inverted mask.
+        // 4. Shift the new `value` (12 bytes) to the correct position.
+        // 5. OR them together.
+
+        // `value` is bytes12. It is passed as a 32-byte word padded with zeros on the right (LSB side)? 
+        // No, `bytes12` is left-aligned in the 32-byte slot? 
+        // Solidity value types: `bytes12` is stored in the highest 12 bytes of the 32-byte word? 
+        // Actually, fixed-size bytes types are right-padded with zeros when loaded into a 32-byte word? 
+        // Let's check: `bytes12 b = 0x1122...` -> in 32 bytes it is `0x1122...0000...`? 
+        // NO. Fixed bytes types are LEFT aligned in the 32-byte word? 
+        // Wait, `bytes32` is the base. `bytes12` takes the first 12 bytes. 
+        // In memory/stack, `bytes12` value `0x0102...0C` is stored as `0x0102...0C0000...` (left aligned, zeros at LSB)?
+        // Actually, Solidity docs say: "For bytes1 to bytes32, the value is left-aligned in the 32-byte word."
+        // So `value` on stack looks like: [12 bytes data][20 bytes zeros].
+        // We need to shift this LEFT? No, we need to align it to the target position.
+        
+        // Let's re-evaluate the bit math.
+        // Target position start bit (MSB of the segment): 
+        // Byte `offset` starts at bit: (31 - offset) * 8.
+        // We have `value` in the top 12 bytes (bits 248 to 320? No, bits 248 down to 152? No).
+        // If `value` is left-aligned in 32 bytes: Data is in bits 248 down to (248 - 96 + 8) = 160?
+        // 12 bytes = 96 bits.
+        // Top 12 bytes occupy bits 248 (MSB of byte 0) down to 152 (LSB of byte 11).
+        // Correct.
+        // So `value` is currently at bits [248:152].
+        // We want to move it to bits corresponding to offset `offset`.
+        // The segment at `offset` starts at byte `offset`.
+        // Bit MSB of byte `offset` is: (31 - offset) * 8.
+        // Current MSB of `value` is: 248 (which is (31-0)*8).
+        // So we need to shift RIGHT by: `offset * 8`.
+        // Example: offset=0. Shift 0. Correct.
+        // Example: offset=1. Shift 8. Byte 1 moves to position of Byte 1. Correct.
+        
+        // Now for the mask.
+        // We need a mask of 12 bytes (96 bits) of 1s.
+        // 0xFFFFFFFFFFFFFFFFFFFFFFFF (24 hex chars).
+        // This mask should be aligned to the TOP (left) first, then shifted right by `offset * 8`.
+        // Or create mask at position and shift.
+        // Mask of 96 ones at the top: `not(0)` shifted?
+        // `type(uint256).max` is 256 ones.
+        // We want 96 ones starting from MSB.
+        // That is `not(0)` >> (256 - 96) = `not(0)` >> 160.
+        // Then shift this mask right by `offset * 8`.
+        
+        let shift := mul(offset, 8)
+        let valShifted := shr(shift, value) // `value` is left-aligned, shift right to move to offset.
+        
+        // Create mask: 96 bits of 1s.
+        // 2^96 - 1 is 96 ones at LSB. We want them at MSB.
+        // So take max uint, shift right by (256-96)=160.
+        let mask := shr(160, not(0)) 
+        // Now shift mask to the offset position.
+        mask := shr(shift, mask)
+        
+        // Invert mask to clear the target area in `self`.
+        let invMask := not(mask)
+        
+        // Clear the area in self.
+        let selfCleared := and(self, invMask)
+        
+        // Combine.
+        result := or(selfCleared, valShifted)
+    }

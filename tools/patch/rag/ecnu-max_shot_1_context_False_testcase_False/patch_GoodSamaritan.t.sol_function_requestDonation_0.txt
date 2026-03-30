@@ -1,0 +1,12 @@
+function requestDonation() external   returns (bool enoughBalance) {
+function requestDonation() external   returns (bool enoughBalance) {
+try wallet.donate10(msg.sender) {
+    enoughBalance = true;
+} catch (bytes memory err) {
+    if (keccak256(err) == keccak256(abi.encodeWithSignature("NotEnoughBalance()"))) {
+        wallet.transferRemainder(msg.sender);
+        enoughBalance = false;
+    } else {
+        revert();
+    }
+}

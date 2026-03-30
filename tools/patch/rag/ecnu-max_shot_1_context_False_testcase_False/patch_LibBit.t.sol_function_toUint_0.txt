@@ -1,0 +1,8 @@
+function toUint(bool b) internal  pure returns (uint256 z) {
+function toUint(bool b) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := iszero(iszero(b))
+        }
+    }
+    

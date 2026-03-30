@@ -1,0 +1,22 @@
+function diffSeconds(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+function diffSeconds(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Calculates the difference in seconds between two timestamps.
+ *
+ * @param fromTimestamp The starting timestamp.
+ * @param toTimestamp The ending timestamp.
+ * @return result The difference in seconds between `toTimestamp` and `fromTimestamp`.
+ *
+ * Steps:
+ * 1. Subtract `fromTimestamp` from `toTimestamp` to get the difference in seconds.
+ * 2. Return the result.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function diffSeconds(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+    result = toTimestamp - fromTimestamp;
+} 

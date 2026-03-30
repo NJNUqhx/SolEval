@@ -1,0 +1,19 @@
+function toInt192(int256 x) internal  pure returns (int192) {
+function toInt192(int256 x) internal  pure returns (int192) {
+        // Step 1: Check if the value of `x` fits within the range of a 192-bit integer.
+        // An int256 fits in int192 if casting it to int192 and back to int256 results in the original value.
+        // Alternatively, we can check bounds explicitly:
+        // int192 max: 2^191 - 1
+        // int192 min: -2^191
+        // Using bitwise logic or explicit comparison. Here we use explicit comparison for clarity and safety.
+        
+        int256 minInt192 = -1 << 191; // -2^191
+        int256 maxInt192 = (1 << 191) - 1; // 2^191 - 1
+
+        if (x < minInt192 || x > maxInt192) {
+            revert("Overflow: int256 value out of int192 range");
+        }
+
+        // Step 2 & 3: If within range, return the casted value; otherwise, the revert above handles failure.
+        return int192(x);
+    }

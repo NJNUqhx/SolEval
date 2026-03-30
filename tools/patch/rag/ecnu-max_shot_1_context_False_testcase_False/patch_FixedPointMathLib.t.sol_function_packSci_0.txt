@@ -1,0 +1,18 @@
+function packSci(uint256 x) internal  pure returns (uint256 packed) {
+function packSci(uint256 x) internal  pure returns (uint256 packed) {
+uint256 mantissa;
+        uint256 exponent;
+        (mantissa, exponent) = sci(x);
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Check if mantissa exceeds 249 bits (i.e., if mantissa >= 2^249)
+            // 2^249 is 0x2000000000000000000000000000000000000000000000000000000000000000
+            if gt(mantissa, 0x1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) {
+                mstore(0x00, 0x1e6a659c) // `MantissaOverflow()` selector
+                revert(0x1c, 0x04)
+            }
+            // Pack: (mantissa << 7) | exponent
+            packed := or(shl(7, mantissa), exponent)
+        }
+    }

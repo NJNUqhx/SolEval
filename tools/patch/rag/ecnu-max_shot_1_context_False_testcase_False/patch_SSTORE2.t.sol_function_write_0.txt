@@ -1,0 +1,42 @@
+function write(bytes memory data) internal   returns (address pointer) {
+function write(bytes memory data) internal   returns (address pointer) {
+    uint256 n = data.length;
+    if (n > 0xFFFF) {
+        revert DeploymentFailed();
+    }
+
+    bytes32 ptr;
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Load the free memory pointer
+        ptr := mload(0x40)
+        
+        // Store the length of the new bytecode (n + 1 for the STOP opcode)
+        mstore(ptr, add(n, 1))
+        
+        // Prefix with STOP (0x00) to make the contract non-callable
+        mstore(add(ptr, 0x20), 0)
+        
+        // Copy the original data after the STOP opcode
+        let dataPtr := add(data, 0x20)
+        let destPtr := add(ptr, 0x21)
+        
+        // Handle copying in 32-byte chunks
+        for { let i := 0 } lt(i, n) { i := add(i, 32) } {
+            mstore(add(destPtr, i), mload(add(dataPtr, i)))
+        }
+
+        // Deploy the contract using create()
+        // create(value, offset, size)
+        pointer := create(0, ptr, add(n, 0x21))
+        
+        // If pointer is 0, deployment failed
+        if iszero(pointer) {
+            // Store selector for DeploymentFailed()
+            mstore(0x00, 0x32428acc)
+            revert(0x1c, 0x04)
+        }
+        
+        // Restore the original length of the input data in memory (good practice though not strictly required for return)
+        mstore(data, n)
+    }

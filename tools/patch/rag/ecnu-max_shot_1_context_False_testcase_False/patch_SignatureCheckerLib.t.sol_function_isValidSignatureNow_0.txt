@@ -1,0 +1,47 @@
+function isValidSignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+function isValidSignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+if (signer == address(0)) return false;
+
+    bytes32 r;
+    bytes32 s;
+    uint8 v;
+
+    if (signature.length == 65) {
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+    } else if (signature.length == 64) {
+        assembly {
+            let vs := mload(add(signature, 0x40))
+            r := mload(add(signature, 0x20))
+            s := shr(128, vs)
+            v := add(27, shr(255, vs))
+        }
+    } else {
+        return false;
+    }
+
+    address recoveredAddress = ecrecover(hash, v, r, s);
+
+    if (recoveredAddress != address(0) && recoveredAddress == signer) {
+        return true;
+    }
+
+    // Fallback to EIP-1271 validation if ecrecover fails or address mismatch
+    // We assume the signer implements ERC1271 if it's a contract and ecrecover didn't match
+    if (signer.code.length > 0) {
+        bytes4 selector = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
+        (bool success, bytes memory result) = signer.staticcall(
+            abi.encodeWithSelector(selector, hash, signature)
+        );
+
+        if (success && result.length == 32) {
+            bytes4 returnValue = abi.decode(result, (bytes4));
+            return returnValue == selector;
+        }
+    }
+
+    return false;
+} 

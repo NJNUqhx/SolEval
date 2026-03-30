@@ -1,0 +1,25 @@
+function mulWadUp(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+function mulWadUp(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+    // Step 1: Multiply x and y using inline assembly for gas efficiency
+    assembly {
+        z := mul(x, y)
+    }
+
+    // Step 2: Check for overflow by verifying if z / y == x (only if y != 0)
+    // If y is 0, z must be 0, so no overflow is possible.
+    if (y > 0 && z / y != x) {
+        revert MulWadFailed();
+    }
+
+    // Step 3: Round up the result to the nearest WAD
+    // Formula: (z + WAD - 1) / WAD
+    // We use inline assembly again to perform the addition and division efficiently
+    assembly {
+        // Add WAD - 1 to z
+        z := add(z, sub(1e18, 1))
+        // Divide by WAD (1e18)
+        z := div(z, 1e18)
+    }
+
+    // Step 4: Return the final result (already in variable z)
+} 

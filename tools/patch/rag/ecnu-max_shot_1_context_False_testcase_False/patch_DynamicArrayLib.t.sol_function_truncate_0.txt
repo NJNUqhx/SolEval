@@ -1,0 +1,14 @@
+function truncate(uint256[] memory a, uint256 n) internal  pure returns (uint256[] memory result) {
+function truncate(uint256[] memory a, uint256 n) internal  pure returns (uint256[] memory result) {
+    assembly {
+        // Assign the original array pointer to result
+        result := a
+        
+        // Get the current length of the array
+        let len := mload(a)
+        
+        // If n is less than the current length, update the length in memory
+        if lt(n, len) {
+            mstore(a, n)
+        }
+    }

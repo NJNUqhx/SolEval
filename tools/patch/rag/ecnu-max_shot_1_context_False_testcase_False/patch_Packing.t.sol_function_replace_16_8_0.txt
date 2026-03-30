@@ -1,0 +1,20 @@
+function replace_16_8(bytes16 self, bytes8 value, uint8 offset) internal  pure returns (bytes16 result) {
+function replace_16_8(bytes16 self, bytes8 value, uint8 offset) internal  pure returns (bytes16 result) {
+    assembly {
+        // Extract the existing 8-byte value at the specified offset from the original 16-byte value.
+        // We shift self right by (128 - (offset * 8)) bits to align the target 8 bytes to the least significant position,
+        // then mask with 0xFFFFFFFFFFFFFFFF to isolate them.
+        let shift := sub(128, mul(offset, 8))
+        let old := and(shr(shift, self), 0xFFFFFFFFFFFFFFFF)
+        
+        // Mask the new value to ensure it is exactly 8 bytes (clear any upper bits if input was larger, though bytes8 enforces this).
+        let new := and(value, 0xFFFFFFFFFFFFFFFF)
+        
+        // Calculate the modified 16-byte value:
+        // 1. Shift the old value back to its original position and XOR it with 'self' to clear those 8 bytes (set them to 0).
+        // 2. Shift the new value to the correct position and XOR it with the result to insert the new bytes.
+        // Formula: result = (self ^ (old << shift)) ^ (new << shift)
+        // Optimized: result = self ^ ((old ^ new) << shift)
+        result := xor(self, shl(shift, xor(old, new)))
+    }
+}

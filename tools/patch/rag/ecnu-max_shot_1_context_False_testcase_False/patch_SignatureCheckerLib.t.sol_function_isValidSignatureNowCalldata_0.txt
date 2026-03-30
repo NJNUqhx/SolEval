@@ -1,0 +1,48 @@
+function isValidSignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+function isValidSignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let len := signature.length
+            let ptr := signature.offset
+
+            // Check for standard ECDSA signature lengths (64 or 65 bytes)
+            if or(eq(len, 64), eq(len, 65)) {
+                let r := mload(add(ptr, 0x20))
+                let s := mload(add(ptr, 0x40))
+                let v := 0
+                if eq(len, 65) {
+                    v := byte(0, mload(add(ptr, 0x60)))
+                }
+
+                // Normalize v to 27 or 28 if it's 0 or 1 (EIP-2)
+                if lt(v, 2) {
+                    v := add(v, 27)
+                }
+
+                // Attempt to recover the signer
+                let recovered := ecrecover(hash, v, r, s)
+                
+                // If recovery succeeded and matches the signer, set isValid to true
+                if and(iszero(iszero(recovered)), eq(recovered, signer)) {
+                    isValid := 1
+                }
+            }
+        }
+
+        // If ECDSA validation failed or length was invalid, try EIP-1271
+        if (!isValid) {
+            try IERC1271(signer).isValidSignature(hash, signature) returns (bytes4 magicValue) {
+                if (magicValue == IERC1271.isValidSignature.selector) {
+                    isValid = true;
+                }
+            } catch {
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }

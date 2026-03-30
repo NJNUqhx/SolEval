@@ -1,0 +1,139 @@
+function deployERC1967BeaconProxy(uint256 value, address beacon) internal   returns (address instance) {
+function deployERC1967BeaconProxy(uint256 value, address beacon) internal   returns (address instance) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Cache the free memory pointer.
+            let fmp := mload(0x40)
+
+            // ERC1967 Beacon Proxy Runtime Code + Initialization Code
+            // The runtime code implements the proxy logic:
+            // 1. Copy calldata to memory.
+            // 2. Staticcall the beacon to get the implementation address.
+            // 3. Delegatecall the implementation.
+            // 4. Handle return data or revert.
+            //
+            // Layout in memory starting at 0x00:
+            // [0x00-0x2B]: Initialization code (pushes runtime code and returns it)
+            // [0x2C-0xA5]: Runtime code
+
+            // Store Initialization Code (38 bytes)
+            // This code pushes the runtime code (which follows immediately) to memory and returns it.
+            // PUSH2 (runtime_size) PUSH1 (0x2C) PUSH1 (0x00) CODECOPY PUSH1 (runtime_size) PUSH1 (0x00) RETURN
+            // Runtime size = 133 bytes (0x85). Init code size = 9 + 9 + 20 = 38 bytes?
+            // Let's construct the init code explicitly to be safe and clear.
+            // We will place the full creation code (init + runtime) into memory.
+            
+            // Creation Code Structure:
+            // [Init Code] [Runtime Code]
+            // Init Code: Pushes runtime code to memory and returns it.
+            // Runtime Code: The actual proxy logic.
+
+            // To optimize, we write the entire creation bytecode directly.
+            // Creation Bytecode (Hex):
+            // 61 00 85  (PUSH2 0x0085) -> Size of runtime code (133 bytes)
+            // 60 00     (PUSH1 0x00)   -> Offset in memory where runtime will be copied (start of init code is 0, but runtime follows init)
+            // Actually, standard pattern:
+            // PUSH2 <runtime_size> PUSH1 <init_size> PUSH1 0x00 CODECOPY PUSH1 <runtime_size> PUSH1 0x00 RETURN
+            // Then <runtime_code> follows.
+            
+            // Let's calculate sizes precisely.
+            // Runtime Code (133 bytes / 0x85):
+            // 5f5f365f5f37365f73<beacon>5af43d5f5f3e6029573d5ffd5b3d5ff3
+            // Breakdown:
+            // 5f5f365f5f37365f73 : 10 bytes (setup for staticcall to beacon)
+            // <beacon>           : 20 bytes
+            // 5af43d5f5f3e6029   : 8 bytes (staticcall, check, prepare delegatecall)
+            // 573d5ffd           : 4 bytes (if success jump, else revert)
+            // 5b3d5ff3           : 4 bytes (jumpdest, return data)
+            // Total runtime = 10 + 20 + 8 + 4 + 4 = 46 bytes? 
+            // Wait, the provided snippet in the previous function had a longer runtime.
+            // Let's re-verify the standard minimal beacon proxy runtime.
+            
+            // Standard Minimal Beacon Proxy Runtime:
+            // 0x00: 5f5f365f5f37365f73 [BEACON] 5af43d5f5f3e6029573d5ffd5b3d5ff3
+            // Opcodes:
+            // 5f (PUSH0)
+            // 5f (PUSH0)
+            // 36 (CALLDATASIZE)
+            // 5f (PUSH0)
+            // 5f (PUSH0)
+            // 37 (CALLDATACOPY)
+            // 36 (CALLDATASIZE)
+            // 5f (PUSH0)
+            // 73 (PUSH20) <beacon>
+            // 5a (GAS)
+            // f4 (STATICCALL)
+            // 3d (RETURNDATASIZE)
+            // 5f (PUSH0)
+            // 5f (PUSH0)
+            // 3e (RETURNDATACOPY)
+            // 60 29 (PUSH2 0x29) -> Jump dest for success (0x29 is decimal 41? No, hex 29 = 41. Let's count bytes)
+            // Let's count bytes of the runtime string: "5f5f365f5f37365f73" (10) + 20 + "5af43d5f5f3e6029" (8) + "573d5ffd" (4) + "5b3d5ff3" (4) = 46 bytes.
+            // 0x2E = 46.
+            // The jump offset logic:
+            // If STATICCALL succeeds (returns 1), 57 jumps to 0x29?
+            // Code layout:
+            // 00-09: 5f5f365f5f37365f73
+            // 0A-1D: Beacon (20 bytes)
+            // 1E-25: 5af43d5f5f3e6029 (8 bytes) -> Ends at 0x25
+            // 26-29: 573d5ffd (4 bytes) -> 0x26, 0x27, 0x28, 0x29.
+            // So if success, jump to 0x29? But 0x29 is inside the revert sequence?
+            // Correct logic usually:
+            // ... 57 <dest> 3d 5f fd 5b 3d 5f f3
+            // If success, jump over "3d 5f fd".
+            // "3d 5f fd" is 3 bytes.
+            // Current pos after 57 is +1 (dest) + 3 (revert) = 4 bytes ahead.
+            // Let's just use the known working bytecode sequence for ERC1967 Beacon Proxy.
+            
+            // Runtime Hex: 5f5f365f5f37365f73<beacon>5af43d5f5f3e6029573d5ffd5b3d5ff3
+            // Length: 10 + 20 + 8 + 4 + 4 = 46 bytes (0x2E).
+            
+            // Init Code needs to return this 46-byte runtime.
+            // Init Code: 61002E60005f39602E5ff3
+            // 61 00 2E : PUSH2 0x002E (46)
+            // 60 00    : PUSH1 0x00
+            // 5f       : PUSH0
+            // 39       : CODECOPY (copies 46 bytes from code starting at 0 to mem 0)
+            // 60 2E    : PUSH1 0x2E (46)
+            // 5f       : PUSH0
+            // f3       : RETURN
+            // Init Code Length: 3 + 2 + 1 + 1 + 2 + 1 + 1 = 11 bytes.
+            
+            // Total Creation Code = Init (11) + Runtime (46) = 57 bytes (0x39).
+            
+            // We will construct this in memory.
+            // Memory Layout:
+            // 0x00 - 0x0A: Init Code (11 bytes)
+            // 0x0B - 0x38: Runtime Code (46 bytes)
+            
+            // Writing Init Code: 0x61002E60005f39602E5ff3
+            mstore(0x00, 0x61002E60005f39602E5ff30000000000000000000000000000000000000000)
+            
+            // Writing Runtime Code prefix: 0x5f5f365f5f37365f73
+            mstore(0x0B, 0x5f5f365f5f37365f7300000000000000000000000000000000000000000000)
+            
+            // Writing Beacon Address at offset 0x0B + 10 = 0x15
+            mstore(0x15, shl(96, beacon))
+            
+            // Writing Runtime Code suffix: 0x5af43d5f5f3e6029573d5ffd5b3d5ff3
+            // This is 20 bytes.
+            // Offset: 0x15 + 20 = 0x29
+            mstore(0x29, 0x5af43d5f5f3e6029573d5ffd5b3d5ff300000000000000000000000000000000)
+
+            // Deploy using CREATE
+            // create(value, offset, size)
+            // offset = 0x00
+            // size = 11 (init) + 46 (runtime) = 57 (0x39)
+            instance := create(value, 0x00, 0x39)
+
+            // Check deployment success
+            if iszero(instance) {
+                mstore(0x00, 0x30116425) // `DeploymentFailed()`.
+                revert(0x1c, 0x04)
+            }
+
+            // Restore free memory pointer and zero slot
+            mstore(0x40, fmp)
+            mstore(0x00, 0)
+        }
+    }

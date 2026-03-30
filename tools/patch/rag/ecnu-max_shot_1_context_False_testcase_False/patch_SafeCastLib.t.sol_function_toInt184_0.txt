@@ -1,0 +1,5 @@
+function toInt184(int256 x) internal  pure returns (int184) {
+function toInt184(int256 x) internal  pure returns (int184) {
+require(x >= type(int184).min && x <= type(int184).max, "Overflow when converting to int184");
+        return int184(x);
+    }

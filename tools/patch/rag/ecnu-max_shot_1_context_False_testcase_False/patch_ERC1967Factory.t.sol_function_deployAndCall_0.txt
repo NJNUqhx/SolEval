@@ -1,0 +1,4 @@
+function deployAndCall(address implementation, address admin, bytes calldata data) public  payable returns (address proxy) {
+function deployAndCall(address implementation, address admin, bytes calldata data) public  payable returns (address proxy) {
+proxy = _deploy(implementation, admin, bytes32(0), data);
+    } 

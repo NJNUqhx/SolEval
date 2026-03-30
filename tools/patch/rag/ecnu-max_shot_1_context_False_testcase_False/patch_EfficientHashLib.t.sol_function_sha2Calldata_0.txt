@@ -1,0 +1,30 @@
+function sha2Calldata(bytes calldata b, uint256 start, uint256 end) internal  view returns (bytes32 result) {
+function sha2Calldata(bytes calldata b, uint256 start, uint256 end) internal  view returns (bytes32 result) {
+assembly {
+            // Step 1: Adjust `end` and `start` to ensure they are within bounds.
+            let length := b.length
+            if gt(start, length) { start := length }
+            if gt(end, length) { end := length }
+            if lt(end, start) { end := start }
+
+            // Step 2: Calculate the length of the segment (`n`).
+            let n := sub(end, start)
+
+            // Step 3: Copy the specified segment of calldata into memory.
+            // We use free memory pointer (0x40) as the destination.
+            let memPtr := mload(0x40)
+            calldatacopy(memPtr, add(b.offset, start), n)
+
+            // Step 4: Compute the SHA-256 hash using staticcall to precompile 0x02.
+            // Arguments: gas (all available), address (0x02), input offset (memPtr), input size (n), output offset (memPtr), output size (32)
+            let success := staticcall(gas(), 0x02, memPtr, n, memPtr, 0x20)
+
+            // Step 6: Revert if returndatasize is zero (or call failed).
+            if iszero(success) {
+                revert(0, 0)
+            }
+
+            // Load the result from memory.
+            result := mload(memPtr)
+        }
+    }

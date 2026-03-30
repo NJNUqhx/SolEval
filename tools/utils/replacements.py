@@ -5,12 +5,16 @@ import itertools
 cwd_dir_cargo = {
     "repository/openzeppelin-contracts": "repository/openzeppelin-contracts",
     "repository/ethernaut": "repository/ethernaut/lib/ethernaut.git/contracts",
+    "repository/ethernaut/lib": "repository/ethernaut/lib/ethernaut.git/contracts",
     "repository/openzeppelin-contracts-upgradeable": "repository/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts-upgradeable/contracts",
     "repository/openzeppelin-foundry-upgrades": "repository/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades",
+    "repository/openzeppelin-foundry-upgrades/lib": "repository/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades",
     "repository/openzeppelin-community-contracts": "repository/openzeppelin-community-contracts/lib/openzeppelin-community-contracts",
+    "repository/openzeppelin-community-contracts/lib": "repository/openzeppelin-community-contracts/lib/openzeppelin-community-contracts",
     "repository/uniswap-solidity-hooks-template": "repository/uniswap-solidity-hooks-template/lib/uniswap-solidity-hooks-template",
     "repository/Account2": "repository/Account2/lib/Account2",
     "repository/solady": "repository/solady/lib/solady",
+    "repository/solady/lib": "repository/solady/lib/solady",
     "repository/forge-std": "repository/forge-std/lib/forge-std",
     "repository/openzeppelin-contracts/contracts": "repository/openzeppelin-contracts/contracts",
 }

@@ -1,0 +1,153 @@
+function hashToG2(bytes memory message) internal  view returns (G2Point memory result) {
+function hashToG2(bytes memory message) internal  view returns (G2Point memory result) {
+function hashToG2(bytes memory message) internal  view returns (G2Point memory result) {
+    assembly ("memory-safe") {
+        // Free memory pointer
+        let m := mload(0x40)
+        
+        // Constants
+        let dst := 0x424c5331323338314732584d443a5348412d3235365f53535755524f535f524f584e4f4445544553545f56315f
+        let dstLen := 0x30
+        let zero := 0x00
+        let one := 0x01
+        let two := 0x02
+        let four := 0x04
+        let fortyEight := 0x30
+        let ninetySix := 0x60
+        let oneTwentyEight := 0x80
+        let twoHundredFiftySix := 0x100
+        let fiveOneTwo := 0x200
+        let blsG2Add := 0x0b
+        let blsMapG2 := 0x0d
+        let sha2Precompile := 0x02
+        let fieldModulus := 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab
+        
+        // 1. Allocate memory and copy message
+        let msgLen := mload(message)
+        let msgStart := add(message, 0x20)
+        
+        // We need space for: 
+        // - Input buffer for SHA256 (msg + 1 byte counter) -> max msgLen + 1
+        // - Output buffer for SHA256 (32 bytes)
+        // - Field elements (48 bytes each)
+        // - G2 Point structures (256 bytes each)
+        // Layout:
+        // [0x00 - 0x1F]: SHA256 Input Length (dynamic)
+        // [0x20 ...]: SHA256 Input Data (msg || counter)
+        // [hashOut]: SHA256 Output (32 bytes)
+        // [fieldIn]: Input for MapToG2 (96 bytes: 48*2)
+        // [g2Res]: Output for MapToG2 / Input for Add (256 bytes)
+        // [finalRes]: Accumulator for G2 addition (256 bytes)
+        
+        let sha2InLenPtr := m
+        let sha2InDataPtr := add(sha2InLenPtr, 0x20)
+        let hashOutPtr := add(sha2InDataPtr, add(msgLen, 1))
+        let fieldInPtr := add(hashOutPtr, 0x20)
+        let g2ResPtr := add(fieldInPtr, ninetySix)
+        let finalResPtr := add(g2ResPtr, twoHundredFiftySix)
+        
+        // Copy message to sha2InDataPtr
+        mcopy(sha2InDataPtr, msgStart, msgLen)
+        
+        // Initialize finalRes to infinity (0) or identity? 
+        // BLS12-381 G2 Identity is (0,0,0) in Jacobian or (0,0,0,0) in affine?
+        // Actually, we start by mapping the first chunk, then add subsequent ones.
+        // Let's use a flag or handle the first iteration separately.
+        let isFirst := one
+
+        // 2. Domain Separation and Hashing Loop
+        // We need 2 field elements (96 bytes) => 2 * 32 = 64 bytes of hash output.
+        // So we need 2 rounds of SHA256 (counter 1, 2).
+        let counter := one
+        let rounds := two
+        
+        let loopStart := label()
+        let loopEnd := label()
+        
+        // Store counter at the end of the message in the input buffer
+        mstore8(add(sha2InDataPtr, msgLen), counter)
+        
+        // Prepare SHA256 input length: msgLen + 1
+        mstore(sha2InLenPtr, add(msgLen, one))
+        
+        // Call SHA256
+        if iszero(staticcall(gas(), sha2Precompile, sha2InLenPtr, add(0x20, add(msgLen, one)), hashOutPtr, 0x20)) {
+            mstore(0x00, 0x8c8e3f8d) // HashFailed() placeholder if needed, but spec says revert with appropriate error
+            // Using generic revert for precompile failure
+            revert(0x00, 0x00)
+        }
+        
+        // We only use the first 32 bytes of the 64 needed for two field elements from this round?
+        // No, standard hash_to_field expands by calling hash multiple times.
+        // Round 1 gives bytes 0-31. Round 2 gives bytes 32-63.
+        // We need to map these to field elements.
+        
+        // Copy 32 bytes from hashOut to fieldInPtr + offset
+        // Field element is 48 bytes. The hash output is 32 bytes.
+        // We need to interpret the 32-byte hash as a big integer and mod the field modulus.
+        // The layout for MapToG2 (precompile 0x0d) expects 96 bytes: x (48) || y (48).
+        // But wait, hash_to_field usually produces uniform bytes which are then reduced mod r.
+        // The BLS12-381 field modulus is ~48 bytes (381 bits).
+        // The SHA256 output is 32 bytes. We can just pad it or treat it as the lower 32 bytes?
+        // Standard IETF draft: "hash_to_field" uses expand_message_xmd to get L bytes, then interprets chunks as big-endian integers mod r.
+        // Since 32 bytes < 48 bytes, we can just copy the 32 bytes to the *end* of the 48-byte buffer (right-aligned) or beginning?
+        // Usually big-endian: copy to the least significant bytes (right side) if we consider the buffer as a number?
+        // Actually, mstore stores 32 bytes. We need 48 bytes.
+        // Let's zero out the 48 byte slot first, then copy the 32 bytes of hash to the lower part (right-aligned in memory view? No, big endian is left aligned in math, but memory grows up).
+        // In Solidity/Assembly, big integers are often stored with most significant byte at lowest address?
+        // Precompile 0x0d (MapToG2) expects two 48-byte field elements concatenated.
+        // The field elements are modulo r. r is 381 bits.
+        // If we have 32 bytes (256 bits), it's already < r. So we just need to pad it to 48 bytes.
+        // Padding with zeros at the front (most significant bytes) is correct for big-endian representation if the value is small.
+        // So: [00...00 (16 bytes)] [Hash (32 bytes)]
+        
+        let currentFieldOffset := mul(sub(counter, one), fortyEight)
+        let targetFieldPtr := add(fieldInPtr, currentFieldOffset)
+        
+        // Zero out 48 bytes
+        mstore(targetFieldPtr, zero)
+        mstore(add(targetFieldPtr, 0x20), zero)
+        mstore(add(targetFieldPtr, 0x40), zero)
+        
+        // Copy 32 bytes hash to the last 32 bytes of the 48 byte slot
+        // Offset 16 within the 48 byte slot
+        mcopy(add(targetFieldPtr, 0x10), hashOutPtr, 0x20)
+        
+        counter := add(counter, one)
+        
+        // Check if we need another round
+        if iszero(eq(counter, add(rounds, one))) {
+            // Repeat the hashing logic for the second byte
+            mstore8(add(sha2InDataPtr, msgLen), counter)
+            // Input length is same
+            if iszero(staticcall(gas(), sha2Precompile, sha2InLenPtr, add(0x20, add(msgLen, one)), hashOutPtr, 0x20)) {
+                revert(0x00, 0x00)
+            }
+            
+            currentFieldOffset := mul(sub(counter, one), fortyEight)
+            targetFieldPtr := add(fieldInPtr, currentFieldOffset)
+            
+            mstore(targetFieldPtr, zero)
+            mstore(add(targetFieldPtr, 0x20), zero)
+            mstore(add(targetFieldPtr, 0x40), zero)
+            mcopy(add(targetFieldPtr, 0x10), hashOutPtr, 0x20)
+        }
+        
+        // 3. Map to G2
+        // Input: fieldInPtr (96 bytes)
+        // Output: g2ResPtr (256 bytes)
+        if iszero(staticcall(gas(), blsMapG2, fieldInPtr, ninetySix, g2ResPtr, twoHundredFiftySix)) {
+            mstore(0x00, 0xe3dc5425) // G2MSMFailed or similar, let's assume MapFailed
+            revert(0x1c, 0x04) // Revert with selector length 4
+        }
+        
+        // Copy result to finalRes
+        mcopy(finalResPtr, g2ResPtr, twoHundredFiftySix)
+        
+        // Set result pointer
+        result := finalResPtr
+        
+        // Update free memory pointer
+        mstore(0x40, add(finalResPtr, twoHundredFiftySix))
+    }
+}

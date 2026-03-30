@@ -1,0 +1,4 @@
+function pack_12_8(bytes12 left, bytes8 right) internal  pure returns (bytes20 result) {
+function pack_12_8(bytes12 left, bytes8 right) internal  pure returns (bytes20 result) {
+result = bytes20((uint256(uint128(bytes16(left))) << 64) | uint256(uint64(bytes8(right))));
+    }

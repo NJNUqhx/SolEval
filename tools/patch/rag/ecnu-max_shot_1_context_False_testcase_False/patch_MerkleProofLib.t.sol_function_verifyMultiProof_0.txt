@@ -1,0 +1,87 @@
+function verifyMultiProof(bytes32[] memory proof, bytes32 root, bytes32[] memory leaves, bool[] memory flags) internal  pure returns (bool isValid) {
+function verifyMultiProof(bytes32[] memory proof, bytes32 root, bytes32[] memory leaves, bool[] memory flags) internal  pure returns (bool isValid) {
+assembly {
+    function verifyMultiProofAsm(proofPtr, rootVal, leavesPtr, flagsPtr) -> result {
+        let proofLen := mload(proofPtr)
+        let leavesLen := mload(leavesPtr)
+        let flagsLen := mload(flagsPtr)
+
+        let totalHashes := add(proofLen, leavesLen)
+        if iszero(eq(flagsLen, sub(totalHashes, 1))) {
+            result := 0
+            leave
+        }
+
+        if iszero(flagsLen) {
+            if eq(totalHashes, 1) {
+                let leaf := mload(add(leavesPtr, 0x20))
+                result := eq(leaf, rootVal)
+            } else {
+                result := 0
+            }
+            leave
+        }
+
+        let queuePtr := mload(0x40)
+        let leavesDataPtr := add(leavesPtr, 0x20)
+        let leavesEndPtr := add(leavesDataPtr, mul(leavesLen, 0x20))
+        
+        let hashPtr := queuePtr
+        let hashEndPtr := add(queuePtr, mul(leavesLen, 0x20))
+        
+        for { let i := leavesDataPtr } lt(i, leavesEndPtr) { i := add(i, 0x20) } {
+            mstore(hashPtr, mload(i))
+            hashPtr := add(hashPtr, 0x20)
+        }
+
+        let proofDataPtr := add(proofPtr, 0x20)
+        let proofEndPtr := add(proofDataPtr, mul(proofLen, 0x20))
+        let flagsDataPtr := add(flagsPtr, 0x20)
+        let flagsEndPtr := add(flagsDataPtr, mul(flagsLen, 0x20))
+
+        let head := queuePtr
+        let tail := hashPtr
+        
+        for { let fPtr := flagsDataPtr } lt(fPtr, flagsEndPtr) { fPtr := add(fPtr, 0x20) } {
+            let flag := mload(fPtr)
+            
+            let a := mload(head)
+            head := add(head, 0x20)
+            
+            let b
+            if flag {
+                b := mload(proofDataPtr)
+                proofDataPtr := add(proofDataPtr, 0x20)
+            } else {
+                b := mload(head)
+                head := add(head, 0x20)
+            }
+            
+            mstore(0x00, lt(a, b))
+            let isALess := mload(0x00)
+            
+            mstore(0x00, a)
+            mstore(0x20, b)
+            if isALess {
+                mstore(0x00, b)
+                mstore(0x20, a)
+            }
+            
+            let combinedHash := keccak256(0x00, 0x40)
+            mstore(tail, combinedHash)
+            tail := add(tail, 0x20)
+        }
+
+        if eq(proofDataPtr, proofEndPtr) {
+            if eq(tail, add(head, 0x20)) {
+                result := eq(mload(head), rootVal)
+            } else {
+                result := 0
+            }
+        } else {
+            result := 0
+        }
+    }
+
+    isValid := verifyMultiProofAsm(proof, root, leaves, flags)
+}

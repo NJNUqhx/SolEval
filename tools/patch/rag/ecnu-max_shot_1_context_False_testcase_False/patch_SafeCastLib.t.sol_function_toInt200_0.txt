@@ -1,0 +1,15 @@
+function toInt200(int256 x) internal  pure returns (int200) {
+function toInt200(int256 x) internal  pure returns (int200) {
+    // Step 1: Check if the value of `x` can fit within the range of a 200-bit signed integer.
+    // The range for int200 is [-2^199, 2^199 - 1].
+    // We define the bounds using bit shifting on int256 literals.
+    int256 minInt200 = -1 * (1 << 199);
+    int256 maxInt200 = (1 << 199) - 1;
+
+    if (x < minInt200 || x > maxInt200) {
+        // Step 3: If it does not fit, revert with an overflow error.
+        revert SafeCastOverflow("int256 to int200");
+    }
+
+    // Step 2: If it fits, return the value as `int200`.
+    return int200(x);

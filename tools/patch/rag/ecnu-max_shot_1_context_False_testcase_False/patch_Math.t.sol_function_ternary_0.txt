@@ -1,0 +1,4 @@
+function ternary(bool condition, uint256 a, uint256 b) internal  pure returns (uint256) {
+function ternary(bool condition, uint256 a, uint256 b) internal  pure returns (uint256) {
+return b ^ ((a ^ b) * (condition ? 1 : 0));
+    } 

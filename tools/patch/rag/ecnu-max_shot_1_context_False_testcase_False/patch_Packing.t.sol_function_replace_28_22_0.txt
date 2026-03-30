@@ -1,0 +1,129 @@
+function replace_28_22(bytes28 self, bytes22 value, uint8 offset) internal  pure returns (bytes28 result) {
+function replace_28_22(bytes28 self, bytes22 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+            // Load the full 28-byte value into a temporary variable
+            let original := mload(add(self, 32))
+            
+            // Load the 22-byte replacement value
+            // bytes22 is stored left-aligned in its 32-byte slot.
+            let newVal := mload(add(value, 32))
+            
+            // Calculate the shift amount for the 22-byte segment within the 28-byte space.
+            // The 28-byte data occupies bits 224 down to 8 (28 * 8 = 224 bits).
+            // The segment starts at `offset` bytes from the beginning of the 28-byte data.
+            // Total shift needed = (28 - offset - 22) * 8
+            let shift := shl(3, sub(sub(28, offset), 22))
+            
+            // Align the new value to the correct position within the 28-byte range
+            // We shift right to move the left-aligned 22-byte value to the target offset
+            let alignedNew := shr(shift, newVal)
+            
+            // Create a mask for 22 bytes (22 * 8 = 176 bits)
+            // mask = (1 << 176) - 1
+            let mask := sub(shl(176, 1), 1)
+            
+            // Isolate the 22-byte segment from the aligned new value
+            let segment := and(alignedNew, mask)
+            
+            // Shift the segment back to its final position relative to the 256-bit word
+            // The 28-byte block starts at bit 8 (256 - 224 = 32 bits padding? No. 
+            // bytes28 is 224 bits. In a 32 byte slot, it's left aligned. 
+            // So it occupies bits 248 down to 24 (if 28 bytes? 28*8=224. 256-224=32).
+            // Actually, standard Solidity bytesN are left-aligned. 
+            // bytes28 takes up 28 bytes. 28 * 8 = 224 bits.
+            // It sits in the top 224 bits of the 256-bit word.
+            // The shift logic above `sub(28, offset, 22)` calculates the internal offset.
+            // We need to align this to the top of the 256-bit word.
+            // The start of the 28-byte data is at bit (256 - 224) = 32? No.
+            // Left aligned means the first byte is at the most significant byte.
+            // So the 28-byte data occupies bits [255:32].
+            // The `shift` calculated earlier was relative to the 28-byte block start.
+            // We need to shift the segment left by (256 - 224) = 32 bits to align with the MSB?
+            // Let's re-evaluate the alignment.
+            
+            // Re-calculation for clarity:
+            // bytes28 `self`: Data is in bits [255 : 32] (224 bits).
+            // `offset` is 0-indexed byte position within these 28 bytes.
+            // Target bit start = 255 - (offset * 8).
+            // Segment length = 22 bytes = 176 bits.
+            // We want to place `value` (which is left aligned in its own slot, bits [255:80])
+            // into `original` starting at `Target bit start`.
+            
+            // Step 1: Normalize `value` to be right-aligned (LSB) to make shifting easier? 
+            // Or just work with left alignment.
+            // `newVal` is left aligned (bits 255..80).
+            // We want it to start at bit (255 - offset*8).
+            // Current start of significant data in `newVal` is 255.
+            // Desired start is 255 - offset*8.
+            // So we need to shift RIGHT by (offset * 8).
+            
+            let shiftRight := shl(3, offset)
+            let shiftedVal := shr(shiftRight, newVal)
+            
+            // Now `shiftedVal` has the 22 bytes starting at the correct bit position relative to MSB?
+            // Wait, `newVal` has 22 bytes. If we shift right by `offset*8`, the data moves towards LSB.
+            // But `newVal` has trailing zeros (8 bytes of zeros at the end).
+            // If we shift right, we might bring those zeros into the middle if we aren't careful?
+            // No, `newVal` is `VVVV...VV00...00`. Shifting right moves `V`s to the right.
+            // The `00`s at the end move further right (off the edge or deeper into LSB).
+            // The `V`s that were at MSB move to `255 - offset*8`. This is exactly what we want.
+            
+            // However, we must ensure we don't affect bits outside the 22-byte window.
+            // The `shiftedVal` now has the 22 bytes at the correct position, but potentially garbage 
+            // or old data in the 22-byte window if we just OR it? No, we need to clear the window first.
+            
+            // Create a mask that has 1s ONLY in the 22-byte window we are replacing.
+            // Window start bit: 255 - (offset * 8)
+            // Window end bit: 255 - (offset * 8) - 176 + 1 = 255 - (offset+22)*8 + 1 ?
+            // Easier: Mask = (1 << 176) - 1, then shift left to position.
+            // Position from LSB: The window ends at bit (256 - 1) - (offset * 8) ???
+            // Let's use the property: Left aligned 28 bytes starts at bit 32 (from LSB perspective? No, 256-224=32).
+            // Bits [255:32] are used.
+            // Offset 0 -> Bits [255:80] (22 bytes).
+            // Offset X -> Starts at 255 - 8*X. Ends at 255 - 8*X - 175.
+            // Mask of 176 ones: `sub(shl(176, 1), 1)` -> Bits [175:0].
+            // We need to shift this mask left so the LSB of the mask aligns with the end of our window.
+            // End of window (LSB side) = 255 - 8*offset - 175 = 80 - 8*offset.
+            // Wait, 255 - 175 = 80. Correct.
+            // So shift amount = 80 - 8*offset.
+            // Let's verify: If offset=0, shift=80. Mask covers [255:80]. Correct.
+            // If offset=6 (max, 28-22=6), shift=80-48=32. Mask covers [175+32 : 32] = [207:32].
+            // 28 bytes ends at bit 32. 22 bytes ending at 32 starts at 32+176-1 = 207. Correct.
+            
+            let maskShift := sub(80, shl(3, offset))
+            let windowMask := shl(maskShift, sub(shl(176, 1), 1))
+            
+            // Clear the 22-byte window in the original value
+            let clearedOriginal := and(original, not(windowMask))
+            
+            // Ensure the new value is strictly within the window (mask it again just in case of overflow from left shifts if any, though shr is safe)
+            // Actually `shiftedVal` might have bits set outside the window if `newVal` had bits outside 22 bytes? 
+            // `newVal` is bytes22, so upper 224 bits are data, lower 32 are 0.
+            // When we `shr`, the data moves right. The lower 32 zeros move further right.
+            // The bits entering from the left are 0.
+            // So `shiftedVal` has the 22 bytes correctly placed, and 0s elsewhere?
+            // Wait, `newVal` is left aligned. Bits 255..80 are data. Bits 79..0 are 0.
+            // If we shift right by `offset*8`, the data moves to [255-offset*8 : 80-offset*8].
+            // The bits above 255-offset*8 are 0.
+            // The bits below 80-offset*8 are 0 (originally 0s shifted right).
+            // So `shiftedVal` is clean? 
+            // Except if `offset` is large, the data moves into the lower region.
+            // The window is exactly 22 bytes. `shiftedVal` contains exactly 22 bytes of data in that window.
+            // But does it contain garbage outside?
+            // Original `newVal` has 0s in the bottom 32 bits.
+            // If we shift right by up to 48 bits (offset=6), the 0s shift to negative? No, they disappear.
+            // Zeros shift in from the top.
+            // So `shiftedVal` has 0s everywhere except the 22-byte window?
+            // Yes, because the source `newVal` was 0 outside the 22-byte window (on the right side),
+            // and shifting right introduces 0s on the left.
+            // So `shiftedVal` is perfectly masked by the nature of the shift and the input type.
+            // Just to be absolutely safe and explicit per requirements ("Mask the new 22-byte value"):
+            let maskedNew := and(shiftedVal, windowMask)
+            
+            // Combine: Cleared Original OR Masked New
+            result := or(clearedOriginal, maskedNew)
+            
+            // Store result
+            mstore(add(result, 32), result)
+        }
+    }
