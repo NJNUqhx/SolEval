@@ -14,3 +14,7 @@
 /logs_slither/
 /logs_gas/
 /clean_data.py
+/tools/repository/
+/tools/output.log
+/tools/results/
+repository
