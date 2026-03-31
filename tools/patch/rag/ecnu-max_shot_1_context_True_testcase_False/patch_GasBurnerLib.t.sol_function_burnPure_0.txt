@@ -1,0 +1,13 @@
+function burnPure(uint256 x) internal  pure {
+/// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x10, or(1, x))
+            let n := mul(gt(x, 120), div(x, 91))
+            for { let i := 0 } lt(i, n) { i := add(i, 1) } {
+                mstore(0x10, keccak256(0x10, 0x20))
+            }
+            if iszero(mload(0x10)) {
+                invalid()
+            }
+        }
+    }

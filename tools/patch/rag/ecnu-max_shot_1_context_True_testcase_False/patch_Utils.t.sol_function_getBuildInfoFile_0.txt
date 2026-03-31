@@ -1,0 +1,18 @@
+function getBuildInfoFile(string memory sourceCodeHash, string memory contractName, string memory outDir) internal   returns (string memory) {
+string[] memory inputs = new string[](5);
+        inputs[0] = "bash";
+        inputs[1] = "-c";
+        inputs[2] = string(abi.encodePacked("find ", outDir, " -name '*", sourceCodeHash, "*.json' | head -n 1"));
+        inputs[3] = "";
+        inputs[4] = "";
+        Vm.FfiResult memory result = Vm(CHEATCODE_ADDRESS).ffi(inputs);
+        if (result.exitCode != 0) {
+            revert("Failed to execute command to find build-info file");
+        }
+        string memory filePath = string(result.stdout);
+        bytes memory filePathBytes = bytes(filePath);
+        if (filePathBytes.length < 5 || filePathBytes[filePathBytes.length - 5] != '.' || filePathBytes[filePathBytes.length - 4] != 'j' || filePathBytes[filePathBytes.length - 3] != 's' || filePathBytes[filePathBytes.length - 2] != 'o' || filePathBytes[filePathBytes.length - 1] != 'n') {
+            revert("Output is not a valid build-info file (.json)");
+        }
+        return filePath;
+    }

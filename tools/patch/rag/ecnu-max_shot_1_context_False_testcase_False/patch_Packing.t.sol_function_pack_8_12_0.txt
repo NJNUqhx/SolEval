@@ -1,49 +1,7 @@
 function pack_8_12(bytes8 left, bytes12 right) internal  pure returns (bytes20 result) {
-function pack_8_12(bytes8 left, bytes12 right) internal  pure returns (bytes20 result) {
-/// @solidity memory-safe-assembly
-        assembly {
-            // Step 1: Clear the lower 192 bits of `left` (keep only the top 64 bits).
-            // Since `left` is bytes8 (64 bits), it is already in the top 64 bits of a bytes32 slot.
-            // We ensure no garbage data exists in the lower bits by masking, though input is typed.
-            // Mask: 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
-            let clean_left := and(left, shl(192, not(0)))
-
-            // Step 2 & 3: Clear lower 160 bits of `right` is not quite right based on description.
-            // The requirement says: "Clear the lower 160 bits of the right value".
-            // Wait, `right` is bytes12 (96 bits). If we pack into bytes20 (160 bits):
-            // Layout: [8 bytes left][12 bytes right]
-            // Total 20 bytes = 160 bits.
-            // In a 32-byte slot (256 bits), bytes20 occupies the TOP 20 bytes (bits 255 down to 96).
-            // `left` (bytes8) should be bits 255-224.
-            // `right` (bytes12) should be bits 223-96.
-            
-            // Let's re-read the specific steps in the requirement carefully.
-            // "Clear the lower 192 bits of the `left` value" -> Keeps top 64 bits. Correct.
-            // "Clear the lower 160 bits of the `right` value" -> This phrasing is tricky. 
-            // If `right` is 12 bytes, and we want it in the middle.
-            // Actually, usually packing implies: result = (left << 96) | (right << 0) if result was 20 bytes raw.
-            // But Solidity `bytes20` is left-aligned in a 32-byte word when using assembly directly on variables?
-            // No, Solidity types `bytesN` are left-aligned in their 32-byte storage slots.
-            // `left` (bytes8): occupies bits 255-224.
-            // `right` (bytes12): occupies bits 255-160.
-            
-            // To pack them into a `bytes20` (which occupies bits 255-96):
-            // We need `left` at 255-224 (already there).
-            // We need `right` at 223-96.
-            // Currently `right` is at 255-160. We need to shift it RIGHT by 64 bits (8 bytes).
-            
-            // Let's follow the requirement's Step 3 explicitly: 
-            // "Combine ... by shifting `right` 64 bits to the right and performing a bitwise OR with `left`."
-            
-            let clean_right := shr(64, right)
-            
-            // Combine
-            result := or(clean_left, clean_right)
-            
-            // Note: The requirement text about "Clear lower 160 bits of right" might be a slightly confusing way 
-            // of saying "ensure right is positioned correctly relative to the 160-bit boundary of the result",
-            // but the explicit instruction in Step 3 (shift right 64) is the operative mechanical step for alignment.
-            // Since `right` comes in left-aligned (top 12 bytes), shifting right by 64 bits moves it to bytes 8-20 (0-indexed from left),
-            // which perfectly follows the 8 bytes of `left`.
+assembly {
+            left := and(left, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+            right := and(right, 0x000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            result := or(left, shr(64, right))
         }
-    }
+}

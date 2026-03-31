@@ -1,8 +1,0 @@
-function toInt248(int256 x) internal  pure returns (int248) {
-function toInt248(int256 x) internal  pure returns (int248) {
-int248 result = int248(x);
-        if (int256(result) != x) {
-            revert("Overflow: int256 to int248");
-        }
-        return result;
-    }

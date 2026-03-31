@@ -1,0 +1,21 @@
+function set(TBytes storage ptr, bytes memory value) internal {
+/// @solidity memory-safe-assembly
+        assembly {
+            let len := mload(value)
+            let data := add(value, 0x20)
+            let slot := ptr.slot
+            if iszero(lt(len, 0x1d)) {
+                mstore(0x00, len)
+                mstore(0x20, slot)
+                slot := keccak256(0x00, 0x40)
+            }
+            sstore(slot, or(shl(8, len), shr(8, mload(data))))
+            if gt(len, 0x1f) {
+                let end := add(data, len)
+                let i := 0x20
+                for {} lt(i, len) { i := add(i, 0x20) } {
+                    sstore(add(slot, shr(5, i)), mload(add(data, i)))
+                }
+            }
+        }
+    }

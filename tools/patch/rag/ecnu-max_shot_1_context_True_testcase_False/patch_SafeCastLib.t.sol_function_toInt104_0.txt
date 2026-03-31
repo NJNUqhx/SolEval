@@ -1,0 +1,4 @@
+function toInt104(uint256 x) internal  pure returns (int104) {
+if (x >= 2 ** 103) revert();
+        return int104(int256(x));
+    }

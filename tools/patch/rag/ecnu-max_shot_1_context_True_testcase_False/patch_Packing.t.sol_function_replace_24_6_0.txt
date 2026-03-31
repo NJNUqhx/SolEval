@@ -1,0 +1,36 @@
+function replace_24_6(bytes24 self, bytes6 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+            // Load the original 24-byte value into a temporary variable
+            let original := self
+            // Load the new 6-byte value
+            let newVal := value
+            // Mask the new value to ensure it is exactly 6 bytes (48 bits)
+            newVal := and(newVal, 0xFFFFFFFFFFFF)
+            
+            // Calculate the shift amount: (24 - offset - 6) * 8 bits
+            // Since we are working with bytes24 stored in the lower 24 bytes of a uint256 slot effectively,
+            // but standard solidity bytesN are left-aligned in their storage slot representation when loaded?
+            // Actually, in inline assembly, `bytes24` loaded into a variable is left-aligned (MSB at bit 255).
+            // Offset 0 means the most significant 6 bytes.
+            // Shift = (24 - 6 - offset) * 8 = (18 - offset) * 8
+            
+            let shift := mul(sub(18, offset), 8)
+            
+            // Create a mask for 6 bytes: 0xFFFFFFFFFFFF
+            let mask6 := 0xFFFFFFFFFFFF
+            // Shift the mask to the correct position
+            let shiftedMask := shl(shift, mask6)
+            
+            // Extract the old 6-byte value at the specified offset
+            let oldVal := and(shr(shift, original), mask6)
+            
+            // Remove the old value from the original
+            let cleared := and(original, not(shiftedMask))
+            
+            // Shift the new value to the correct position
+            let shiftedNew := shl(shift, newVal)
+            
+            // Combine: cleared original OR shifted new value
+            result := or(cleared, shiftedNew)
+        }
+}

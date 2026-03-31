@@ -1,7 +1,0 @@
-function tBytes(bytes32 tSlot) internal  pure returns (TBytes storage ptr) {
-function tBytes(bytes32 tSlot) internal  pure returns (TBytes storage ptr) {
-/// @solidity memory-safe-assembly
-        assembly {
-            ptr.slot := tSlot
-        }
-    }

@@ -1,0 +1,7 @@
+function replace_32_2(bytes32 self, bytes2 value, uint8 offset) internal  pure returns (bytes32 result) {
+assembly {
+        let old := shr(sub(240, mul(offset, 8)), self)
+        let new := and(shl(240, value), 0xffff00000000000000000000000000000000000000000000000000000000)
+        result := xor(xor(self, shl(sub(240, mul(offset, 8)), old)), new)
+    }
+}

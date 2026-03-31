@@ -1,0 +1,6 @@
+function max(int256 x, int256 y) internal  pure returns (int256 z) {
+assembly {
+    let mask := sgt(x, y)
+    z := xor(x, mul(xor(x, y), mask))
+}
+}

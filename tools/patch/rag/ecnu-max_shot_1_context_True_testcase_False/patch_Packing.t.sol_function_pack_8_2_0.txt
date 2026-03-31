@@ -1,0 +1,9 @@
+function pack_8_2(bytes8 left, bytes2 right) internal  pure returns (bytes10 result) {
+assembly {
+            let maskLeft := shl(192, not(0))
+            let maskRight := shl(240, not(0))
+            let cleanLeft := and(left, maskLeft)
+            let cleanRight := and(right, maskRight)
+            result := or(cleanLeft, shr(160, cleanRight))
+        }
+    }

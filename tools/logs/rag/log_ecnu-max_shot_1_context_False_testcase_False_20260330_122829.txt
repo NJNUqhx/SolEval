@@ -1,0 +1,58 @@
+[2026-03-30 12:28:29] [INFO] Current context: context_False_testcase_False
+[2026-03-30 12:28:29] [INFO] filter Over!
+[2026-03-30 12:28:29] [INFO] file_path:
+repository/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-03-30 12:28:29] [INFO] now testing function:
+function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
+
+[2026-03-30 12:28:30] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+       --> contracts/utils/Packing.sol:1336056:32:
+        |
+1336056 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+        |                                ^^^^
+
+
+[2026-03-30 12:28:30] [INFO] -----------------------------
+[2026-03-30 12:28:30] [INFO] pass@1: 0.0
+[2026-03-30 12:28:30] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:28:30] [INFO] compile@1: 0.0
+[2026-03-30 12:28:30] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:28:30] [INFO] now testing function:
+function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
+
+[2026-03-30 12:28:31] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+       --> contracts/utils/Packing.sol:1336054:32:
+        |
+1336054 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+        |                                ^^^^
+
+
+[2026-03-30 12:28:31] [INFO] -----------------------------
+[2026-03-30 12:28:31] [INFO] pass@1: 0.0
+[2026-03-30 12:28:31] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:28:31] [INFO] compile@1: 0.0
+[2026-03-30 12:28:31] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:28:31] [INFO] now testing function:
+function pack_2_4(bytes2 left, bytes4 right) internal  pure returns (bytes6 result) {
+
+[2026-03-30 12:28:32] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+       --> contracts/utils/Packing.sol:1336052:32:
+        |
+1336052 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+        |                                ^^^^
+
+
+[2026-03-30 12:28:32] [INFO] -----------------------------
+[2026-03-30 12:28:32] [INFO] pass@1: 0.0
+[2026-03-30 12:28:32] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:28:32] [INFO] compile@1: 0.0
+[2026-03-30 12:28:32] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:28:32] [INFO] now testing function:
+function pack_2_6(bytes2 left, bytes6 right) internal  pure returns (bytes8 result) {
+

@@ -1,0 +1,5 @@
+function adminOf(address proxy) public  view returns (address admin) {
+assembly {
+            admin := sstore(shl(96, proxy))
+        }
+    }

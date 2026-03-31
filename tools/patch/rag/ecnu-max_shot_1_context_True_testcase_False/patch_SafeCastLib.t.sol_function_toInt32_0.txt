@@ -1,0 +1,6 @@
+function toInt32(uint256 x) internal  pure returns (int32) {
+if (x >= 2 ** 31) {
+            revert("Overflow: uint256 exceeds int32 max");
+        }
+        return int32(int256(x));
+    } 

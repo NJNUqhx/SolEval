@@ -1,68 +1,12 @@
 function replace_22_16(bytes22 self, bytes16 value, uint8 offset) internal  pure returns (bytes22 result) {
-function replace_22_16(bytes22 self, bytes16 value, uint8 offset) internal  pure returns (bytes22 result) {
-        assembly {
-            // Load the full 22-byte value from memory (it occupies the first 32 bytes slot)
-            let original := mload(add(self, 0x20)) // bytes22 is stored at offset 0x20 in memory struct
-            
-            // Calculate the bit shift amount: (22 - 16 - offset) * 8 = (6 - offset) * 8
-            // The 16-byte segment starts at 'offset' and ends at 'offset + 16'.
-            // In a 32-byte word representing 22 bytes (left-aligned or right-aligned?):
-            // Solidity types like bytes22 are right-aligned in a 32-byte word when loaded via mload of the variable slot?
-            // Actually, for fixed-size bytesN, the value is left-aligned in the 32-byte word when stored in storage/calldata,
-            // but when loaded into a variable in memory via mload(add(ptr, 0x20)), it is typically treated as a full 32-byte word.
-            // However, standard Solidity behavior for `bytes22` in a `pure` function argument passed as `self`:
-            // The variable `self` holds the value. If we do `mload(add(self, 0x20))`, we are treating `self` as a memory pointer.
-            // Wait, `self` is a value type (bytes22) passed by value in newer solidity versions or by reference in older?
-            // In the function signature `bytes22 self`, it is passed by value (on stack) in Solidity >0.6.9 usually, 
-            // BUT the provided signature implies `self` is a memory reference because of the `add(self, 0x20)` pattern often seen 
-            // if it were `bytes memory`. 
-            // CORRECTION: `bytes22` is a value type (statically sized). It is passed on the stack. 
-            // The previous context showed `bytes memory` using `mload(a)`. 
-            // If `self` is `bytes22`, it is a 32-byte value on the stack. We don't need `mload(add(self, 0x20))`.
-            // We can just use `self` directly if the compiler allows, but in inline assembly, arguments are on the stack.
-            // Let's assume standard ABI encoding where `bytes22` occupies one 32-byte slot.
-            
-            // Re-evaluating based on typical assembly patterns for fixed bytes:
-            // The argument `self` is on the stack.
-            // The argument `value` is on the stack.
-            // The argument `offset` is on the stack.
-            
-            // Let's reload variables properly from stack or assume they are available.
-            // In inline assembly, function arguments are accessible by name.
-            
-            // Mask to ensure we only work with valid 22 bytes (clear upper 10 bytes if any garbage exists, though unlikely for value types)
-            // 22 bytes = 176 bits. Mask = (1 << 176) - 1.
-            // But usually, we just manipulate the 16-byte window.
-            
-            // Strategy: XOR out the old 16 bytes, XOR in the new 16 bytes.
-            // Position of the 16-byte segment within the 32-byte word:
-            // bytes22 is left-aligned in the 32-byte word in Solidity? 
-            // No, fixed bytes types are left-aligned in the 32-byte word (most significant byte is at index 0).
-            // Example: bytes1 0x01 is 0x010000...00.
-            // So for bytes22, the data occupies the first 22 bytes (bits 255 down to 72).
-            // The 16-byte segment starts at byte `offset` (0-indexed from left).
-            // Bit shift needed: (offset) * 8.
-            // We need to shift the 16-byte `value` to align with the segment in `self`.
-            // Since data is left-aligned, shifting right moves it towards lower significance.
-            // Shift amount = offset * 8.
-            
-            let shift := mul(offset, 8)
-            
-            // Ensure value is treated as full 32 bytes (it is bytes16, so it's left aligned in its 32 byte slot)
-            // bytes16 0x... is stored as 0x...0000 (16 zeros).
-            // We need to shift `value` right by `shift` to align with `self`.
-            let shiftedValue := shr(shift, value)
-            
-            // Create a mask for the 16-byte segment to clear the old value in `self`.
-            // 16 bytes = 128 bits. Mask = (1 << 128) - 1.
-            let mask128 := sub(shl(128, 1), 1)
-            // Shift the mask to the correct position (same as value)
-            let segmentMask := shr(shift, mask128)
-            
-            // Clear the old segment in self
-            let clearedSelf := and(original, not(segmentMask))
-            
-            // Combine with the new value
-            result := or(clearedSelf, shiftedValue)
-        }
+assembly {
+        let selfVal := shr(32, shl(32, self))
+        let valueVal := shr(128, shl(128, value))
+        let shift := mul(sub(22, add(offset, 16)), 8)
+        let mask := not(shl(mul(128, 8), not(0)))
+        let shiftedMask := shr(shift, mask)
+        let oldSegment := and(selfVal, shiftedMask)
+        let newSegment := shl(shift, valueVal)
+        result := or(and(selfVal, not(shiftedMask)), newSegment)
     }
+}

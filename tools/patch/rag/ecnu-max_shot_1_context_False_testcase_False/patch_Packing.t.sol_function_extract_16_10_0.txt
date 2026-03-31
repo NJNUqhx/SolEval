@@ -1,44 +1,12 @@
 function extract_16_10(bytes16 self, uint8 offset) internal  pure returns (bytes10 result) {
-function extract_16_10(bytes16 self, uint8 offset) internal  pure returns (bytes10 result) {
 if (offset > 6) {
-            revert OutOfRangeAccess();
+            revert("OutOfRangeAccess");
         }
 
         assembly {
-            // Shift the 16-byte value left by `8 * offset` bits to align the desired segment to the top.
-            // Since `self` is stored in the lower 128 bits of the slot, shifting left moves the target bytes to the MSB.
-            let shifted := shl(mul(offset, 8), self)
-            
-            // Apply a mask to isolate the first 10 bytes (80 bits).
-            // The mask for 80 bits is (2^80 - 1), which occupies the least significant 80 bits.
-            // We need to extract the top 80 bits of the 128-bit value, so we shift right by (128 - 80) = 48 bits
-            // after masking, or simply mask the top 80 bits directly if we consider the 128-bit space.
-            // However, the standard approach for extracting N bytes from a shifted value aligned to MSB 
-            // is to shift right by (128 - N*8).
-            // Here: N=10, so shift right by 48.
-            // But the requirement says "Apply a mask to isolate the first 10 bytes".
-            // If we shifted left, the data is at the top. To get it into the return variable (which expects data in the lower bits),
-            // we shift right by 48.
-            // Let's construct the mask for 10 bytes: 0xFFFFFFFFFFFFFFFFFF (20 hex chars = 80 bits).
-            // Actually, simpler logic: 
-            // 1. Shift left by offset*8.
-            // 2. Shift right by 48 (128 - 80) to move the 10 bytes to the least significant position.
-            // The requirement mentions masking explicitly. 
-            // Mask for 10 bytes at the top of 128 bits: not(0) << 48 ? No, that's 1s at top.
-            // Let's follow: Shift left, then Shift right. 
-            // Or: Shift left, AND with mask of 10 bytes at top? 
-            // Let's stick to the cleanest assembly for extraction:
-            // result = (self << (offset * 8)) >> 48
-            // But to strictly follow "Apply a mask":
-            // Mask = 0xFFFFFFFFFFFF0000000000000000000000000000 (10 bytes of 1s at the top of 128 bits)?
-            // No, standard mask is usually for the lower bits. 
-            // Let's interpret "isolate" as ensuring only those bits remain.
-            // If we shift left, the bits are at the top. We can AND with a mask that has 1s in the top 80 bits.
-            // Mask = not(0) << 48.
-            // Then shift right by 48 to align to LSB for return.
-            
-            let mask := shl(48, not(0)) // Creates 1s in the top 80 bits of the 128-bit space
-            let isolated := and(shifted, mask)
-            result := shr(48, isolated)
+            let val := self
+            let shifted := shl(mul(8, offset), val)
+            let masked := and(shifted, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000)
+            result := shr(128, masked)
         }
     }

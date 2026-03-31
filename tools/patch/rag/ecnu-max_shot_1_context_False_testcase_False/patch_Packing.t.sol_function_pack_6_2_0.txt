@@ -1,24 +1,14 @@
 function pack_6_2(bytes6 left, bytes2 right) internal  pure returns (bytes8 result) {
-function pack_6_2(bytes6 left, bytes2 right) internal  pure returns (bytes8 result) {
-assembly {
-            // Step 1: Mask and align the `left` (bytes6) value.
-            // bytes6 occupies the upper 48 bits of the 64-bit result.
-            // We shift left by 16 bits (2 bytes) to move bytes6 to the top.
-            // The mask `0xFFFFFFFFFFFF0000` ensures only the relevant 48 bits are kept after shifting,
-            // though shifting left naturally pushes data up. We explicitly mask to be safe against garbage in upper bits if input was larger type (though bytes6 is fixed).
-            // Actually, since `left` is bytes6, it's already 6 bytes. In a bytes8 context (64 bits), 
-            // we want it in bits 63 down to 16.
-            // Shift left by 16 (2 * 8) bits.
-            let l := shl(16, left)
+/// @solidity memory-safe-assembly
+        assembly {
+            // Mask left to ensure only 6 bytes (48 bits) are used, then shift left by 2 bytes (16 bits)
+            let l := and(left, 0x0000FFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+            l := shl(16, l)
             
-            // Step 2: Mask and align the `right` (bytes2) value.
-            // bytes2 occupies the lower 16 bits of the 64-bit result.
-            // It is already in the correct position (LSB), but we mask it to ensure no overflow 
-            // if the compiler treats it loosely, ensuring only the last 2 bytes are used.
-            // Mask: 0xFFFF (16 bits)
-            let r := and(right, 0xFFFF)
-
-            // Step 3: Combine using bitwise OR.
+            // Mask right to ensure only 2 bytes (16 bits) are used
+            let r := and(right, 0x0000000000000000FFFF00000000000000000000000000000000000000000000)
+            
+            // Combine using OR
             result := or(l, r)
         }
     }

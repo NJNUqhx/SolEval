@@ -1,0 +1,33 @@
+function searchSorted(mapping(uint256 => uint256) storage map, uint256 needle, uint256 start, uint256 end, uint256 bitWidth) internal  view returns (bool found, uint256 index) {
+uint256 bucketSize = 256 / bitWidth;
+        uint256 valueMask = (1 << bitWidth) - 1;
+        uint256 low = start;
+        uint256 high = end;
+
+        while (low < high) {
+            uint256 mid = low + (high - low) / 2;
+            uint256 bucketIndex = mid / bucketSize;
+            uint256 offset = (mid % bucketSize) * bitWidth;
+            
+            uint256 bucket = map[bucketIndex];
+            uint256 value = (bucket >> offset) & valueMask;
+
+            if (value < needle) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+
+        index = low;
+        
+        if (index < end) {
+            uint256 bucketIndex = index / bucketSize;
+            uint256 offset = (index % bucketSize) * bitWidth;
+            uint256 bucket = map[bucketIndex];
+            uint256 value = (bucket >> offset) & valueMask;
+            found = (value == needle);
+        } else {
+            found = false;
+        }
+    }

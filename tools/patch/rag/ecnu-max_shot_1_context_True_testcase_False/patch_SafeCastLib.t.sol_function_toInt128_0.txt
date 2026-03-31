@@ -1,0 +1,6 @@
+function toInt128(uint256 x) internal  pure returns (int128) {
+if (x >= 0x80000000000000000000000000000000) {
+            revert("toInt128Overflow");
+        }
+        return int128(int256(x));
+    }

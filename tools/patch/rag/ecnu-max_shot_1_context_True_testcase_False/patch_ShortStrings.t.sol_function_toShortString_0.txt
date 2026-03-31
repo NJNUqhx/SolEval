@@ -1,0 +1,13 @@
+function toShortString(string memory str) internal  pure returns (ShortString) {
+bytes memory b = bytes(str);
+        uint256 length = b.length;
+        if (length > 31) {
+            revert("ShortString: length exceeds 31 bytes");
+        }
+        bytes32 data;
+        assembly {
+            data := mload(add(b, 32))
+            data := or(data, shl(248, length))
+        }
+        return ShortString.wrap(data);
+    }

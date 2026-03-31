@@ -1,0 +1,48 @@
+constructor (address target, bytes[] memory targetQueryCalldata, address factory, bytes memory factoryCalldata) {
+assembly {
+            let targetExists := gt(extcodesize(target), 0)
+            if iszero(targetExists) {
+                let success := call(gas(), factory, 0, add(factoryCalldata, 0x20), mload(factoryCalldata), 0, 0)
+                if iszero(success) {
+                    revert(0, 0)
+                }
+                if iszero(eq(returndatasize(), 0x20)) {
+                    revert(0, 0)
+                }
+                returndatacopy(0, 0, 0x20)
+                let deployed := mload(0)
+                if iszero(eq(deployed, target)) {
+                    revert(0, 0)
+                }
+            }
+
+            let ptr := mload(0x40)
+            let resultsPtr := ptr
+            mstore(ptr, 0x20)
+            mstore(add(ptr, 0x20), mload(add(targetQueryCalldata, 0x20)))
+            ptr := add(ptr, 0x40)
+
+            let i := 0
+            let len := mload(add(targetQueryCalldata, 0x20))
+            for { } lt(i, len) { i := add(i, 1) } {
+                let calldataPtr := mload(add(add(targetQueryCalldata, 0x20), mul(i, 0x20)))
+                let calldataLen := mload(calldataPtr)
+                let success := call(gas(), target, 0, add(calldataPtr, 0x20), calldataLen, 0, 0)
+                
+                let rds := returndatasize()
+                mstore(ptr, rds)
+                let dataPtr := add(ptr, 0x20)
+                returndatacopy(dataPtr, 0, rds)
+                
+                if iszero(success) {
+                    revert(dataPtr, rds)
+                }
+                
+                ptr := add(dataPtr, add(rds, 0x1f))
+                ptr := and(ptr, not(0x1f))
+            }
+            
+            mstore(0x40, ptr)
+            return(resultsPtr, sub(ptr, resultsPtr))
+        }
+    }

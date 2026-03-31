@@ -1,0 +1,18 @@
+function replace_20_16(bytes20 self, bytes16 value, uint8 offset) internal  pure returns (bytes20 result) {
+assembly {
+        // Extract the 16-byte segment from the original 20-byte value at the specified offset.
+        // Shift the self value right by (20 - offset - 16) * 8 bits to align the target segment to the least significant bytes.
+        // Then mask with 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF (16 bytes of 0xFF) to isolate the segment.
+        let shiftRight := mul(sub(sub(20, offset), 16), 8)
+        let oldSegment := and(shr(shiftRight, self), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+
+        // Mask the new 16-byte value to ensure it fits within the 16-byte segment (though bytes16 input should already be safe).
+        let newSegment := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+
+        // Calculate the result by XORing the original value with the old segment (to clear it)
+        // and then XORing with the new segment shifted to the correct position.
+        let shiftedNew := shl(shiftRight, newSegment)
+        let shiftedOld := shl(shiftRight, oldSegment)
+        result := xor(xor(self, shiftedOld), shiftedNew)
+    }
+}

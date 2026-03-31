@@ -1,0 +1,30 @@
+function isValidSignatureNow(address signer, bytes32 hash, uint8 v, bytes32 r, bytes32 s) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+    return false;
+}
+assembly {
+    let m := mload(0x40)
+    mstore(m, hash)
+    mstore(add(m, 0x20), v)
+    mstore(add(m, 0x40), r)
+    mstore(add(m, 0x60), s)
+    let recovered := staticcall(gas(), 1, m, 0x80, m, 0x20)
+    if and(recovered, eq(signer, mload(m))) {
+        isValid := true
+    } else {
+        mstore(m, 0x1626ba7e)
+        mstore(add(m, 0x04), hash)
+        mstore(add(m, 0x24), 0x0000000000000000000000000000000000000000000000000000000000000040)
+        mstore(add(m, 0x44), 0x41)
+        mstore(add(m, 0x64), r)
+        mstore(add(m, 0x84), s)
+        mstore(add(m, 0xa4), shl(248, v))
+        let success := staticcall(gas(), signer, m, 0xa4, m, 0x20)
+        if and(success, eq(mload(m), 0x1626ba7e)) {
+            isValid := true
+        }
+    }
+    mstore(0x00, 0)
+    mstore(0x40, m)
+}
+}

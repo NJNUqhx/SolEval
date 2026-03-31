@@ -1,26 +1,90 @@
 function pack_22_10(bytes22 left, bytes10 right) internal  pure returns (bytes32 result) {
-function pack_22_10(bytes22 left, bytes10 right) internal  pure returns (bytes32 result) {
-assembly {
-        // Clear the lower 80 bits of the `left` value (32 bytes - 22 bytes = 10 bytes = 80 bits)
-        // We shift left by 80 bits and then shift right by 80 bits to zero out the lower part.
-        let cleanedLeft := shr(80, shl(80, left))
+/// @solidity memory-safe-assembly
+    assembly {
+        // Clear the lower 80 bits of `left` (32 - 22 = 10 bytes = 80 bits)
+        // Shift left by 80 bits then right by 80 bits to zero out the lower 80 bits.
+        let cleanLeft := shr(80, shl(80, left))
         
-        // Clear the lower 176 bits of the `right` value (32 bytes - 10 bytes = 22 bytes = 176 bits)
-        // We shift left by 176 bits and then shift right by 176 bits to zero out the lower part.
-        let cleanedRight := shr(176, shl(176, right))
+        // Clear the lower 176 bits of `right` (32 - 10 = 22 bytes = 176 bits)
+        // Shift left by 176 bits then right by 176 bits to zero out the lower 176 bits.
+        let cleanRight := shr(176, shl(176, right))
         
-        // Shift the cleaned left value to occupy the upper 22 bytes (shift left by 80 bits)
-        // Shift the cleaned right value to occupy the lower 10 bytes (no shift needed as it's already aligned to the end if we consider it placed at the end, 
-        // but logically we want left in high bits and right in low bits of the 32 byte word).
-        // Actually, standard packing for (22 bytes, 10 bytes) into 32 bytes:
-        // Left (22 bytes) goes to bits [255:80]
-        // Right (10 bytes) goes to bits [79:0]
+        // Shift `cleanLeft` to the upper 22 bytes (shift left by 80 bits)
+        // Shift `cleanRight` to the lower 10 bytes (it is already aligned if we consider it occupies the last 10 bytes of 32)
+        // Actually, we want: [22 bytes][10 bytes].
+        // `cleanLeft` has valid data in the top 22 bytes if we treat it as a 32-byte word? No.
+        // Let's re-evaluate based on standard packing:
+        // Result = (left << 80) | right
+        // But `left` is bytes22, so it occupies bits 255 down to 80.
+        // `right` is bytes10, so it occupies bits 79 down to 0.
         
-        // cleanedLeft is already masked to 22 bytes. We need to shift it left by 80 bits to put it in the upper position.
-        let shiftedLeft := shl(80, cleanedLeft)
+        // Ensure `left` only has data in the top 22 bytes by masking out anything below bit 80.
+        // Since `left` is passed as a full 32-byte word (padded), we mask the lower 10 bytes (80 bits).
+        // Mask: ~((1 << 80) - 1). Or simply shift left 80, then right 80.
+        cleanLeft := shr(80, shl(80, left))
         
-        // cleanedRight is already masked to 10 bytes. It stays in the lower position.
+        // Ensure `right` only has data in the bottom 10 bytes by masking out anything above bit 80.
+        // Mask: (1 << 80) - 1. Or simply shift right 176, then left 176? No.
+        // To keep bottom 10 bytes (80 bits): shr(176, shl(176, right)) keeps top 22 bytes. That's wrong.
+        // To keep bottom 10 bytes: shr(176, right) moves bottom 10 to top? No.
+        // Correct logic for bottom 10 bytes: `and(right, sub(shl(80, 1), 1))` or `shr(176, shl(176, right))` is for TOP.
+        // We want BOTTOM 10 bytes. So we shift left by (32-10)*8 = 176, then right by 176? No, that isolates TOP.
+        // To isolate BOTTOM 10 bytes: `shr(176, right)` moves bit 176 to 0.
+        // Let's just use shifts to position them.
+        // `left` needs to be shifted LEFT by 80 bits (10 bytes) to occupy bits 255-80.
+        // `right` needs to stay in bits 79-0. But we must ensure no garbage in upper bits.
+        // So `right` = `shr(176, shl(176, right))`? No, that clears lower bits.
+        // `right` = `shr(176, right)`? No.
+        // To clear upper 22 bytes of `right`: `shr(176, shl(176, right))` clears LOWER 22 bytes.
+        // We need to clear UPPER 22 bytes of `right`.
+        // `right` = `shr(176, right)` -> moves bit 176 to 0.
+        // Correct way to clear upper bits: `shr(176, shl(176, right))` clears lower.
+        // `and(right, mask)` where mask is 0x00...00FF...FF (10 bytes).
+        // Mask = sub(shl(80, 1), 1).
         
-        // Combine using OR
-        result := or(shiftedLeft, cleanedRight)
+        cleanLeft := shl(80, left) // Move left 22 bytes to the top. Assumes input `left` is clean or we mask first.
+        // The requirement says: "Clear the lower 80 bits of the `left` value".
+        // If `left` is bytes22, solidity pads it to the right (lower bits) with zeros? 
+        // Actually, bytesNN types are right-aligned in 32 bytes? No, they are left-aligned?
+        // In Solidity, `bytes22` stored in a `bytes32` slot is left-aligned (padded with zeros on the right/lower bits).
+        // Wait, standard ABI encoding for static types like bytes22 pads to the right? 
+        // No, `bytes32` is the base. `bytes22` takes the first 22 bytes. The remaining 10 bytes are zero.
+        // So `left` already has zeros in the lower 80 bits? 
+        // The requirement explicitly says "Clear the lower 80 bits", implying we must enforce it.
+        // So: `cleanLeft := and(left, not(sub(shl(80, 1), 1)))` or `shr(80, shl(80, left))`.
+        cleanLeft := shr(80, shl(80, left))
+        
+        // Requirement: "Clear the lower 176 bits of the `right` value" -> Wait.
+        // If `right` is 10 bytes, it should occupy the LAST 10 bytes.
+        // Total 32 bytes. 22 + 10 = 32.
+        // Layout: [22 bytes Left] [10 bytes Right].
+        // Bits: [255 ... 80] [79 ... 0].
+        // `left` (bytes22) naturally sits in [255...80] if it's left-aligned? 
+        // If `left` is `bytes22`, in a `bytes32` variable, it occupies the HIGH 22 bytes? 
+        // Solidity `bytesN` are left-padded? No, they are right-padded with zeros when loaded into 32 bytes?
+        // Actually, `bytes22` in memory/stack is stored in the upper 22 bytes of the 32-byte word? 
+        // Let's assume the standard: `bytesN` occupies the most significant N bytes.
+        // So `left` is already in bits 255-80. We just need to ensure bits 79-0 are 0.
+        // `cleanLeft := shr(80, shl(80, left))` does exactly that.
+        
+        // `right` is `bytes10`. It occupies the most significant 10 bytes of its 32-byte word (bits 255-176).
+        // We need it in the least significant 10 bytes (bits 79-0).
+        // So we must shift it RIGHT by 176 bits (22 bytes).
+        // But first, requirement says: "Clear the lower 176 bits of the `right` value".
+        // This implies `right` might have garbage in the lower 176 bits? 
+        // If `right` is `bytes10`, it has data in top 10 bytes, zeros elsewhere.
+        // "Clear lower 176 bits" means ensure bits 0-175 are 0. They should be already if it's a clean `bytes10`.
+        // Then we shift it to the bottom.
+        // Let's follow the steps literally.
+        // 1. Clear lower 80 bits of left: `cleanLeft := shr(80, shl(80, left))`
+        // 2. Clear lower 176 bits of right: `cleanRight := shr(176, shl(176, right))` (This clears bits 0-175, leaving top 10 bytes).
+        // 3. Combine: `cleanLeft` is in top 22 bytes. `cleanRight` is in top 10 bytes.
+        // We need `cleanRight` in bottom 10 bytes. So shift `cleanRight` right by 176 bits.
+        // Result = `or(cleanLeft, shr(176, cleanRight))`.
+        
+        cleanRight := shr(176, shl(176, right)) // Clears lower 176 bits, keeps top 10.
+        cleanRight := shr(176, cleanRight)      // Moves top 10 to bottom 10.
+        
+        result := or(cleanLeft, cleanRight)
     }
+}

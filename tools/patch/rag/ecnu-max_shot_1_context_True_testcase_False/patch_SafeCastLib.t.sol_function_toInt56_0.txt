@@ -1,0 +1,4 @@
+function toInt56(uint256 x) internal  pure returns (int56) {
+if (x >= 2**55) revert SafeCastOverflow("uint256 to int56");
+    return int56(int256(x));
+}

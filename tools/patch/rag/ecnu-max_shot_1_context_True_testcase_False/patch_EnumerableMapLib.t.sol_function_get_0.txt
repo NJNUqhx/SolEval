@@ -1,0 +1,7 @@
+function get(AddressToAddressMap storage map, address key) internal  view returns (address value) {
+value = map._inner[key];
+        if (value == address(0) && !contains(map._inner, key)) {
+            revert("not found");
+        }
+        return value;
+    }

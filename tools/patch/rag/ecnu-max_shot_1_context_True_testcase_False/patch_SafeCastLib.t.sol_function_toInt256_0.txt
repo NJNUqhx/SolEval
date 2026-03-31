@@ -1,0 +1,4 @@
+function toInt256(uint256 x) internal  pure returns (int256) {
+require(x <= uint256(type(int256).max), "Overflow: uint256 to int256 conversion");
+return int256(x);
+}

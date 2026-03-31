@@ -1,0 +1,33 @@
+function createDeterministicERC1967(uint256 value, address implementation, bytes memory args, bytes32 salt) internal   returns (bool alreadyDeployed, address instance) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mPtr := mload(0x40)
+            let argsLength := mload(args)
+            if gt(argsLength, 0xfffd) {
+                mstore(0x00, 0x467346a8)
+                revert(0x1c, 0x04)
+            }
+            pop(staticcall(gas(), args, add(args, 0x20), argsLength, mPtr, argsLength))
+            mstore(mPtr, 0x602d5f8160095f39f35f5f365f5f37365f73)
+            mstore(add(mPtr, 0x09), implementation)
+            mstore(add(mPtr, 0x1d), 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            let codeSize := add(0x36, argsLength)
+            let codeHash := keccak256(mPtr, codeSize)
+            instance := create2(value, mPtr, codeSize, salt)
+            if iszero(instance) {
+                if iszero(extcodesize(keccak256(add(0x37, 0x14), add(0x0c, 0x14)))) {
+                    mstore(0x00, 0x30116425)
+                    revert(0x1c, 0x04)
+                }
+                alreadyDeployed := 1
+                instance := keccak256(add(0x37, 0x14), add(0x0c, 0x14))
+                if value {
+                    if iszero(call(gas(), instance, value, 0, 0, 0, 0)) {
+                        mstore(0x00, 0x30116425)
+                        revert(0x1c, 0x04)
+                    }
+                }
+            }
+            mstore(0x40, add(mPtr, 0x24))
+        }
+}

@@ -1,0 +1,13 @@
+function log256(uint256 value, Rounding rounding) internal  pure returns (uint256) {
+uint256 result = value == 0 ? 0 : (255 - _findFirstSetBit(value)) / 8;
+    if (rounding == Rounding.Up && value > 0) {
+        uint256 power = 1;
+        for (uint256 i = 0; i < result; i = uncheckedInc(i)) {
+            power = power * 256;
+        }
+        if (power < value) {
+            result = result + 1;
+        }
+    }
+    return result;
+}

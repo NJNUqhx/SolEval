@@ -1,39 +1,5 @@
 function pack_12_4(bytes12 left, bytes4 right) internal  pure returns (bytes16 result) {
-function pack_12_4(bytes12 left, bytes4 right) internal  pure returns (bytes16 result) {
-/// @solidity memory-safe-assembly
-        assembly {
-            // Mask left to ensure it fits within 12 bytes (96 bits).
-            // bytes12 is stored in the lower 12 bytes of a 32-byte slot.
-            // We clear the upper 20 bytes (160 bits) to be safe, though input is already bytes12.
-            // Actually, since `left` is bytes12, it occupies the most significant 12 bytes of the 32-byte word when loaded as uint256?
-            // No, in Solidity, fixed-size bytes types are right-aligned (padded on the left with zeros) when treated as numbers in assembly?
-            // Let's clarify: `bytes12` in memory/stack is just 32 bytes with the value in the least significant 12 bytes? 
-            // Actually, Solidity fixed-size bytes types are left-aligned in the 32-byte word when loaded? 
-            // Wait, `bytes12` variable in assembly `left` will hold the value right-aligned (LSB) if we treat it as a number?
-            // Let's assume standard behavior: `left` holds the value in the lower 12 bytes (96 bits) of the 256-bit word.
-            // To mask 12 bytes: 0xFFFFFFFFFFFFFFFFFFFFFFFF (12 bytes = 24 hex chars).
-            let maskedLeft := and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFF)
-            
-            // Mask right to ensure it fits within 4 bytes (32 bits).
-            // 4 bytes = 8 hex chars.
-            let maskedRight := and(right, 0xFFFFFFFF)
-            
-            // Shift the right value to occupy the upper 4 bytes of the 16-byte result?
-            // The requirement says: "Packs a 12-byte value (left) and a 4-byte value (right) into a single 16-byte value."
-            // Usually, this means: [12 bytes left][4 bytes right].
-            // If `result` is 16 bytes (128 bits), and we want left in the high 12 bytes and right in the low 4 bytes?
-            // Or left in low 12 bytes and right in high 4 bytes?
-            // Standard packing for "left" and "right" usually implies left is the most significant part.
-            // So: Result = (left << 32) | right.
-            // left is 96 bits. Shifting left by 32 bits makes it occupy bits 32 to 127 (total 96 bits).
-            // right is 32 bits. It occupies bits 0 to 31.
-            // Total 128 bits.
-            
-            let packed := or(shl(32, maskedLeft), maskedRight)
-            
-            // Store the result in the return variable `result` (which is a stack variable in assembly context for return values? 
-            // No, in assembly, we just assign to the variable name if it's defined in the function signature? 
-            // Actually, in inline assembly, we assign to the output variable directly.
-            result := packed
-        }
+assembly {
+        result := or(and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000), shr(96, and(right, 0xFFFFFFFF00000000000000000000000000000000)))
     }
+}

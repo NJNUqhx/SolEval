@@ -1,20 +1,5 @@
 function pack_4_2(bytes4 left, bytes2 right) internal  pure returns (bytes6 result) {
-function pack_4_2(bytes4 left, bytes2 right) internal  pure returns (bytes6 result) {
 assembly {
-    // Step 1: Clear extraneous bits from `left` (keep only the first 4 bytes / 32 bits).
-    // Mask: 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
-    let cleanLeft := and(left, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
-    
-    // Step 2: Clear extraneous bits from `right` (keep only the first 2 bytes / 16 bits).
-    // Since `right` is loaded into the high bits of the slot, we mask the high 16 bits.
-    // Mask: 0xFFFF000000000000000000000000000000000000000000000000000000000000
-    let cleanRight := and(right, 0xFFFF000000000000000000000000000000000000000000000000000000000000)
-    
-    // Step 3: Combine the values.
-    // `cleanLeft` is already at the top (bytes 0-3).
-    // `cleanRight` is at the top (bytes 0-1), needs to be shifted right by 4 bytes (32 bits) 
-    // to sit immediately after `left` (occupying bytes 4-5).
-    let shiftedRight := shr(32, cleanRight)
-    
-    result := or(cleanLeft, shiftedRight)
+    result := or(shl(16, and(left, 0xFFFFFFFF)), and(right, 0xFFFF))
+}
 }

@@ -1,0 +1,8 @@
+function dist(int256 x, int256 y) internal  pure returns (uint256 z) {
+assembly {
+            let diff := sub(y, x)
+            let isNegative := sgt(x, y)
+            z := xor(diff, sub(0, isNegative))
+            z := add(z, isNegative)
+        }
+    }

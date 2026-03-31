@@ -1,23 +1,10 @@
 function replace_24_6(bytes24 self, bytes6 value, uint8 offset) internal  pure returns (bytes24 result) {
-function replace_24_6(bytes24 self, bytes6 value, uint8 offset) internal  pure returns (bytes24 result) {
-    assembly {
-        // Extract the existing 6-byte value at the specified offset.
-        // We shift right by (24 - offset - 6) * 8 bits to align the 6 bytes to the least significant position.
-        let shiftRight := mul(sub(sub(24, offset), 6), 8)
-        let oldValue := shr(shiftRight, self)
-        
-        // Mask the extracted value to ensure it is exactly 6 bytes (48 bits).
-        // 0xFFFFFFFFFFFF is the mask for 6 bytes.
-        oldValue := and(oldValue, 0xFFFFFFFFFFFF)
-        
-        // Mask the new input value to ensure it is exactly 6 bytes.
-        let newValue := and(value, 0xFFFFFFFFFFFF)
-        
-        // Calculate the result:
-        // 1. XOR self with (oldValue shifted to position) to clear the old bits.
-        // 2. XOR the result with (newValue shifted to position) to set the new bits.
-        let shiftedOld := shl(shiftRight, oldValue)
-        let shiftedNew := shl(shiftRight, newValue)
-        
-        result := xor(xor(self, shiftedOld), shiftedNew)
-    }
+assembly {
+            let val := and(shl(192, value), shl(192, 0xffffffffffff))
+            let shift := sub(192, mul(offset, 8))
+            let maskedVal := shr(shift, val)
+            let mask := not(shl(sub(192, mul(add(offset, 6), 8)), shr(mul(sub(24, add(offset, 6)), 8), not(0))))
+            let cleanedSelf := and(self, mask)
+            result := or(cleanedSelf, maskedVal)
+        }
+}

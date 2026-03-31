@@ -1,17 +1,10 @@
 function extract_28_8(bytes28 self, uint8 offset) internal  pure returns (bytes8 result) {
-function extract_28_8(bytes28 self, uint8 offset) internal  pure returns (bytes8 result) {
 if (offset > 20) {
-            revert("OutOfRangeAccess");
+            revert OutOfRangeAccess();
         }
 
         assembly {
-            // Shift left by (offset * 8) bits to align the desired 8-byte segment to the most significant position.
-            // Since `self` is 28 bytes, it occupies the upper 224 bits of the 32-byte slot.
-            // Shifting left moves the target segment towards the MSB.
-            let shifted := shl(mul(offset, 8), self)
-            
-            // Mask to keep only the top 8 bytes (64 bits).
-            // 0xFF00000000000000000000000000000000000000000000000000000000000000
-            result := and(shifted, 0xFF00000000000000000000000000000000000000000000000000000000000000)
+            result := and(shl(mul(8, offset), self), 0xFFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            result := shr(160, result)
         }
     }

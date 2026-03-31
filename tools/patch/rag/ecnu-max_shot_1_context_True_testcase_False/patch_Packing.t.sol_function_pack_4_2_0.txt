@@ -1,0 +1,7 @@
+function pack_4_2(bytes4 left, bytes2 right) internal  pure returns (bytes6 result) {
+assembly {
+            left := and(left, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            right := and(right, 0xFFFF000000000000000000000000000000000000000000000000000000000000)
+            result := or(shr(128, left), shr(192, right))
+        }
+    }

@@ -1,7 +1,0 @@
-function toInt48(int256 x) internal  pure returns (int48) {
-function toInt48(int256 x) internal  pure returns (int48) {
-if (x > type(int48).max || x < type(int48).min) {
-            revert Overflow();
-        }
-        return int48(x);
-    }

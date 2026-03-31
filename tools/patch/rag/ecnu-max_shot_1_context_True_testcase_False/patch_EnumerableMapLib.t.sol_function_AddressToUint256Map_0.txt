@@ -1,0 +1,6 @@
+function AddressToUint256Map() {
+struct AddressToUint256Map {
+        EnumerableSetLib.AddressSet _keys;
+        mapping(address => uint256) _values;
+    }
+}

@@ -1,0 +1,10 @@
+function add(Uint8Set storage set, uint8 value) internal   returns (bool result) {
+assembly {
+    let slot := set.slot
+    let current := sload(slot)
+    let mask := shl(and(0xff, value), 1)
+    let exists := and(current, mask)
+    sstore(slot, or(current, mask))
+    result := iszero(exists)
+}
+}

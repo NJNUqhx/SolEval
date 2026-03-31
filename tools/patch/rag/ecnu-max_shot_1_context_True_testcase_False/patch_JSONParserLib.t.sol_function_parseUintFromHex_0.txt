@@ -1,0 +1,45 @@
+function parseUintFromHex(string memory s) internal  pure returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let len := mload(s)
+            let o := add(s, 0x20)
+            
+            if iszero(len) {
+                mstore(0x00, 0xc8d73f0d)
+                revert(0x1c, 0x04)
+            }
+
+            if and(gt(len, 1), eq(and(mload(o), 0xff), 0x30)) {
+                let second := and(shr(248, mload(add(o, 1))), 0xff)
+                if or(eq(second, 0x78), eq(second, 0x58)) {
+                    o := add(o, 2)
+                    len := sub(len, 2)
+                }
+            }
+
+            if iszero(len) {
+                mstore(0x00, 0xc8d73f0d)
+                revert(0x1c, 0x04)
+            }
+
+            let end := add(o, len)
+            
+            for {} lt(o, end) { o := add(o, 1) } {
+                let char := and(mload(o), 0xff)
+                let val
+                
+                if and(gt(char, 0x2f), lt(char, 0x3a)) {
+                    val := sub(char, 0x30)
+                } else if and(gt(char, 0x40), lt(char, 0x47)) {
+                    val := sub(char, 0x37)
+                } else if and(gt(char, 0x60), lt(char, 0x67)) {
+                    val := sub(char, 0x57)
+                } else {
+                    mstore(0x00, 0xc8d73f0d)
+                    revert(0x1c, 0x04)
+                }
+                
+                result := add(shl(4, result), val)
+            }
+        }
+    }

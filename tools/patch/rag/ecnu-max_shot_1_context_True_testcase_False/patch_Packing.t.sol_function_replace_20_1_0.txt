@@ -1,0 +1,9 @@
+function replace_20_1(bytes20 self, bytes1 value, uint8 offset) internal  pure returns (bytes20 result) {
+bytes1 oldByte = extract_20_1(self, offset);
+    assembly {
+        let mask := shl(mul(8, sub(19, offset)), 0xff)
+        let oldVal := shl(mul(8, sub(19, offset)), and(oldByte, 0xff))
+        let newVal := shl(mul(8, sub(19, offset)), and(value, 0xff))
+        result := xor(xor(self, oldVal), newVal)
+    }
+}

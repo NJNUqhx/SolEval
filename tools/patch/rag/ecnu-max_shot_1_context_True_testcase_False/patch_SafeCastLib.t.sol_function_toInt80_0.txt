@@ -1,0 +1,4 @@
+function toInt80(uint256 x) internal  pure returns (int80) {
+require(x <= type(int80).max, "Overflow");
+        return int80(int256(x));
+    }

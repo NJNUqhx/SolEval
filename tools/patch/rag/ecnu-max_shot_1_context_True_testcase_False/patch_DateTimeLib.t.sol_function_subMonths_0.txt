@@ -1,0 +1,8 @@
+function subMonths(uint256 timestamp, uint256 numMonths) internal  pure returns (uint256 result) {
+(uint256 year, uint256 month, uint256 day) = epochDayToDate(timestamp / 86400);
+        uint256 totalMonths = _totalMonths(year, month);
+        totalMonths -= numMonths;
+        year = totalMonths / 12;
+        month = (totalMonths % 12) + 1;
+        result = _offsetted(year, month, day, timestamp);
+    }

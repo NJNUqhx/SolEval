@@ -1,20 +1,10 @@
 function replace_32_4(bytes32 self, bytes4 value, uint8 offset) internal  pure returns (bytes32 result) {
-function replace_32_4(bytes32 self, bytes4 value, uint8 offset) internal  pure returns (bytes32 result) {
 /// @solidity memory-safe-assembly
         assembly {
-            // Calculate the shift amount in bits (offset * 8)
-            let shift := mul(offset, 8)
-            
-            // Mask the new 4-byte value to ensure only the relevant 4 bytes are used
-            // 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
-            let mask := 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
-            let cleanValue := and(value, shr(shift, mask))
-            
-            // Extract the old 4-byte segment from self at the specified offset
-            let oldSegment := and(self, shr(shift, mask))
-            
-            // XOR self with the old segment to clear those bits, then XOR with the new clean value
-            // result = (self ^ oldSegment) ^ cleanValue
-            result := xor(xor(self, oldSegment), cleanValue)
+            let shift := shl(3, sub(31, offset))
+            let mask := not(shl(224, shr(shift, 0xFFFFFFFF)))
+            let oldVal := and(self, mask)
+            let newVal := shl(shift, and(shr(224, value), 0xFFFFFFFF))
+            result := or(oldVal, newVal)
         }
     }

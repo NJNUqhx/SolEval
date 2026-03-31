@@ -1,0 +1,9 @@
+function pack_24_4(bytes24 left, bytes4 right) internal  pure returns (bytes28 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let l := and(mload(left), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000)
+            let r := and(mload(right), 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            r := shr(192, r)
+            result := or(l, r)
+        }
+    }

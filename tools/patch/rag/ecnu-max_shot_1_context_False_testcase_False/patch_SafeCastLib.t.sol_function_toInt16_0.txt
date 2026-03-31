@@ -1,8 +1,0 @@
-function toInt16(int256 x) internal  pure returns (int16) {
-function toInt16(int256 x) internal  pure returns (int16) {
-int16 result = int16(x);
-        if (int256(result) != x) {
-            revert("Overflow when converting to int16");
-        }
-        return result;
-    

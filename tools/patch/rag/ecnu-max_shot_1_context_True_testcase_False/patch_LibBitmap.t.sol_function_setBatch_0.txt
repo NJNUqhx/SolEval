@@ -1,0 +1,34 @@
+function setBatch(Bitmap storage bitmap, uint256 start, uint256 amount) internal {
+assembly {
+        let max := not(0)
+        let shift := and(start, 0xff)
+        let slot := bitmap.slot
+        let bucket := shr(8, start)
+        
+        if gt(add(shift, amount), 256) {
+            let currentSlot := add(slot, bucket)
+            let mask := sub(shl(add(shift, amount), 1), 1)
+            let bitsToSet := xor(mask, sub(shl(shift), 1))
+            sstore(currentSlot, or(sload(currentSlot), bitsToSet))
+            
+            let fullBucketsStart := add(bucket, 1)
+            let fullBucketsEnd := add(fullBucketsStart, div(sub(add(shift, amount), 257), 256))
+            
+            for { let i := fullBucketsStart } lt(i, fullBucketsEnd) { i := add(i, 1) } {
+                sstore(add(slot, i), max)
+            }
+            
+            let remainingBits := mod(sub(add(shift, amount), 256), 256)
+            let lastBucket := fullBucketsEnd
+            if remainingBits {
+                let mask := sub(shl(remainingBits), 1)
+                sstore(add(slot, lastBucket), or(sload(add(slot, lastBucket)), mask))
+            }
+        } else {
+            let currentSlot := add(slot, bucket)
+            let mask := sub(shl(add(shift, amount), 1), 1)
+            let bitsToSet := xor(mask, sub(shl(shift), 1))
+            sstore(currentSlot, or(sload(currentSlot), bitsToSet))
+        }
+    }
+}

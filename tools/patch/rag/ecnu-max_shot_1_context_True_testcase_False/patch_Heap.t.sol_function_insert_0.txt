@@ -1,0 +1,6 @@
+function insert(Uint256Heap storage self, uint256 value, function(uint256, uint256) view returns (bool) comp) internal {
+uint256 size = self.size;
+        self.size = size + 1;
+        self.tree.unsafeAccess(size).value = value;
+        _siftUp(self, size, value, comp);
+    }

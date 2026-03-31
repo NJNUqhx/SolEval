@@ -1,0 +1,15 @@
+function setAnimalAndSpin(string calldata animal) external {
+uint256 encodedAnimal = uint256(bytes32(bytes(animal))) >> 16;
+        uint256 nextCrateId = state.nextCrateId;
+
+        if (encodedAnimal > type(uint80).max) {
+            revert AnimalNameTooLarge();
+        }
+
+        uint256 currentState = state.carousel[nextCrateId];
+        uint256 clearedState = currentState & ~uint256(type(uint80).max);
+        state.carousel[nextCrateId] = clearedState | (encodedAnimal << 176) | (uint256(uint160(msg.sender)) << 80);
+
+        state.nextCrateId = (nextCrateId + 1) % MAX_CAPACITY;
+        currentCrateId = nextCrateId;
+    }

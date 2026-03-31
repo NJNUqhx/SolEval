@@ -1,0 +1,4 @@
+function toUint8(uint256 x) internal  pure returns (uint8) {
+if (x >= 256) revert();
+        return uint8(x);
+    }

@@ -1,0 +1,43 @@
+function tryParseAddress(string memory input, uint256 begin, uint256 end) internal  pure returns (bool success, address value) {
+uint256 inputLength = bytes(input).length;
+        if (begin >= end || end > inputLength) {
+            return (false, address(0));
+        }
+
+        bytes memory inputBytes = bytes(input);
+        uint256 offset = begin;
+        bool hasPrefix = false;
+
+        if (end - begin >= 2) {
+            if (inputBytes[offset] == '0' && (inputBytes[offset + 1] == 'x' || inputBytes[offset + 1] == 'X')) {
+                hasPrefix = true;
+                offset += 2;
+            }
+        }
+
+        uint256 expectedLength = hasPrefix ? 42 : 40;
+        if (end - begin != expectedLength) {
+            return (false, address(0));
+        }
+
+        uint256 result = 0;
+        for (uint256 i = 0; i < 40; i++) {
+            uint256 currentIndex = offset + i;
+            bytes1 b = inputBytes[currentIndex];
+            uint256 nibble;
+
+            if (b >= '0' && b <= '9') {
+                nibble = uint256(uint8(b)) - uint256(uint8('0'));
+            } else if (b >= 'a' && b <= 'f') {
+                nibble = uint256(uint8(b)) - uint256(uint8('a')) + 10;
+            } else if (b >= 'A' && b <= 'F') {
+                nibble = uint256(uint8(b)) - uint256(uint8('A')) + 10;
+            } else {
+                return (false, address(0));
+            }
+
+            result = (result << 4) | nibble;
+        }
+
+        return (true, address(uint160(result)));
+    }

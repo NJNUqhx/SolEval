@@ -1,0 +1,24 @@
+function proposeUpgrade(address proxyAddress, address proxyAdminAddress, address newImplementationAddress, string memory newImplementationContractName, Options memory opts) internal   returns (ProposeUpgradeResponse memory) {
+VmSafe vm = vm;
+    string memory outDir = getOutDir();
+    ContractInfo memory contractInfo = getContractInfo(newImplementationContractName, outDir);
+
+    string[] memory inputs = new string[](9);
+    inputs[0] = "forge";
+    inputs[1] = "script";
+    inputs[2] = "--sig";
+    inputs[3] = "proposeUpgrade(address,address,address,string,(bool,uint256))";
+    inputs[4] = toString(proxyAddress);
+    inputs[5] = toString(proxyAdminAddress);
+    inputs[6] = toString(newImplementationAddress);
+    inputs[7] = newImplementationContractName;
+    inputs[8] = toString(opts);
+
+    Vm.FfiResult memory result = runAsBashCommand(inputs);
+
+    if (result.exitCode != 0) {
+        revert(string(abi.encodePacked("Upgrade proposal failed: ", string(result.stderr))));
+    }
+
+    return abi.decode(result.stdout, (ProposeUpgradeResponse));
+}

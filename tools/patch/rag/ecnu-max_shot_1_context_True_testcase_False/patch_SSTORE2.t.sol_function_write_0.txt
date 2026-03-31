@@ -1,0 +1,28 @@
+function write(bytes memory data) internal   returns (address pointer) {
+uint256 length = data.length;
+        if (length > 0xFE00) revert DeploymentFailed();
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let dataPtr := add(data, 0x20)
+            let mPtr := mload(0x40)
+
+            // Store the prefix: STOP (0x00), PUSH2, high byte, low byte, JUMP
+            mstore(mPtr, 0x60fe005b00)
+            mstore(add(mPtr, 0x05), shl(240, length))
+
+            // Copy the user data after the 5-byte prefix
+            pop(staticcall(gas(), 0x04, dataPtr, length, add(mPtr, 0x05), length))
+
+            // Deploy the contract with total size = length + 5
+            pointer := create(0, mPtr, add(length, 5))
+
+            // Restore the original length in the input data slot (optional cleanup)
+            mstore(data, length)
+
+            if iszero(pointer) {
+                mstore(0x00, 0x3525f0c5) // `DeploymentFailed()` selector
+                revert(0x1c, 0x04)
+            }
+        }
+}

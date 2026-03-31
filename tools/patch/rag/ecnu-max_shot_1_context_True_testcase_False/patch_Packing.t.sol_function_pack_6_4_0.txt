@@ -1,0 +1,3 @@
+function pack_6_4(bytes6 left, bytes4 right) internal  pure returns (bytes10 result) {
+result = bytes10((uint48(uint256(uint128(bytes10(left)))) << 32) | uint32(uint256(uint128(bytes10(right)))));
+    }

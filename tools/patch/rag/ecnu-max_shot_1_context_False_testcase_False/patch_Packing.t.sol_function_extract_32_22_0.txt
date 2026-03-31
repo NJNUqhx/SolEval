@@ -1,15 +1,10 @@
 function extract_32_22(bytes32 self, uint8 offset) internal  pure returns (bytes22 result) {
-function extract_32_22(bytes32 self, uint8 offset) internal  pure returns (bytes22 result) {
 if (offset > 10) {
-            revert("OutOfRangeAccess");
+            revert OutOfRangeAccess();
         }
 
         assembly {
-            // Shift the value left by 8 * offset to align the desired segment to the start
-            let shifted := shl(mul(offset, 8), self)
-            // Mask to keep only the first 22 bytes (176 bits)
-            // Mask = (2^(176) - 1) << 80 to clear the last 10 bytes (80 bits)
-            let mask := shl(80, sub(shl(176), 1))
-            result := and(shifted, mask)
+            let shifted := shl(mul(8, offset), self)
+            result := and(shifted, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000)
         }
     }

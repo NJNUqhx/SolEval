@@ -1,0 +1,10 @@
+function bootstrapERC1967(address instance, address implementation) internal {
+assembly {
+            mstore(0x00, implementation)
+            let success := call(gas(), instance, 0, 0x00, 0x20, 0, 0)
+            if iszero(success) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+        }
+    }

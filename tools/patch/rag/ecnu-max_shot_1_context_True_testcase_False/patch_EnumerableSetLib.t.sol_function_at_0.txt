@@ -1,0 +1,54 @@
+function at(Uint8Set storage set, uint256 i) internal  view returns (uint8 result) {
+assembly {
+        let slot := set.slot
+        let data := sload(slot)
+        if iszero(lt(i, 256)) {
+            mstore(0x00, 0x4e487b71)
+            mstore(0x20, 0x32)
+            revert(0x1c, 0x24)
+        }
+        let bit := shl(i, 1)
+        if iszero(and(data, bit)) {
+            mstore(0x00, 0x4e487b71)
+            mstore(0x20, 0x32)
+            revert(0x1c, 0x24)
+        }
+        let isolated := and(data, sub(0, bit))
+        let debruijn := 0x077CB531
+        let lookup := shr(27, mul(isolated, debruijn))
+        let table := 0x0000000000000000000000000000000000000000000000000000000000000000
+        table := or(table, shl(1, 0x00))
+        table := or(table, shl(2, 0x01))
+        table := or(table, shl(4, 0x02))
+        table := or(table, shl(8, 0x03))
+        table := or(table, shl(16, 0x04))
+        table := or(table, shl(32, 0x05))
+        table := or(table, shl(64, 0x06))
+        table := or(table, shl(128, 0x07))
+        table := or(table, shl(256, 0x08))
+        table := or(table, shl(512, 0x09))
+        table := or(table, shl(1024, 0x0a))
+        table := or(table, shl(2048, 0x0b))
+        table := or(table, shl(4096, 0x0c))
+        table := or(table, shl(8192, 0x0d))
+        table := or(table, shl(16384, 0x0e))
+        table := or(table, shl(32768, 0x0f))
+        table := or(table, shl(65536, 0x10))
+        table := or(table, shl(131072, 0x11))
+        table := or(table, shl(262144, 0x12))
+        table := or(table, shl(524288, 0x13))
+        table := or(table, shl(1048576, 0x14))
+        table := or(table, shl(2097152, 0x15))
+        table := or(table, shl(4194304, 0x16))
+        table := or(table, shl(8388608, 0x17))
+        table := or(table, shl(16777216, 0x18))
+        table := or(table, shl(33554432, 0x19))
+        table := or(table, shl(67108864, 0x1a))
+        table := or(table, shl(134217728, 0x1b))
+        table := or(table, shl(268435456, 0x1c))
+        table := or(table, shl(536870912, 0x1d))
+        table := or(table, shl(1073741824, 0x1e))
+        table := or(table, shl(2147483648, 0x1f))
+        result := byte(lookup, table)
+    }
+}

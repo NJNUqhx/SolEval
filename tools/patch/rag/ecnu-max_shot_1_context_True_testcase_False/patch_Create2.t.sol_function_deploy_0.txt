@@ -1,0 +1,22 @@
+function deploy(uint256 amount, bytes32 salt, bytes memory bytecode) internal   returns (address addr) {
+if (address(this).balance < amount) revert InsufficientBalance();
+        uint256 bytecodeLength = bytecode.length;
+        if (bytecodeLength == 0) revert Create2EmptyBytecode();
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let data := add(bytecode, 0x20)
+            let size := bytecodeLength
+
+            addr := create2(amount, data, size, salt)
+
+            if iszero(addr) {
+                if gt(returndatasize(), 0) {
+                    returndatacopy(0, 0, returndatasize())
+                    revert(0, returndatasize())
+                }
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+        }
+}

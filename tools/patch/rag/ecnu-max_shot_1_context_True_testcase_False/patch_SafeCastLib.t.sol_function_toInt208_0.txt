@@ -1,0 +1,4 @@
+function toInt208(uint256 x) internal  pure returns (int208) {
+require(x < 2**207, "Overflow");
+        return int208(int256(x));
+    }

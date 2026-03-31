@@ -1,0 +1,89 @@
+{
+    "patch/rag/ecnu-max_shot_1_context_False_testcase_False/patch_Packing.t.sol_function_pack_1_1_0": {
+        "file_path": "repository/openzeppelin-contracts/contracts/utils/Packing.sol",
+        "real_file_path": "repository/openzeppelin-contracts/test/utils/Packing.t.sol",
+        "COMPILE_PASS": "False",
+        "PASS": "False",
+        "patch": "function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {\n/// @solidity memory-safe-assembly\n        assembly {\n            left := and(left, 0xff)\n            right := and(right, 0xff)\n            result := or(shl(8, left), right)\n        }\n    }",
+        "human_labeled_comment": "/**\n * @notice Packs two `bytes1` values into a single `bytes2` value.\n *\n * @param left The first `bytes1` value to be packed.\n * @param right The second `bytes1` value to be packed.\n * @return result The resulting `bytes2` value after packing.\n *\n * Steps:\n * 1. Clear the higher bits of the `left` value to ensure it fits within the lower 8 bits.\n * 2. Clear the higher bits of the `right` value to ensure it fits within the lower 8 bits.\n * 3. Combine the `left` and `right` values into a single `bytes2` value by shifting and OR-ing them.\n *\n * @dev This function uses inline assembly to perform bitwise operations for efficiency.\n */",
+        "source_p": [
+            "\n",
+            "\n",
+            "\n",
+            "\n",
+            "\n",
+            "\n"
+        ],
+        "Compile_ERROR_Message": "Compiler run failed:\nError (2314): Expected ',' but got identifier\n       --> contracts/utils/Packing.sol:1336056:32:\n        |\n1336056 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {\n        |                                ^^^^\n\n",
+        "FAIL_Message": "None",
+        "patch_length": "8",
+        "GAS": "None",
+        "patch_pretty": [
+            "function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {\n",
+            "/// @solidity memory-safe-assembly\n",
+            "        assembly {\n",
+            "            left := and(left, 0xff)\n",
+            "            right := and(right, 0xff)\n",
+            "            result := or(shl(8, left), right)\n",
+            "        }\n",
+            "    }"
+        ]
+    },
+    "patch/rag/ecnu-max_shot_1_context_False_testcase_False/patch_Packing.t.sol_function_pack_2_2_0": {
+        "file_path": "repository/openzeppelin-contracts/contracts/utils/Packing.sol",
+        "real_file_path": "repository/openzeppelin-contracts/test/utils/Packing.t.sol",
+        "COMPILE_PASS": "False",
+        "PASS": "False",
+        "patch": "function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {\nassembly {\n        let l := and(shl(240, left), 0xFFFF0000)\n        let r := and(shl(240, right), 0x0000FFFF)\n        result := or(l, r)\n    }\n}",
+        "human_labeled_comment": "/**\n * @notice Packs two `bytes2` values into a single `bytes4` value.\n *\n * @param left The first `bytes2` value to be packed.\n * @param right The second `bytes2` value to be packed.\n * @return result The resulting `bytes4` value after packing the two `bytes2` values.\n *\n * Steps:\n * 1. Use inline assembly to perform bitwise operations:\n *    - Clear the upper 16 bits of `left` and `right` to ensure they are properly aligned.\n *    - Shift `right` by 16 bits to the right and combine it with `left` using the `or` operation.\n * 2. Return the resulting `bytes4` value.\n */",
+        "source_p": [
+            "\n",
+            "\n",
+            "\n",
+            "\n",
+            "\n",
+            "\n"
+        ],
+        "Compile_ERROR_Message": "Compiler run failed:\nError (2314): Expected ',' but got identifier\n       --> contracts/utils/Packing.sol:1336054:32:\n        |\n1336054 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {\n        |                                ^^^^\n\n",
+        "FAIL_Message": "None",
+        "patch_length": "7",
+        "GAS": "None",
+        "patch_pretty": [
+            "function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {\n",
+            "assembly {\n",
+            "        let l := and(shl(240, left), 0xFFFF0000)\n",
+            "        let r := and(shl(240, right), 0x0000FFFF)\n",
+            "        result := or(l, r)\n",
+            "    }\n",
+            "}"
+        ]
+    },
+    "patch/rag/ecnu-max_shot_1_context_False_testcase_False/patch_Packing.t.sol_function_pack_2_4_0": {
+        "file_path": "repository/openzeppelin-contracts/contracts/utils/Packing.sol",
+        "real_file_path": "repository/openzeppelin-contracts/test/utils/Packing.t.sol",
+        "COMPILE_PASS": "False",
+        "PASS": "False",
+        "patch": "function pack_2_4(bytes2 left, bytes4 right) internal  pure returns (bytes6 result) {\n/// @solidity memory-safe-assembly\n        assembly {\n            result := or(shl(240, left), shr(16, shl(224, right)))\n        }\n    }",
+        "human_labeled_comment": "/**\n * @notice Packs a `bytes2` and a `bytes4` value into a single `bytes6` value.\n *\n * @dev This function uses inline assembly to perform bitwise operations for packing.\n * - The `bytes2` value (`left`) is shifted left by 240 bits to align it properly.\n * - The `bytes4` value (`right`) is shifted left by 224 bits to align it properly.\n * - The `bytes4` value is then shifted right by 16 bits to combine it with the `bytes2` value.\n * - The result is a `bytes6` value that combines both inputs.\n *\n * @param left The `bytes2` value to be packed.\n * @param right The `bytes4` value to be packed.\n * @return result The packed `bytes6` value.\n */\nfunction pack_2_4(bytes2 left, bytes4 right) internal pure returns (bytes6 result) {\n    assembly (\"memory-safe\") {\n        left := and(left, shl(240, not(0)))  // Shift `left` to align with the first 2 bytes.\n        right := and(right, shl(224, not(0)))  // Shift `right` to align with the next 4 bytes.\n        result := or(left, shr(16, right))  // Combine `left` and `right` into a single `bytes6` value.\n    ",
+        "source_p": [
+            "\n",
+            "\n",
+            "\n",
+            "\n",
+            "\n",
+            "\n"
+        ],
+        "Compile_ERROR_Message": "Compiler run failed:\nError (2314): Expected ',' but got identifier\n       --> contracts/utils/Packing.sol:1336052:32:\n        |\n1336052 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {\n        |                                ^^^^\n\n",
+        "FAIL_Message": "None",
+        "patch_length": "6",
+        "GAS": "None",
+        "patch_pretty": [
+            "function pack_2_4(bytes2 left, bytes4 right) internal  pure returns (bytes6 result) {\n",
+            "/// @solidity memory-safe-assembly\n",
+            "        assembly {\n",
+            "            result := or(shl(240, left), shr(16, shl(224, right)))\n",
+            "        }\n",
+            "    }"
+        ]
+    }
+}

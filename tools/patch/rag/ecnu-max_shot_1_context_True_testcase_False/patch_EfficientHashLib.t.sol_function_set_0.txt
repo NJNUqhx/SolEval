@@ -1,0 +1,7 @@
+function set(bytes32[] memory buffer, uint256 i, uint256 value) internal  pure returns (bytes32[] memory) {
+assembly {
+        let offset := add(add(buffer, 0x20), mul(i, 0x20))
+        mstore(offset, value)
+    }
+    return buffer;
+}

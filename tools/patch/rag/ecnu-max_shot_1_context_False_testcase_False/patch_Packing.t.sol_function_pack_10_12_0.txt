@@ -1,41 +1,8 @@
 function pack_10_12(bytes10 left, bytes12 right) internal  pure returns (bytes22 result) {
-function pack_10_12(bytes10 left, bytes12 right) internal  pure returns (bytes22 result) {
+/// @solidity memory-safe-assembly
 assembly {
-            // Load the 32-byte words containing the input values from memory.
-            // `left` is a bytes10, stored in the first 32 bytes of its memory slot.
-            // `right` is a bytes12, stored in the first 32 bytes of its memory slot.
-            let l_val := mload(left)
-            let r_val := mload(right)
-
-            // Step 1: Clear the lower bits of `left` to ensure only the top 10 bytes (80 bits) remain.
-            // A bytes10 occupies the most significant 10 bytes of a 32-byte word.
-            // We need to zero out the lower 22 bytes (176 bits).
-            // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000 (top 10 bytes set)
-            // However, since `left` is already a bytes10, Solidity ensures upper alignment, 
-            // but to be safe and explicit per requirements ("Clears the lower 176 bits"):
-            // Shift left by 176 bits to move significant data to the very top, then shift right by 176 to zero-fill bottom.
-            l_val := shr(176, shl(176, l_val))
-
-            // Step 2: Clear the lower bits of `right` to prepare for positioning.
-            // A bytes12 occupies the most significant 12 bytes of a 32-byte word.
-            // We need to zero out the lower 20 bytes (160 bits).
-            // Shift left by 160 bits, then shift right by 160 bits.
-            r_val := shr(160, shl(160, r_val))
-
-            // Step 3: Combine the values.
-            // The requirement states: "shifting `right` 80 bits to the right and performing a bitwise OR with `left`".
-            // Currently, `l_val` has data in bits [255:176] (top 80 bits).
-            // Currently, `r_val` has data in bits [255:160] (top 96 bits).
-            // We want `left` in the top 10 bytes and `right` in the next 12 bytes of the `bytes22` result.
-            // A `bytes22` result will have data in bits [255:80] (top 176 bits).
-            // `left` (10 bytes) should be at [255:176].
-            // `right` (12 bytes) should be at [175:80].
-            
-            // Current `r_val` has data at [255:160]. To move it to [175:80], we need to shift it right by 80 bits.
-            // (255 - 80 = 175, 160 - 80 = 80).
-            let r_shifted := shr(80, r_val)
-
-            // Perform bitwise OR
-            result := or(l_val, r_shifted)
-        }
-    }
+    let l := and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000)
+    let r := shr(80, and(right, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000))
+    result := or(l, r)
+}
+}

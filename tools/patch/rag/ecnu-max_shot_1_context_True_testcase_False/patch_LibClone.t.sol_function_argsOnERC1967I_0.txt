@@ -1,0 +1,18 @@
+function argsOnERC1967I(address instance, uint256 start, uint256 end) internal  view returns (bytes memory args) {
+if (end > 0xffff) {
+        end = 0xffff;
+    }
+    uint256 d = end - start;
+    assembly {
+        args := mload(0x40)
+        mstore(0x40, add(args, add(0x20, d)))
+        mstore(args, d)
+        let data := add(args, 0x20)
+        extcodecopy(instance, data, start, d)
+        if iszero(byte(0, mload(add(data, sub(d, 1))))) {
+            d := sub(d, 1)
+            mstore(args, d)
+        }
+        mstore(add(data, d), 0)
+    }
+} 

@@ -1,11 +1,9 @@
 function replace_8_2(bytes8 self, bytes2 value, uint8 offset) internal  pure returns (bytes8 result) {
-function replace_8_2(bytes8 self, bytes2 value, uint8 offset) internal  pure returns (bytes8 result) {
-extract_8_2(self, offset);
-    assembly {
-        let v := and(value, 0xffff)
-        let shift := shl(3, sub(7, offset))
-        let old := shr(shift, shl(shift, shr(sub(248, shift), self)))
-        old := shl(shift, old)
-        v := shl(shift, v)
-        result := xor(xor(self, old), v)
+bytes2 old = extract_8_2(self, offset);
+        assembly {
+            let v := and(shl(240, value), 0xffff000000000000000000000000000000000000000000000000000000000000)
+            let o := and(shl(240, old), 0xffff000000000000000000000000000000000000000000000000000000000000)
+            let shift := sub(120, mul(offset, 8))
+            result := xor(xor(self, shr(shift, o)), shr(shift, v))
+        }
     }

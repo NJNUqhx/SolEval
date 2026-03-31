@@ -1,0 +1,10 @@
+function get(Bitmap storage bitmap, uint256 index) internal  view returns (bool isSet) {
+uint256 byteIndex = index / 8;
+    uint256 bitIndex = index % 8;
+    bytes32 byteValue = bitmap.data[byteIndex];
+    assembly {
+        let mask := shl(bitIndex, 1)
+        let bit := and(byteValue, mask)
+        isSet := iszero(iszero(bit))
+    }
+} 

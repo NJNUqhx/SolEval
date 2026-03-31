@@ -1,0 +1,3 @@
+function encode(bytes memory data, bool fileSafe) internal  pure returns (string memory result) {
+result = encode(data, fileSafe, false);
+    }

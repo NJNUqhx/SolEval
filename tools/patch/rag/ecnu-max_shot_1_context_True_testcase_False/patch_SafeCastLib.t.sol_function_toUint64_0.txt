@@ -1,0 +1,4 @@
+function toUint64(uint256 x) internal  pure returns (uint64) {
+if (x >= (1 << 64)) revert();
+        return uint64(x);
+    }

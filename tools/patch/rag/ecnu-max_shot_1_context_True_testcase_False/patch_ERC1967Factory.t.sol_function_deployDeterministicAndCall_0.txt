@@ -1,0 +1,23 @@
+function deployDeterministicAndCall(address implementation, address admin, bytes32 salt, bytes calldata data) public  payable returns (address proxy) {
+if (uint160(salt) != 0 && uint160(salt) != uint160(msg.sender)) {
+            revert("Salt must start with caller");
+        }
+        bytes memory initCode = abi.encodePacked(
+            type(DeterministicProxy).creationCode,
+            abi.encode(implementation, admin)
+        );
+        assembly {
+            proxy := create2(callvalue(), add(initCode, 0x20), mload(initCode), salt)
+        }
+        if (proxy == address(0)) {
+            revert("Deployment failed");
+        }
+        if (data.length > 0) {
+            (bool success, ) = proxy.call(data);
+            if (!success) {
+                assembly {
+                    revert(add(0x20, returndatasize()), returndatasize())
+                }
+            }
+        }
+    }

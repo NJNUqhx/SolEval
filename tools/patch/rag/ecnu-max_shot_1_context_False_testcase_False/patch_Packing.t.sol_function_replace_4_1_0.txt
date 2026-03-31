@@ -1,38 +1,8 @@
 function replace_4_1(bytes4 self, bytes1 value, uint8 offset) internal  pure returns (bytes4 result) {
-function replace_4_1(bytes4 self, bytes1 value, uint8 offset) internal  pure returns (bytes4 result) {
 assembly {
-        // Ensure offset is within bounds (0-3). If not, the behavior is undefined per typical low-level assumptions,
-        // but we proceed assuming valid input as per requirement context.
-        
-        // Load the original 4 bytes into a temporary variable
-        let original := self
-        
-        // Calculate the shift amount: (3 - offset) * 8 to align the target byte to the least significant position
-        let shift := shl(3, sub(3, offset))
-        
-        // Extract the old byte at the specific offset
-        let oldByte := shr(shift, original)
-        oldByte := and(oldByte, 0xFF)
-        
-        // Extract the new value and ensure it's masked to 1 byte
-        let newByte := and(value, 0xFF)
-        
-        // If the old byte is the same as the new byte, no change needed, return original
-        if eq(oldByte, newByte) {
-            result := original
-            leave
+            let oldByte := shr(sub(248, mul(8, offset)), self)
+            let mask := shl(sub(248, mul(8, offset)), 0xff)
+            let newVal := shl(sub(248, mul(8, offset)), and(byte(0, value), 0xff))
+            result := xor(xor(self, and(self, mask)), newVal)
         }
-        
-        // Calculate the mask to zero out the old byte at the specific position
-        // We shift the 0xFF mask to the correct position
-        let mask := shl(shift, 0xFF)
-        
-        // Clear the old byte in the original value: original & (~mask)
-        let cleared := and(original, not(mask))
-        
-        // Shift the new byte to the correct position
-        let shiftedNew := shl(shift, newByte)
-        
-        // Combine the cleared value with the new byte: cleared | shiftedNew
-        result := or(cleared, shiftedNew)
-    }
+}

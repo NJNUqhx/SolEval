@@ -1,28 +1,10 @@
 function replace_16_4(bytes16 self, bytes4 value, uint8 offset) internal  pure returns (bytes16 result) {
-function replace_16_4(bytes16 self, bytes4 value, uint8 offset) internal  pure returns (bytes16 result) {
-    assembly {
-        // Ensure offset is within valid bounds (0 to 12) for a 4-byte replacement in 16 bytes
-        if gt(offset, 12) { revert(0, 0) }
-
-        // Calculate the number of bits to shift (offset * 8)
-        let shift := mul(offset, 8)
-
-        // Load the original 16-byte value
-        let original := self
-
-        // Mask the input value to ensure it's exactly 4 bytes (32 bits)
-        let maskedValue := and(value, 0xFFFFFFFF)
-
-        // Shift the new value to the correct position
-        let shiftedValue := shl(shift, maskedValue)
-
-        // Create a mask for the 4-byte segment at the given offset
-        // 0xFFFFFFFF shifted to the position of the segment
-        let segmentMask := shl(shift, 0xFFFFFFFF)
-
-        // Clear the existing 4-byte segment in the original value
-        let clearedOriginal := and(original, not(segmentMask))
-
-        // Combine the cleared original with the shifted new value
-        result := or(clearedOriginal, shiftedValue)
+bytes4 old;
+        assembly {
+            let shift := shl(3, sub(16, add(offset, 4)))
+            let mask := shr(shift, 0xFFFFFFFF000000000000000000000000000000000000000000000000)
+            old := shr(shift, shl(shift, self))
+            let newValue := shr(shift, shl(shift, value))
+            result := xor(xor(self, old), newValue)
+        }
     }

@@ -1,8 +1,0 @@
-function verify(bytes32 h, bytes32 r, bytes32 s, bytes32 qx, bytes32 qy) internal  view returns (bool) {
-function verify(bytes32 h, bytes32 r, bytes32 s, bytes32 qx, bytes32 qy) internal  view returns (bool) {
-    (bool valid, bool supported) = _tryVerifyNative(h, r, s, qx, qy);
-        if (supported) {
-            return valid;
-        }
-        return verifySolidity(h, r, s, qx, qy);
-    }

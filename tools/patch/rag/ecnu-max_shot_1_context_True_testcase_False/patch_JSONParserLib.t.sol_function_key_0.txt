@@ -1,0 +1,8 @@
+function key(Item memory item) internal  pure returns (string memory result) {
+if (item._data & _PARENT_IS_OBJECT != 0) {
+            string memory queryResult = _query(item._data, 1);
+            assembly {
+                result := queryResult
+            }
+        }
+    }

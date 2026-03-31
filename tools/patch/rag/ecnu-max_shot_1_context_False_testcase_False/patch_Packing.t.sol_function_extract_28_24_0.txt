@@ -1,17 +1,7 @@
 function extract_28_24(bytes28 self, uint8 offset) internal  pure returns (bytes24 result) {
-function extract_28_24(bytes28 self, uint8 offset) internal  pure returns (bytes24 result) {
-if (offset > 4) {
-            revert OutOfRangeAccess();
-        }
-
-        assembly {
-            // Shift the input left by 8 * offset to align the desired 24-byte segment
-            // Then mask with 0xFFFFFF... (24 bytes of 1s) to retain only 24 bytes
-            // The mask for 24 bytes is: 0x00FFFFFF... (4 leading zeros, 24 ones) in a 32-byte word
-            // Which is equivalent to shifting right by 64 bits (32 - 24 = 8 bytes = 64 bits) after left shifting
-            // Or more directly: (self << (8 * offset)) >> 64
-            
-            let shifted := shl(mul(8, offset), self)
-            result := shr(64, shifted)
-        }
+if (offset > 4) revert OutOfRangeAccess();
+    assembly {
+        let shifted := shl(mul(8, offset), self)
+        result := and(shifted, not(shl(192, 0)))
     }
+}

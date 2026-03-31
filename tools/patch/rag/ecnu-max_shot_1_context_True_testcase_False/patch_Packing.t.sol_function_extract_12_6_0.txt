@@ -1,0 +1,6 @@
+function extract_12_6(bytes12 self, uint8 offset) internal  pure returns (bytes6 result) {
+require(offset <= 6, "OutOfRangeAccess");
+    assembly {
+        result := shr(mul(sub(12, offset), 8), shl(mul(offset, 8), self))
+    }
+}

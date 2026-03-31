@@ -1,0 +1,188 @@
+function invMod(uint256 a, uint256 n) internal  pure returns (uint256) {
+if (n == 0) return 0;
+    uint256 remainder = a % n;
+    uint256 gcd = n;
+    uint256 x = 0;
+    uint256 y = 1;
+
+    while (remainder != 0) {
+        uint256 quotient = gcd / remainder;
+        uint256 temp = gcd % remainder;
+        gcd = remainder;
+        remainder = temp;
+
+        temp = x;
+        x = y;
+        y = temp + quotient * y; // This can overflow, but in mod inverse logic with uint256, we handle sign differently or assume inputs fit. 
+        // However, standard Extended Euclidean for uint256 requires careful handling of negative coefficients.
+        // Since Solidity doesn't have negative uints, we track the sign implicitly or use a different approach.
+        // A common pattern for uint256 invMod is using the binary extended Euclidean algorithm or ensuring intermediate values don't overflow by using assembly or a library.
+        // Given the strict requirement to follow the steps provided which imply signed arithmetic for coefficients:
+        // We will implement a version that works for typical curve fields where n is large prime and a < n.
+        // To strictly follow the "steps" with uint256 without external libraries for signed math, we note that `y` in the loop represents the coefficient for `n` and `x` for `a`.
+        // Actually, the standard iterative update `x_new = x_old - quotient * x_prev` involves subtraction.
+        // Let's rewrite using the standard variable naming for Extended Euclidean to ensure correctness:
+        // r0 = n, r1 = a
+        // t0 = 0, t1 = 1 (coefficient for a)
+        // We want t such that a*t = 1 mod n.
+        
+        // Re-initializing for clarity and correctness within uint256 constraints:
+        // The prompt asks for specific variable names: remainder, gcd, x, y.
+        // Let's stick to the logic: ax + ny = gcd. We want x.
+        // Since Solidity uint256 cannot be negative, we must perform calculations modulo n or handle the "negative" by adding n repeatedly? No, that's inefficient.
+        // The standard way to do this in Solidity for ECC is often using the fact that we know the modulus is prime and using Fermat's Little Theorem (a^(n-2)), OR a carefully implemented Extended Euclidean that handles the "negative" by storing the complement if it goes below zero.
+        // However, the prompt explicitly asks for the Extended Euclidean Algorithm steps.
+        // Let's assume the environment handles the logic where `y` (which acts as the accumulator for the inverse) might conceptually go negative, but in the specific sequence of updates for `invMod`, we can manage it.
+        // Actually, looking at the update: `x, y = y, x - quotient * y`.
+        // If we strictly follow the prompt's variable initialization:
+        // x=0, y=1.
+        // Loop:
+        // q = gcd / remainder
+        // (gcd, remainder) = (remainder, gcd % remainder)
+        // (x, y) = (y, x - q * y) -> Here `x - q * y` can be negative.
+        
+        // To make this work in pure Solidity uint256 without assembly for signed math, we usually check if `q * y > x` and handle accordingly, OR we rely on the fact that for the modular inverse, we only care about the result mod n.
+        // But the intermediate coefficients can exceed n.
+        // A robust pure Solidity implementation of Extended Euclidean for uint256 often looks like this:
+        
+        // Let's restart the logic inside the function to be safe and correct for uint256:
+        // We will use the standard `t` variable approach which is equivalent to `x` in the prompt's context of `ax + by = gcd`.
+        // Prompt says: coefficients `x` and `y` initialized to 0 and 1.
+        // Equation: `a * x + n * y = gcd`. Initially `a*0 + n*1 = n` (matches gcd=n).
+        // Next step would be `a*1 + n*(-q) = remainder`.
+        // So `x` becomes 1, `y` becomes negative.
+        // Since we can't store negative, we can store `y` as `n - (q*y % n)`? No, the coefficient grows larger than n.
+        
+        // Alternative Interpretation: The prompt might be pseudocode. I must implement it in Solidity.
+        // The most reliable way to implement Extended Euclidean in Solidity for modular inverse without overflow issues on coefficients is to use the property that we only need the result modulo n, but the intermediate steps of the Euclidean algorithm for coefficients are not bounded by n.
+        // HOWEVER, there is a trick. We can perform the calculation using the fact that if we only care about `x mod n`, we can do all coefficient arithmetic modulo n? No, that breaks the GCD logic.
+        
+        // Let's look at the constraints. Usually `invMod` is used for field elements.
+        // If I strictly follow the steps, I risk overflow or negative number issues.
+        // But wait, the prompt says "If the result x is negative, wrap it...". This implies `x` can be negative.
+        // In Solidity, `uint256` wraps around on underflow. `0 - 1` becomes `2^256 - 1`.
+        // If we let Solidity's unchecked underflow handle the "negative" representation, and then at the end check if `gcd == 1` and return `x % n`?
+        // No, because the equation `ax + ny = gcd` relies on exact integer arithmetic, not modular arithmetic on the coefficients.
+        // If `x` underflows, the equation holds in `Z` only if we interpret the uint256 as a signed two's complement number? No, Solidity doesn't do that automatically for math logic.
+        
+        // Correct approach for Solidity `invMod` using Extended Euclidean:
+        // We maintain `t` (the inverse candidate) and `newt`.
+        // r = n, newr = a
+        // t = 0, newt = 1
+        // while newr != 0:
+        //   q = r / newr
+        //   (r, newr) = (newr, r - q * newr)
+        //   (t, newt) = (newt, t - q * newt)
+        // If r > 1, return 0 (not invertible)
+        // If t < 0, return t + n
+        // Since we can't have `t < 0` in uint256, we check if `q * newt > t`. If so, the result `t - q * newt` is negative.
+        // We can compute `val = q * newt`. If `val > t`, then `res = n - (val - t) % n`? No, the coefficient isn't mod n.
+        // Actually, for the modular inverse, the coefficient `t` satisfies `|t| < n`.
+        // Wait, is that true? Yes, the coefficients in the extended Euclidean algorithm for `gcd(a, n)` where `a < n` are bounded by `n` in magnitude (except possibly the very last step which we don't use).
+        // So `t` will always be in range `(-n, n)`.
+        // Therefore, if `q * newt > t`, the result is negative, and its absolute value is `q * newt - t`.
+        // The actual value we want to store is `n - (q * newt - t)`.
+        // Let's verify: `t_new = t - q * newt`. If this is negative, `t_new = -(q * newt - t)`.
+        // We want to represent this negative number in a way that we can recover the positive inverse later.
+        // Or we can just store the negative value as `MAX_UINT - (abs(val) - 1)`? No, that complicates the next iteration.
+        // Better: Store `t` as a signed value? No, function signature returns uint256.
+        // We can use a boolean flag for sign? Or just compute modulo n at each step?
+        // NO, computing modulo n at each step for the coefficients `t` is valid ONLY if we are solving `a*t ≡ 1 (mod n)`. The Extended Euclidean Algorithm steps `t = t - q * newt` are linear. `(t - q * newt) mod n` is equal to `(t mod n - q * (newt mod n)) mod n`.
+        // YES! We can perform all coefficient arithmetic modulo `n`.
+        // Why? Because we only care about `x mod n` at the end. The equation `ax + ny = gcd` implies `ax ≡ gcd (mod n)`. If `gcd=1`, `ax ≡ 1 (mod n)`.
+        // The recurrence `x_{i+1} = x_{i-1} - q_i * x_i` holds.
+        // Does `x_{i+1} mod n = (x_{i-1} mod n - q_i * (x_i mod n)) mod n`? Yes.
+        // So we can safely do all `x` and `y` calculations modulo `n` to avoid overflow and negative issues!
+        // Wait, the prompt steps say "Update coefficients x and y to maintain the equation". It doesn't explicitly forbid mod n optimization, but step 5 says "If the result x is negative...". This suggests the naive integer approach.
+        // However, doing it naive in uint256 is dangerous/complex.
+        // But if I do mod n at each step, `x` never exceeds `n`, and subtraction `x - q*y` just needs standard modular subtraction `(x + n - (q*y)%n) % n`.
+        // Let's try to stick closer to the prompt's implied naive logic but use the modular arithmetic trick to ensure it works in Solidity, as `x` and `y` in the prompt are just helpers to find the inverse.
+        // Actually, if I use modular arithmetic for coefficients, the final `x` is already in `[0, n-1]` and positive. Step 5 would be a no-op.
+        // Is this allowed? The requirement says "Perform... using Extended Euclidean". It describes the algorithm. Using modular reduction on the coefficients is a valid implementation detail of that algorithm for the purpose of finding a modular inverse.
+        // BUT, let's look at the variable names again. `x` and `y`.
+        // If I do `x = (x + n - (quotient * y) % n) % n`, it satisfies the recurrence modulo n.
+        // Let's refine the loop to be safe.
+        
+        // Re-reading step 2: "Initialize ... x and y to 0 and 1".
+        // Step 3: "Update coefficients x and y".
+        // Step 5: "If result x is negative...".
+        // This specific flow suggests the author expects a signed intermediate.
+        // Since I cannot produce signed integers easily, and `uint256` underflow is defined (wrapping), maybe I can rely on wrapping?
+        // If `x` wraps, does the logic hold? `a * (wrapped_x) + n * (wrapped_y)` won't equal `gcd` in standard arithmetic.
+        // So wrapping is not an option for the equation validity.
+        // The modular reduction on coefficients IS the correct way to implement this in uint256.
+        // And if I do that, `x` is always positive. Step 5 is technically satisfied (it's not negative).
+        
+        // Let's write the code using modular arithmetic for coefficients to ensure safety and correctness.
+        // Variables:
+        // gcd (r0), remainder (r1)
+        // x (t0), y (t1) -> representing coefficients for `a`.
+        // Init: r0=n, r1=a%n. t0=0, t1=1.
+        // Loop while r1 != 0:
+        // q = r0 / r1
+        // (r0, r1) = (r1, r0 % r1)
+        // (t0, t1) = (t1, (t0 - q * t1) % n)  <-- Careful with subtraction
+        
+        // Wait, the prompt uses `x` and `y` as the two coefficients.
+        // Init: x=0, y=1.
+        // Loop:
+        // q = gcd / remainder
+        // update gcd, remainder
+        // update x, y: new_x = y, new_y = x - q*y.
+        // If I do mod n: new_y = (x + n - (q * y) % n) % n.
+        
+        // Let's implement this. It fits the "Extended Euclidean Algorithm" requirement and returns the correct inverse.
+        
+        // One catch: Step 4 "If gcd is not 1". The `gcd` variable in the loop will hold the GCD.
+        // Step 5 "If x is negative". With mod n arithmetic, it won't be. I'll leave the check there but it will pass.
+        
+        // Wait, there is a small detail. `a` might be >= `n`. The prompt says `remainder = a % n`.
+        // If `a % n == 0`, then `remainder` is 0 immediately. Loop doesn't run. `gcd` is `n`.
+        // If `n != 1`, returns 0. Correct.
+        
+        // Implementation details:
+        // Use temporary variables for the swap.
+        
+        uint256 tempGcd = gcd;
+        uint256 tempRem = remainder;
+        uint256 tempX = x;
+        uint256 tempY = y;
+        
+        while (tempRem != 0) {
+            uint256 quotient = tempGcd / tempRem;
+            
+            // Update gcd and remainder
+            uint256 newRem = tempGcd % tempRem;
+            tempGcd = tempRem;
+            tempRem = newRem;
+            
+            // Update x and y (coefficients)
+            // new_x = old_y
+            // new_y = old_x - quotient * old_y
+            // We perform modulo n on the coefficient calculation to keep it in bounds and handle "negative" via addition of n.
+            uint256 prod = (quotient * tempY) % n;
+            uint256 newY;
+            if (tempX >= prod) {
+                newY = tempX - prod;
+            } else {
+                newY = n - (prod - tempX);
+            }
+            // Or simpler: newY = (tempX + n - prod) % n; (But tempX + n might overflow if tempX is huge? No, tempX < n, so tempX + n < 2n. 2n fits in uint256 unless n is near 2^256. 
+            // If n is close to 2^256, `tempX + n` might overflow.
+            // Safe way: if (tempX >= prod) tempX - prod else n - (prod - tempX).
+            
+            tempX = tempY;
+            tempY = newY;
+        }
+        
+        // Step 4
+        if (tempGcd != 1) {
+            return 0;
+        }
+        
+        // Step 5: If x is negative...
+        // In our implementation, tempX is always in [0, n-1].
+        // So we just return tempX.
+        return tempX;
+    }
+}

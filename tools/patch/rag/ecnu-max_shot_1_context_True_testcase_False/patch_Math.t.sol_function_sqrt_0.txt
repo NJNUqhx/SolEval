@@ -1,0 +1,7 @@
+function sqrt(uint256 a, Rounding rounding) internal  pure returns (uint256) {
+uint256 result = Math.sqrt(a);
+        if (rounding == Rounding.Up && result * result < a) {
+            result += 1;
+        }
+        return result;
+    }

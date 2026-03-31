@@ -1,0 +1,4 @@
+function toInt120(uint256 x) internal  pure returns (int120) {
+if (x >= 2**119) revert();
+        return int120(int256(x));
+    } 

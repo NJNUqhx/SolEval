@@ -1,0 +1,3 @@
+function slice(DynamicArray memory a, uint256 start) internal  pure returns (DynamicArray memory result) {
+result = slice(a, start, type(uint256).max);
+    }

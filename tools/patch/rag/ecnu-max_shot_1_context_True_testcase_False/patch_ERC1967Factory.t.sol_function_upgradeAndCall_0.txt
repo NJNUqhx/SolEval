@@ -1,0 +1,70 @@
+function upgradeAndCall(address proxy, address implementation, bytes calldata data) public  payable {
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Upgrades the implementation of a proxy contract and calls a function on the new implementation.
+ *
+ * @param proxy The address of the proxy contract to be upgraded.
+ * @param implementation The address of the new implementation contract.
+ * @param data The calldata to be passed to the new implementation after the upgrade.
+ *
+ * Steps:
+ * 1. Check if the caller is the admin of the proxy by comparing the stored admin address with the caller's address.
+ * 2. If the caller is not the admin, revert with an unauthorized error.
+ * 3. Prepare the calldata for the upgrade by storing the implementation address and the implementation slot in memory.
+ * 4. Copy the provided data into memory for the call.
+ * 5. Attempt to upgrade the proxy by calling the proxy with the prepared calldata.
+ * 6. If the call fails:
+ *    - If there is no returndata, revert with an `UpgradeFailed` error.
+ *    - Otherwise, revert with the returned error data.
+ * 7. If the call succeeds, emit an `Upgraded` event with the proxy and implementation addresses.
+ *
+ * @dev This function uses inline assembly to perform low-level operations and checks.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_CONTEXT
+No context for this function
+// END_OF_CONTEXT
+
+// START_OF_FUNCTION
+function upgradeAndCall(address proxy, address implementation, bytes calldata data) public  payable {
+        assembly {
+            // Load the admin address from storage using the proxy address shifted left by 96 bits as the slot.
+            let admin := sload(shl(96, proxy))
+            // Revert if the caller is not the admin.
+            if iszero(eq(caller(), admin)) {
+                mstore(0x00, _UNAUTHORIZED_ERROR_SELECTOR)
+                revert(0x1c, 0x04)
+            }
+
+            // Allocate memory for the calldata.
+            let m := mload(0x40)
+            // Store the new implementation address.
+            mstore(m, implementation)
+            // Store the implementation slot.
+            mstore(add(m, 0x20), _IMPLEMENTATION_SLOT)
+            // Copy the provided data into memory starting at offset 0x40.
+            calldatacopy(add(m, 0x40), data.offset, data.length)
+
+            // Calculate the total length of the calldata (0x40 + data.length).
+            let len := add(0x40, data.length)
+
+            // Call the proxy to upgrade and execute the data.
+            if iszero(call(gas(), proxy, callvalue(), m, len, 0x00, 0x00)) {
+                // If there is no returndata, revert with UpgradeFailed.
+                if iszero(returndatasize()) {
+                    mstore(0x00, _UPGRADE_FAILED_ERROR_SELECTOR)
+                    revert(0x1c, 0x04)
+                }
+                // Otherwise, bubble up the error.
+                returndatacopy(0x00, 0x00, returndatasize())
+                revert(0x00, returndatasize())
+            }
+
+            // Emit the Upgraded event.
+            log3(0, 0, _UPGRADED_EVENT_SIGNATURE, proxy, implementation)
+        }
+    }
+}

@@ -1,19 +1,13 @@
 function extract_32_10(bytes32 self, uint8 offset) internal  pure returns (bytes10 result) {
-function extract_32_10(bytes32 self, uint8 offset) internal  pure returns (bytes10 result) {
 if (offset > 22) {
             revert OutOfRangeAccess();
         }
 
-        /// @solidity memory-safe-assembly
         assembly {
-            // Shift left by (8 * offset) to move the desired 10 bytes to the most significant position.
-            // Then shift right by (8 * 22) to move those 10 bytes to the least significant position of the 32-byte word.
-            // 8 * 22 = 176 bits.
+            // Shift left by 8 * offset bits to align the desired 10-byte segment to the most significant position
             let shifted := shl(mul(8, offset), self)
-            let extracted := shr(176, shifted)
-            
-            // Store the result in the first slot of memory temporarily to load as bytes10
-            mstore(0x00, extracted)
-            result := mload(0x00)
+            // Mask to keep only the first 10 bytes (80 bits)
+            let mask := shr(176, not(0))
+            result := and(shifted, mask)
         }
     }

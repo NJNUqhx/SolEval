@@ -1,4 +1,0 @@
-function pUint8(DynamicBuffer memory buffer, uint8 data) internal  pure returns (DynamicBuffer memory result) {
-function pUint8(DynamicBuffer memory buffer, uint8 data) internal  pure returns (DynamicBuffer memory result) {
-_deallocate(result);
-result = p(buffer, _single(data, 1))

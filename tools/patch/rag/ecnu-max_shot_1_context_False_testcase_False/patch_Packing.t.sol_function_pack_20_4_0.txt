@@ -1,20 +1,6 @@
 function pack_20_4(bytes20 left, bytes4 right) internal  pure returns (bytes24 result) {
-function pack_20_4(bytes20 left, bytes4 right) internal  pure returns (bytes24 result) {
 /// @solidity memory-safe-assembly
         assembly {
-            // Mask `left` to ensure it occupies the upper 20 bytes of a 32-byte word.
-            // Shift left by 12 bytes (96 bits) to move the 20-byte value to the top,
-            // then shift right by 12 bytes to zero out the lower 12 bytes.
-            let l := shl(96, shr(96, left))
-
-            // Mask `right` to ensure it occupies the lower 4 bytes of a 32-byte word.
-            // Shift left by 28 bytes (224 bits) to move the 4-byte value to the top,
-            // then shift right by 28 bytes to zero out the upper 28 bytes.
-            let r := shr(224, shl(224, right))
-
-            // Combine the values.
-            // `l` is in the top 20 bytes, `r` is in the bottom 4 bytes.
-            // They do not overlap, so OR them together.
-            result := or(l, r)
+            result := or(shl(32, left), shr(192, right))
         }
     }

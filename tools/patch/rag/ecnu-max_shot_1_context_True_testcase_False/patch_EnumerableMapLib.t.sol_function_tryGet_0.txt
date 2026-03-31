@@ -1,0 +1,4 @@
+function tryGet(AddressToAddressMap storage map, address key) internal  view returns (bool exists, address value) {
+value = map._inner._keys[key];
+exists = value != address(0);
+}

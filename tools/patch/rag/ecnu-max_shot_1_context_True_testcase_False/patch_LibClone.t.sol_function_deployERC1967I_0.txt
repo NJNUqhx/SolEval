@@ -1,0 +1,92 @@
+function deployERC1967I(uint256 value, address implementation, bytes memory args) internal   returns (address instance) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let argsLength := mload(args)
+            let argsOffset := add(args, 0x20)
+            let freeMem := mload(0x40)
+            
+            // Copy args to free memory
+            calldatacopy(freeMem, argsOffset, argsLength)
+            
+            // Proxy initialization code (ERC1967 style)
+            // 3d602d80600a3d3981f3363d3d373d3d3d363d73 + [20 bytes impl] + 5af43d5f5f3e6029573d5ffd5b3d5ff3
+            mstore(freeMem, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+            mstore(add(freeMem, 0x14), implementation)
+            mstore(add(freeMem, 0x28), 0x5af43d5f5f3e6029573d5ffd5b3d5ff300000000000000000000000000000000)
+            
+            let codeOffset := freeMem
+            let codeLength := add(0x36, argsLength) // 0x36 = 54 bytes (prefix + suffix), plus args
+            
+            // Adjust codeLength to include the args properly in the creation code
+            // The structure is: [Init Code Prefix][Impl][Init Code Suffix][Args]
+            // We need to shift the suffix and append args. 
+            // Actually, standard ERC1967 creation code places args at the end.
+            // Let's reconstruct properly:
+            // Prefix (20 bytes): 3d602d80600a3d3981f3363d3d373d3d3d363d73
+            // Impl (20 bytes)
+            // Suffix (26 bytes): 5af43d5f5f3e6029573d5ffd5b3d5ff3
+            // Args (variable)
+            
+            // Re-doing memory layout for clarity and correctness
+            // Total length = 20 (prefix) + 20 (impl) + 26 (suffix) + argsLength
+            let totalLength := add(0x42, argsLength) // 0x42 = 66 bytes
+            
+            // Move args to correct position if they were copied to the very start
+            if gt(argsLength, 0) {
+                let dest := add(add(codeOffset, 0x42), 0) // Start of args
+                let src := add(codeOffset, 0x20) // Where we initially copied? No, let's just recopy carefully.
+                
+                // Let's restart the memory build to be safe
+                // 1. Write Prefix
+                mstore(codeOffset, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+                // 2. Write Impl
+                mstore(add(codeOffset, 0x14), implementation)
+                // 3. Write Suffix part 1 (first 8 bytes of 26)
+                mstore(add(codeOffset, 0x28), 0x5af43d5f5f3e6029) 
+                // 4. Write Suffix part 2 (next 18 bytes) - need to be careful with alignment
+                // 26 bytes total suffix. 8 written. 18 left.
+                // 0x573d5ffd5b3d5ff3 is 8 bytes.
+                // We need: 5af43d5f5f3e6029 573d5ffd5b3d5ff3 (16 bytes) + 000000000000000000 (10 bytes)? 
+                // Wait, 5af43d5f5f3e6029573d5ffd5b3d5ff3 is exactly 18 bytes? 
+                // 5a f4 3d 5f 5f 3e 60 29 (8)
+                // 57 3d 5f fd 5b 3d 5f f3 (8)
+                // Total 16 bytes? Let's count hex chars: 32 chars = 16 bytes.
+                // The standard suffix is 16 bytes? 
+                // Let's re-verify the standard minimal proxy creation code suffix.
+                // Usually: 5af43d5f5f3e6029573d5ffd5b3d5ff3 (18 bytes? No, 16 bytes).
+                // Let's assume the provided snippet in the prompt context implies specific bytes.
+                // Prompt previous function used: 0x5af43d5f5f3e6029573d5ffd5b3d5ff3 (16 bytes).
+                // But ERC1967 proxy creation code usually pushes args.
+                // Standard ERC1967 creation code:
+                // 3d602d80600a3d3981f3363d3d373d3d3d363d73 [impl] 5af43d5f5f3e6029573d5ffd5b3d5ff3
+                // Prefix: 20 bytes.
+                // Impl: 20 bytes.
+                // Suffix: 16 bytes? 
+                // Let's just construct the buffer dynamically.
+                
+                // Resetting approach to be precise:
+                // Offset 0x00: Prefix (20 bytes)
+                // Offset 0x14: Implementation (20 bytes)
+                // Offset 0x28: Suffix (16 bytes) -> 5af43d5f5f3e6029573d5ffd5b3d5ff3
+                // Offset 0x38: Args
+                
+                mstore(add(codeOffset, 0x28), 0x5af43d5f5f3e6029573d5ffd5b3d5ff300000000000000000000000000000000)
+                
+                // Copy args to 0x38
+                if argsLength {
+                    calldatacopy(add(codeOffset, 0x38), argsOffset, argsLength)
+                }
+            } else {
+                 mstore(codeOffset, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+                 mstore(add(codeOffset, 0x14), implementation)
+                 mstore(add(codeOffset, 0x28), 0x5af43d5f5f3e6029573d5ffd5b3d5ff300000000000000000000000000000000)
+            }
+            
+            instance := create(value, codeOffset, add(0x38, argsLength))
+            
+            if iszero(instance) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+        }
+}

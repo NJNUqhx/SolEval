@@ -1,67 +1,8 @@
 function replace_12_2(bytes12 self, bytes2 value, uint8 offset) internal  pure returns (bytes12 result) {
-function replace_12_2(bytes12 self, bytes2 value, uint8 offset) internal  pure returns (bytes12 result) {
 assembly {
-            // Step 1: Extract the existing 2-byte value at the specified offset.
-            // We assume extract_12_2 is available in the context or inline the logic if needed.
-            // Since the prompt implies using `extract_12_2`, we treat it as a known internal helper.
-            // However, to ensure the assembly block is self-contained and robust based on standard patterns:
-            // We will manually extract the old 2 bytes from `self` at `offset`.
-            
-            // Load the 12-byte value into a 32-byte slot (aligned to the left usually, but bytes12 is right-aligned in memory representation for value types? 
-            // Actually, in Solidity assembly, bytes12 is stored in the lower 12 bytes of a 32-byte word if treated as a value, 
-            // BUT strictly speaking, `bytes12` is a value type. When loaded, it occupies the least significant 12 bytes.
-            // Shift amount calculation: (12 - 2 - offset) * 8? No.
-            // Let's assume standard right-aligned storage for value types:
-            // bytes12 `self` has data in bits [0..95] of the 256-bit word? 
-            // Actually, Solidity stores fixed-size bytes types right-aligned. 
-            // So byte 0 is at bit position (12-1)*8 = 88? No.
-            // Byte 0 is the most significant byte of the 12. 
-            // If `self` is 0x00...00[D0 D1 ... D11], then D0 is at bit 96 (if 32 bytes total) ? 
-            // Let's stick to the logic: We need to isolate 2 bytes at `offset`.
-            // Total bytes = 12. Offset is 0-indexed from the left (most significant).
-            // Shift right by (12 - 2 - offset) * 8 to bring the target 2 bytes to the least significant position?
-            // Actually, easier approach:
-            // 1. Create a mask for the 2 bytes at `offset`.
-            // 2. Clear those bytes in `self`.
-            // 3. Insert `value` shifted to `offset`.
-            
-            // Let `s` be the integer representation of `self`.
-            let s := self
-            let v := and(value, 0xFFFF) // Ensure value is 2 bytes
-            
-            // Calculate shift amount for the specific 2-byte segment.
-            // In a 12-byte (96-bit) value stored right-aligned in a 256-bit word:
-            // The bytes are arranged: [0..0][Byte0][Byte1]...[Byte11]
-            // Byte0 is at bit position 88 (96 - 8). Byte `offset` is at bit (96 - 8*(offset+1)).
-            // We want to place the 2-byte value such that it aligns with `offset`.
-            // The 2 bytes occupy bits corresponding to `offset` and `offset+1`.
-            // Shift amount for the value to be inserted: (12 - 2 - offset) * 8.
-            // Example: offset=0 (first 2 bytes). Shift = (10)*8 = 80. 
-            // If self is 12 bytes, max bit index is 95. 
-            // Right aligned: bits 0-95 used. 
-            // Byte 0 is bits 88-95. Byte 1 is 80-87.
-            // So for offset 0, we need bits 80-95. Shift value left by 80.
-            // Formula: shift = (12 - 2 - offset) * 8.
-            
-            let shift := mul(sub(sub(12, 2), offset), 8)
-            
-            // Extract old value (for conceptual completeness, though XOR method skips explicit extraction variable)
-            // old_val := and(shr(shift, s), 0xFFFF) 
-            
-            // Create a mask to clear the target 2 bytes in `s`.
-            // Mask should be 0xFFFF shifted to the position, then inverted.
-            let clear_mask := not(shl(shift, 0xFFFF))
-            
-            // Clear the bytes in self
-            let cleared_self := and(s, clear_mask)
-            
-            // Shift the new value to the correct position
-            let shifted_val := shl(shift, v)
-            
-            // Combine: (self with holes) | (shifted new value)
-            // The requirement mentions XOR method: self ^ old ^ new. 
-            // Since (A & ~M) | B is equivalent to A ^ (A & M) ^ B if B doesn't overlap set bits of A outside M?
-            // Simpler: (self & ~mask) | (value << shift)
-            result := or(cleared_self, shifted_val)
+            let old := extract_12_2(self, offset)
+            let mask := shr(mul(sub(24, offset), 8), shl(112, 0xffff))
+            let shiftedNew := shr(mul(sub(24, offset), 8), shl(112, and(value, 0xffff)))
+            result := xor(xor(self, old), shiftedNew)
         }
     }

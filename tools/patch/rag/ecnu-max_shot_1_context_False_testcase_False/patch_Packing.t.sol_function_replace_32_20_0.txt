@@ -1,22 +1,8 @@
 function replace_32_20(bytes32 self, bytes20 value, uint8 offset) internal  pure returns (bytes32 result) {
-function replace_32_20(bytes32 self, bytes20 value, uint8 offset) internal  pure returns (bytes32 result) {
 assembly {
-        // Extract the existing 20-byte segment from 'self' at the given offset.
-        // We shift 'self' right so the target segment aligns to the least significant bytes,
-        // then mask with 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF (20 bytes of 1s).
-        let oldSegment := and(shr(mul(8, offset), self), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-        
-        // Mask the input 'value' to ensure it is treated strictly as 20 bytes.
-        let newSegment := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-        
-        // Shift the new segment to the correct position.
-        let shiftedNew := shl(mul(8, offset), newSegment)
-        
-        // Shift the old segment (which was extracted from the LSB position) back to its original position.
-        let shiftedOld := shl(mul(8, offset), oldSegment)
-        
-        // Perform the replacement using XOR logic:
-        // result = self ^ oldSegment_at_position ^ newSegment_at_position
-        // This clears the old bits and sets the new bits.
-        result := xor(xor(self, shiftedOld), shiftedNew)
+            let mask := shr(mul(8, offset), shl(96, not(0)))
+            let old := and(self, mask)
+            let new := and(shl(mul(8, sub(32, offset)), value), mask)
+            result := xor(xor(self, old), new)
+        }
     }

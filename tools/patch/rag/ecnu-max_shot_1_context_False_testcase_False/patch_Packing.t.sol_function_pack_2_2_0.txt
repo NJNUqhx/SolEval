@@ -1,8 +1,7 @@
 function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
-function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
-/// @solidity memory-safe-assembly
-    assembly {
-        // Clear upper bits and shift right to align, then combine with left
-        result := or(and(left, 0x0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff),
-                     shl(16, and(right, 0x0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)))
+assembly {
+        let l := and(shl(240, left), 0xFFFF0000)
+        let r := and(shl(240, right), 0x0000FFFF)
+        result := or(l, r)
     }
+}

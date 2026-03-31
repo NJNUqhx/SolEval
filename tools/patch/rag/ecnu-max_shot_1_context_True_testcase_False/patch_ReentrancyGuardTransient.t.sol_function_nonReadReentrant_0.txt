@@ -1,0 +1,21 @@
+function nonReadReentrant()  virtual {
+/// @solidity memory-safe-assembly
+        assembly {
+            let chainId := chainid()
+            let slot := not(0x00)
+            if eq(chainId, 1) {
+                if tload(slot) {
+                    mstore(0x00, 0xab143c06)
+                    revert(0x1c, 0x04)
+                }
+                tstore(slot, 1)
+            } else {
+                let self := address()
+                if eq(sload(slot), self) {
+                    mstore(0x00, 0xab143c06)
+                    revert(0x1c, 0x04)
+                }
+                sstore(slot, self)
+            }
+        }
+    }

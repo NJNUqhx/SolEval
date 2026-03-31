@@ -1,0 +1,64 @@
+function parseProposeUpgradeResponse(string memory stdout) internal  pure returns (ProposeUpgradeResponse memory) {
+ProposeUpgradeResponse memory response;
+        bytes memory data = bytes(stdout);
+        bytes memory proposalIdPrefix = bytes("Proposal ID: ");
+        bytes memory proposalUrlPrefix = bytes("Proposal URL: ");
+
+        uint256 dataLength = data.length;
+        uint256 i = 0;
+
+        while (i < dataLength) {
+            bool foundId = true;
+            for (uint256 j = 0; j < proposalIdPrefix.length; j++) {
+                if (i + j >= dataLength || data[i + j] != proposalIdPrefix[j]) {
+                    foundId = false;
+                    break;
+                }
+            }
+
+            if (foundId) {
+                uint256 start = i + proposalIdPrefix.length;
+                uint256 end = start;
+                while (end < dataLength && data[end] != 0x0a && data[end] != 0x0d) {
+                    end++;
+                }
+                bytes memory idBytes = new bytes(end - start);
+                for (uint256 k = 0; k < end - start; k++) {
+                    idBytes[k] = data[start + k];
+                }
+                response.proposalId = string(idBytes);
+                i = end;
+                continue;
+            }
+
+            bool foundUrl = true;
+            for (uint256 j = 0; j < proposalUrlPrefix.length; j++) {
+                if (i + j >= dataLength || data[i + j] != proposalUrlPrefix[j]) {
+                    foundUrl = false;
+                    break;
+                }
+            }
+
+            if (foundUrl) {
+                uint256 start = i + proposalUrlPrefix.length;
+                uint256 end = start;
+                while (end < dataLength && data[end] != 0x0a && data[end] != 0x0d) {
+                    end++;
+                }
+                bytes memory urlBytes = new bytes(end - start);
+                for (uint256 k = 0; k < end - start; k++) {
+                    urlBytes[k] = data[start + k];
+                }
+                response.proposalUrl = string(urlBytes);
+                i = end;
+                continue;
+            }
+
+            while (i < dataLength && data[i] != 0x0a) {
+                i++;
+            }
+            i++;
+        }
+
+        return response;
+    }

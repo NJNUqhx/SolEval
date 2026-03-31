@@ -1,23 +1,9 @@
 function replace_32_2(bytes32 self, bytes2 value, uint8 offset) internal  pure returns (bytes32 result) {
-function replace_32_2(bytes32 self, bytes2 value, uint8 offset) internal  pure returns (bytes32 result) {
 assembly {
-            // Extract the existing 2-byte value at the specified offset.
-            // Shift self right by (32 - offset - 2) * 8 to align the target 2 bytes to the least significant position.
-            let shift := shl(3, sub(sub(32, offset), 2))
-            let old := shr(shift, self)
-            // Mask to keep only the lower 16 bits (2 bytes).
-            old := and(old, 0xFFFF)
-
-            // Prepare the new value.
-            // Ensure `value` is treated as a number and masked to 2 bytes.
-            let newval := and(shr(240, value), 0xFFFF)
-
-            // Calculate the result using XOR logic:
-            // result = self ^ (old << shift) ^ (newval << shift)
-            // This effectively clears the old bits and sets the new bits at the correct position.
-            let shifted_old := shl(shift, old)
-            let shifted_new := shl(shift, newval)
-            
-            result := xor(xor(self, shifted_old), shifted_new)
+            let shift := shl(3, sub(32, add(offset, 2)))
+            let oldVal := shr(shift, self)
+            let maskedNewVal := and(shr(shift, shl(240, value)), 0xFFFF)
+            let maskedOldVal := and(oldVal, 0xFFFF)
+            result := xor(xor(self, shl(shift, maskedOldVal)), shl(shift, maskedNewVal))
         }
-    } 
+    }

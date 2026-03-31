@@ -1,0 +1,87 @@
+function lnWad(int256 x) internal  pure returns (int256 r) {
+function lnWad(int256 x) internal pure returns (int256 r) {
+    assembly {
+        if iszero(gt(x, 0)) {
+            mstore(0x00, 0xa31b40e700000000000000000000000000000000000000000000000000000000)
+            revert(0x1c, 0x04)
+        }
+
+        let k := 0
+        let r_val := x
+
+        if gt(r_val, 0xffffffffffffffffffffffffffffffff) {
+            k := add(k, 96)
+            r_val := shr(96, r_val)
+        }
+        if gt(r_val, 0xffffffffffff) {
+            k := add(k, 48)
+            r_val := shr(48, r_val)
+        }
+        if gt(r_val, 0xffffffff) {
+            k := add(k, 32)
+            r_val := shr(32, r_val)
+        }
+        if gt(r_val, 0xffff) {
+            k := add(k, 16)
+            r_val := shr(16, r_val)
+        }
+        if gt(r_val, 0xff) {
+            k := add(k, 8)
+            r_val := shr(8, r_val)
+        }
+        if gt(r_val, 0xf) {
+            k := add(k, 4)
+            r_val := shr(4, r_val)
+        }
+        if gt(r_val, 0x3) {
+            k := add(k, 2)
+            r_val := shr(2, r_val)
+        }
+        if gt(r_val, 0x1) {
+            k := add(k, 1)
+            r_val := shr(1, r_val)
+        }
+
+        let r_shifted := shl(sub(96, k), x)
+        let z := sub(r_shifted, 0x100000000000000000000000000000000)
+        let z_sq := mul(z, z)
+        let z_cb := mul(z_sq, z)
+        let z_4 := mul(z_sq, z_sq)
+        let z_5 := mul(z_4, z)
+        let z_6 := mul(z_4, z_sq)
+        let z_7 := mul(z_6, z)
+        let z_8 := mul(z_4, z_4)
+
+        let p := add(0x111111111111111111111111111111111, mul(0x222222222222222222222222222222222, z))
+        p := add(p, mul(0x333333333333333333333333333333333, z_sq))
+        p := add(p, mul(0x444444444444444444444444444444444, z_cb))
+        p := add(p, mul(0x555555555555555555555555555555555, z_4))
+        p := add(p, mul(0x666666666666666666666666666666666, z_5))
+        p := add(p, mul(0x777777777777777777777777777777777, z_6))
+        p := add(p, mul(0x888888888888888888888888888888888, z_7))
+        p := add(p, mul(0x999999999999999999999999999999999, z_8))
+
+        let q := add(0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, mul(0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, z))
+        q := add(q, mul(0xcccccccccccccccccccccccccccccccc, z_sq))
+        q := add(q, mul(0xdddddddddddddddddddddddddddddddd, z_cb))
+        q := add(q, mul(0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee, z_4))
+        q := add(q, mul(0xffffffffffffffffffffffffffffffff, z_5))
+        q := add(q, mul(0x101010101010101010101010101010101, z_6))
+        q := add(q, mul(0x111111111111111111111111111111111, z_7))
+        q := add(q, mul(0x121212121212121212121212121212121, z_8))
+
+        let ln_2 := 0xb17217f7d1cf79abc9e3b39803f2f6af
+        let ln_10_div_2_96 := 0x2f4b1f73a2c0c0c0c0c0c0c0c0c0c0c0
+        let scale := 0x55555555555555555555555555555555
+
+        let numerator := mul(p, scale)
+        let denominator := q
+        let fraction := div(numerator, denominator)
+
+        let term1 := mul(sub(96, k), ln_2)
+        let term2 := add(ln_10_div_2_96, fraction)
+        
+        r := add(term1, term2)
+    }
+}
+}

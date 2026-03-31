@@ -1,0 +1,4 @@
+function toInt240(uint256 x) internal  pure returns (int240) {
+if (x >= 2**239) revert();
+return int240(int256(x));
+}

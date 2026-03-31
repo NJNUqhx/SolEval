@@ -1,0 +1,76 @@
+function cdCompress(bytes memory data) internal  pure returns (bytes memory result) {
+assembly {
+        let dataPtr := add(data, 0x20)
+        let endPtr := add(dataPtr, mload(data))
+        let resultPtr := add(result, 0x20)
+        let z := 0
+        let y := 0
+
+        for { } lt(dataPtr, endPtr) { dataPtr := add(dataPtr, 1) } {
+            let byte := byte(0, mload(dataPtr))
+            if eq(byte, 0) {
+                z := add(z, 1)
+                if eq(y, 0) { } {
+                    mstore8(resultPtr, 0xff)
+                    resultPtr := add(resultPtr, 1)
+                    mstore8(resultPtr, sub(0xff, y))
+                    resultPtr := add(resultPtr, 1)
+                    y := 0
+                }
+            } else {
+                if eq(byte, 0xff) {
+                    y := add(y, 1)
+                    if eq(z, 0) { } {
+                        mstore8(resultPtr, 0x00)
+                        resultPtr := add(resultPtr, 1)
+                        mstore8(resultPtr, sub(0xff, z))
+                        resultPtr := add(resultPtr, 1)
+                        z := 0
+                    }
+                } else {
+                    if eq(z, 0) { } {
+                        mstore8(resultPtr, 0x00)
+                        resultPtr := add(resultPtr, 1)
+                        mstore8(resultPtr, sub(0xff, z))
+                        resultPtr := add(resultPtr, 1)
+                        z := 0
+                    }
+                    if eq(y, 0) { } {
+                        mstore8(resultPtr, 0xff)
+                        resultPtr := add(resultPtr, 1)
+                        mstore8(resultPtr, sub(0xff, y))
+                        resultPtr := add(resultPtr, 1)
+                        y := 0
+                    }
+                    mstore8(resultPtr, byte)
+                    resultPtr := add(resultPtr, 1)
+                }
+            }
+        }
+
+        if eq(z, 0) { } {
+            mstore8(resultPtr, 0x00)
+            resultPtr := add(resultPtr, 1)
+            mstore8(resultPtr, sub(0xff, z))
+            resultPtr := add(resultPtr, 1)
+        }
+        if eq(y, 0) { } {
+            mstore8(resultPtr, 0xff)
+            resultPtr := add(resultPtr, 1)
+            mstore8(resultPtr, sub(0xff, y))
+            resultPtr := add(resultPtr, 1)
+        }
+
+        let len := sub(resultPtr, add(result, 0x20))
+        mstore(result, len)
+        
+        let firstWord := mload(add(result, 0x20))
+        mstore(add(result, 0x20), not(firstWord))
+        
+        let afterPtr := add(result, add(len, 0x20))
+        mstore(afterPtr, 0)
+        
+        mstore(0x40, add(afterPtr, 0x20))
+    }
+    return result;
+}

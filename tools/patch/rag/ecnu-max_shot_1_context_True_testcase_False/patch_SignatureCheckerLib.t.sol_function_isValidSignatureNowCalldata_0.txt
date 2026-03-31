@@ -1,0 +1,40 @@
+function isValidSignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        if (signature.length == 64) {
+            assembly {
+                r := calldataload(add(signature.offset, 0x00))
+                s := calldataload(add(signature.offset, 0x20))
+                v := 27
+            }
+        } else if (signature.length == 65) {
+            assembly {
+                r := calldataload(add(signature.offset, 0x00))
+                s := calldataload(add(signature.offset, 0x20))
+                v := calldataload(add(signature.offset, 0x20))
+                v := byte(0, v)
+            }
+        } else {
+            return _isValidERC1271SignatureNow(signer, hash, signature);
+        }
+
+        address recoveredAddress = ecrecover(hash, v, r, s);
+        if (recoveredAddress != address(0) && recoveredAddress == signer) {
+            return true;
+        }
+
+        return _isValidERC1271SignatureNow(signer, hash, signature);
+    }
+
+    function _isValidERC1271SignatureNow(address signer, bytes32 hash, bytes calldata signature) private view returns (bool isValid) {
+        (bool success, bytes memory result) = signer.staticcall(
+            abi.encodeWithSelector(IERC1271.isValidSignature.selector, hash, signature)
+        );
+        return success && result.length == 32 && abi.decode(result, (bytes4)) == IERC1271.isValidSignature.selector;
+    }

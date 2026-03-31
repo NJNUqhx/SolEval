@@ -1,0 +1,9 @@
+function p(DynamicArray memory a, bytes32 data) internal  pure returns (DynamicArray memory result) {
+assembly {
+            let currentResult := mload(0x40)
+            if currentResult {
+                mstore(0x40, mload(add(currentResult, 0x20)))
+            }
+            result := p(a, and(data, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff))
+        }
+    }

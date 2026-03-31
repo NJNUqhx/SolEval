@@ -1,8 +1,0 @@
-function parseUint(string memory input, uint256 begin, uint256 end) internal  pure returns (uint256) {
-function parseUint(string memory input, uint256 begin, uint256 end) internal  pure returns (uint256) {
-    (bool success, uint256 value) = tryParseUint(input, begin, end);
-        if (!success) {
-            revert StringsInvalidChar();
-        }
-        return value;
-    }

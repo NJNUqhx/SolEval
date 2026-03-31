@@ -1,0 +1,6 @@
+function toInt248(uint256 x) internal  pure returns (int248) {
+if (x >= 0x8000000000000000000000000000000000000000000000000000000000000000) {
+            revert("Overflow");
+        }
+        return int248(int256(x));
+    }

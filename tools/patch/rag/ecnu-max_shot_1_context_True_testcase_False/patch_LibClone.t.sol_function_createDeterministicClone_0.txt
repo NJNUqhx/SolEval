@@ -1,0 +1,241 @@
+function createDeterministicClone(uint256 value, address implementation, bytes memory args, bytes32 salt) internal   returns (bool alreadyDeployed, address instance) {
+uint256 mptr;
+    uint256 argsLength;
+    assembly {
+        mptr := mload(0x40)
+        argsLength := mload(args)
+    }
+
+    require(argsLength <= 0x7FF, "Args too long");
+
+    bytes32 bytecodeHash;
+    assembly {
+        let dataPtr := add(args, 0x20)
+        let codePtr := add(mptr, 0x40)
+        
+        mstore(codePtr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73)
+        mstore(add(codePtr, 0x14), shr(96, shl(96, implementation)))
+        mstore(add(codePtr, 0x28), 0x5af43d82803e903d91602b57fd5bf3)
+        
+        let codeSize := add(0x37, argsLength)
+        if gt(argsLength, 0) {
+            mstore(add(codePtr, 0x37), mload(dataPtr))
+            if gt(argsLength, 0x20) {
+                mstore(add(codePtr, 0x57), mload(add(dataPtr, 0x20)))
+            }
+            if gt(argsLength, 0x40) {
+                mstore(add(codePtr, 0x77), mload(add(dataPtr, 0x40)))
+            }
+            if gt(argsLength, 0x60) {
+                mstore(add(codePtr, 0x97), mload(add(dataPtr, 0x60)))
+            }
+            if gt(argsLength, 0x80) {
+                mstore(add(codePtr, 0xb7), mload(add(dataPtr, 0x80)))
+            }
+             if gt(argsLength, 0xa0) {
+                mstore(add(codePtr, 0xd7), mload(add(dataPtr, 0xa0)))
+            }
+             if gt(argsLength, 0xc0) {
+                mstore(add(codePtr, 0xf7), mload(add(dataPtr, 0xc0)))
+            }
+             if gt(argsLength, 0xe0) {
+                mstore(add(codePtr, 0x117), mload(add(dataPtr, 0xe0)))
+            }
+             if gt(argsLength, 0x100) {
+                mstore(add(codePtr, 0x137), mload(add(dataPtr, 0x100)))
+            }
+             if gt(argsLength, 0x120) {
+                mstore(add(codePtr, 0x157), mload(add(dataPtr, 0x120)))
+            }
+             if gt(argsLength, 0x140) {
+                mstore(add(codePtr, 0x177), mload(add(dataPtr, 0x140)))
+            }
+             if gt(argsLength, 0x160) {
+                mstore(add(codePtr, 0x197), mload(add(dataPtr, 0x160)))
+            }
+             if gt(argsLength, 0x180) {
+                mstore(add(codePtr, 0x1b7), mload(add(dataPtr, 0x180)))
+            }
+             if gt(argsLength, 0x1a0) {
+                mstore(add(codePtr, 0x1d7), mload(add(dataPtr, 0x1a0)))
+            }
+             if gt(argsLength, 0x1c0) {
+                mstore(add(codePtr, 0x1f7), mload(add(dataPtr, 0x1c0)))
+            }
+             if gt(argsLength, 0x1e0) {
+                mstore(add(codePtr, 0x217), mload(add(dataPtr, 0x1e0)))
+            }
+             if gt(argsLength, 0x200) {
+                mstore(add(codePtr, 0x237), mload(add(dataPtr, 0x200)))
+            }
+             if gt(argsLength, 0x220) {
+                mstore(add(codePtr, 0x257), mload(add(dataPtr, 0x220)))
+            }
+             if gt(argsLength, 0x240) {
+                mstore(add(codePtr, 0x277), mload(add(dataPtr, 0x240)))
+            }
+             if gt(argsLength, 0x260) {
+                mstore(add(codePtr, 0x297), mload(add(dataPtr, 0x260)))
+            }
+             if gt(argsLength, 0x280) {
+                mstore(add(codePtr, 0x2b7), mload(add(dataPtr, 0x280)))
+            }
+             if gt(argsLength, 0x2a0) {
+                mstore(add(codePtr, 0x2d7), mload(add(dataPtr, 0x2a0)))
+            }
+             if gt(argsLength, 0x2c0) {
+                mstore(add(codePtr, 0x2f7), mload(add(dataPtr, 0x2c0)))
+            }
+             if gt(argsLength, 0x2e0) {
+                mstore(add(codePtr, 0x317), mload(add(dataPtr, 0x2e0)))
+            }
+             if gt(argsLength, 0x300) {
+                mstore(add(codePtr, 0x337), mload(add(dataPtr, 0x300)))
+            }
+             if gt(argsLength, 0x320) {
+                mstore(add(codePtr, 0x357), mload(add(dataPtr, 0x320)))
+            }
+             if gt(argsLength, 0x340) {
+                mstore(add(codePtr, 0x377), mload(add(dataPtr, 0x340)))
+            }
+             if gt(argsLength, 0x360) {
+                mstore(add(codePtr, 0x397), mload(add(dataPtr, 0x360)))
+            }
+             if gt(argsLength, 0x380) {
+                mstore(add(codePtr, 0x3b7), mload(add(dataPtr, 0x380)))
+            }
+             if gt(argsLength, 0x3a0) {
+                mstore(add(codePtr, 0x3d7), mload(add(dataPtr, 0x3a0)))
+            }
+             if gt(argsLength, 0x3c0) {
+                mstore(add(codePtr, 0x3f7), mload(add(dataPtr, 0x3c0)))
+            }
+             if gt(argsLength, 0x3e0) {
+                mstore(add(codePtr, 0x417), mload(add(dataPtr, 0x3e0)))
+            }
+             if gt(argsLength, 0x400) {
+                mstore(add(codePtr, 0x437), mload(add(dataPtr, 0x400)))
+            }
+             if gt(argsLength, 0x420) {
+                mstore(add(codePtr, 0x457), mload(add(dataPtr, 0x420)))
+            }
+             if gt(argsLength, 0x440) {
+                mstore(add(codePtr, 0x477), mload(add(dataPtr, 0x440)))
+            }
+             if gt(argsLength, 0x460) {
+                mstore(add(codePtr, 0x497), mload(add(dataPtr, 0x460)))
+            }
+             if gt(argsLength, 0x480) {
+                mstore(add(codePtr, 0x4b7), mload(add(dataPtr, 0x480)))
+            }
+             if gt(argsLength, 0x4a0) {
+                mstore(add(codePtr, 0x4d7), mload(add(dataPtr, 0x4a0)))
+            }
+             if gt(argsLength, 0x4c0) {
+                mstore(add(codePtr, 0x4f7), mload(add(dataPtr, 0x4c0)))
+            }
+             if gt(argsLength, 0x4e0) {
+                mstore(add(codePtr, 0x517), mload(add(dataPtr, 0x4e0)))
+            }
+             if gt(argsLength, 0x500) {
+                mstore(add(codePtr, 0x537), mload(add(dataPtr, 0x500)))
+            }
+             if gt(argsLength, 0x520) {
+                mstore(add(codePtr, 0x557), mload(add(dataPtr, 0x520)))
+            }
+             if gt(argsLength, 0x540) {
+                mstore(add(codePtr, 0x577), mload(add(dataPtr, 0x540)))
+            }
+             if gt(argsLength, 0x560) {
+                mstore(add(codePtr, 0x597), mload(add(dataPtr, 0x560)))
+            }
+             if gt(argsLength, 0x580) {
+                mstore(add(codePtr, 0x5b7), mload(add(dataPtr, 0x580)))
+            }
+             if gt(argsLength, 0x5a0) {
+                mstore(add(codePtr, 0x5d7), mload(add(dataPtr, 0x5a0)))
+            }
+             if gt(argsLength, 0x5c0) {
+                mstore(add(codePtr, 0x5f7), mload(add(dataPtr, 0x5c0)))
+            }
+             if gt(argsLength, 0x5e0) {
+                mstore(add(codePtr, 0x617), mload(add(dataPtr, 0x5e0)))
+            }
+             if gt(argsLength, 0x600) {
+                mstore(add(codePtr, 0x637), mload(add(dataPtr, 0x600)))
+            }
+             if gt(argsLength, 0x620) {
+                mstore(add(codePtr, 0x657), mload(add(dataPtr, 0x620)))
+            }
+             if gt(argsLength, 0x640) {
+                mstore(add(codePtr, 0x677), mload(add(dataPtr, 0x640)))
+            }
+             if gt(argsLength, 0x660) {
+                mstore(add(codePtr, 0x697), mload(add(dataPtr, 0x660)))
+            }
+             if gt(argsLength, 0x680) {
+                mstore(add(codePtr, 0x6b7), mload(add(dataPtr, 0x680)))
+            }
+             if gt(argsLength, 0x6a0) {
+                mstore(add(codePtr, 0x6d7), mload(add(dataPtr, 0x6a0)))
+            }
+             if gt(argsLength, 0x6c0) {
+                mstore(add(codePtr, 0x6f7), mload(add(dataPtr, 0x6c0)))
+            }
+             if gt(argsLength, 0x6e0) {
+                mstore(add(codePtr, 0x717), mload(add(dataPtr, 0x6e0)))
+            }
+             if gt(argsLength, 0x700) {
+                mstore(add(codePtr, 0x737), mload(add(dataPtr, 0x700)))
+            }
+             if gt(argsLength, 0x720) {
+                mstore(add(codePtr, 0x757), mload(add(dataPtr, 0x720)))
+            }
+             if gt(argsLength, 0x740) {
+                mstore(add(codePtr, 0x777), mload(add(dataPtr, 0x740)))
+            }
+             if gt(argsLength, 0x760) {
+                mstore(add(codePtr, 0x797), mload(add(dataPtr, 0x760)))
+            }
+             if gt(argsLength, 0x780) {
+                mstore(add(codePtr, 0x7b7), mload(add(dataPtr, 0x780)))
+            }
+             if gt(argsLength, 0x7a0) {
+                mstore(add(codePtr, 0x7d7), mload(add(dataPtr, 0x7a0)))
+            }
+             if gt(argsLength, 0x7c0) {
+                mstore(add(codePtr, 0x7f7), mload(add(dataPtr, 0x7c0)))
+            }
+             if gt(argsLength, 0x7e0) {
+                mstore(add(codePtr, 0x817), mload(add(dataPtr, 0x7e0)))
+            }
+        }
+        
+        bytecodeHash := keccak256(codePtr, codeSize)
+        
+        instance := create2(value, codePtr, codeSize, salt)
+        
+        if iszero(instance) {
+            let ptr := mload(0x40)
+            mstore(ptr, 0x3268119900000000000000000000000000000000000000000000000000000000)
+            revert(ptr, 0x04)
+        }
+        
+        let codeHashCheck := extcodehash(instance)
+        if eq(codeHashCheck, bytecodeHash) {
+            alreadyDeployed := 0
+        } else {
+            alreadyDeployed := 1
+            if gt(value, 0) {
+                let success := call(gas(), instance, value, 0, 0, 0, 0)
+                if iszero(success) {
+                    let ptr := mload(0x40)
+                    mstore(ptr, 0xb12d13eb00000000000000000000000000000000000000000000000000000000)
+                    revert(ptr, 0x04)
+                }
+            }
+        }
+        
+        mstore(0x40, mptr)
+    }
+}

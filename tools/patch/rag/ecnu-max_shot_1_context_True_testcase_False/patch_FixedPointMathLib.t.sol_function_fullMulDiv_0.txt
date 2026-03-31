@@ -1,0 +1,20 @@
+function fullMulDiv(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+    assembly {
+        let mm := mulmod(x, y, d)
+        let p0 := mul(x, y)
+        let p1 := sub(mm, add(p0, mul(d, iszero(lt(mm, p0)))))
+        if gt(p1, d) { revert(0, 0) }
+        if iszero(d) { revert(0, 0) }
+        if iszero(p1) {
+            z := div(p0, d)
+            leave
+        }
+        let inv := add(div(0, d), iszero(d))
+        inv := add(mul(inv, sub(2, mul(d, inv))), mul(d, mul(inv, inv)))
+        inv := add(mul(inv, sub(2, mul(d, inv))), mul(d, mul(inv, inv)))
+        inv := add(mul(inv, sub(2, mul(d, inv))), mul(d, mul(inv, inv)))
+        inv := add(mul(inv, sub(2, mul(d, inv))), mul(d, mul(inv, inv)))
+        inv := add(mul(inv, sub(2, mul(d, inv))), mul(d, mul(inv, inv)))
+        z := mul(add(div(sub(p0, mul(p1, d)), d), p1), inv)
+    }
+}

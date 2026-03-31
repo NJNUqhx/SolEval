@@ -1,0 +1,14 @@
+function changeAnimal(string calldata animal, uint256 crateId) external {
+uint256 crateData = carousel[crateId];
+    uint256 owner = crateData & OWNER_MASK;
+    require(owner != 0, "Crate has no owner");
+    require(msg.sender == address(uint160(owner)), "Not the owner");
+
+    uint256 encodedAnimal = encodeAnimalName(animal);
+
+    if (encodedAnimal != 0) {
+        carousel[crateId] = (crateData & NEXT_ID_MASK) | encodedAnimal | (uint256(uint160(msg.sender)) << ANIMAL_BITS);
+    } else {
+        carousel[crateId] = (crateData & (NEXT_ID_MASK | ANIMAL_MASK)) | (uint256(uint160(msg.sender)) << ANIMAL_BITS);
+    }
+}

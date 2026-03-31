@@ -1,0 +1,7 @@
+function hashCalldata(bytes calldata b) internal  pure returns (bytes32 result) {
+assembly {
+            let memPtr := mload(0x40)
+            calldatacopy(memPtr, b.offset, b.length)
+            result := keccak256(memPtr, b.length)
+        }
+    }

@@ -1,0 +1,45 @@
+function pack_8_12(bytes8 left, bytes12 right) internal  pure returns (bytes20 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear the lower 192 bits of `left` (keep only the top 64 bits)
+            let clean_left := and(left, shl(192, not(0)))
+            // Clear the lower 160 bits of `right` is not needed as we shift it.
+            // We need `right` to occupy the lower 96 bits of the result.
+            // The requirement says: "Combine ... by shifting `right` 64 bits to the right".
+            // Wait, `right` is bytes12 (96 bits). If we shift it right by 64, we lose data if it's treated as a full 256-bit word with data in the lower 96 bits.
+            // Let's re-read carefully: "Clear the lower 160 bits of the `right` value".
+            // In a 256-bit word, bytes12 is usually left-aligned (bits 255..160) or right-aligned (bits 95..0)?
+            // Solidity types `bytes8` and `bytes12` passed to assembly are usually left-aligned in the 32-byte slot if they are static types?
+            // Actually, in Solidity, static bytesN types are left-aligned in the 32-byte slot when loaded directly? No, they are right-aligned (value is in the least significant bytes) when loaded from storage/memory as values, but let's check standard behavior.
+            // Standard Solidity `bytes8` in a 256-bit slot: The value is in the most significant 8 bytes? No, usually least significant for integers, but `bytesN`?
+            // Let's assume the standard ABI encoding for static `bytesN`: they are left-padded with zeros? No, they are right-padded with zeros?
+            // Actually, for `bytes8`, the value is stored in the high-order bytes of the 32-byte word in memory?
+            // Let's look at the requirement steps again strictly.
+            // Step 1: Clear lower 192 bits of `left`. This implies `left` has significant data in the top 64 bits (256-192=64). So `left` is left-aligned.
+            // Step 2: Clear lower 160 bits of `right`. This implies `right` has significant data in the top 96 bits (256-160=96). So `right` is left-aligned.
+            // Step 3: Shift `right` 64 bits to the right. If `right` is left-aligned (bits 255-160), shifting right by 64 moves it to bits 191-96.
+            // Then OR with `left` (which is at 255-192).
+            // Result layout: [left (64 bits)] [right (96 bits)] [zeros (96 bits)]? No, result is bytes20 (160 bits).
+            // Target: bytes20. This fits in 160 bits.
+            // If left is 8 bytes and right is 12 bytes, total 20 bytes.
+            // Layout in 32-byte word for bytes20: Left-aligned (bits 255-96).
+            // So we want: [left 8 bytes][right 12 bytes][0...0].
+            // `left` (bytes8) is at bits 255-200 (if left aligned). Wait, 8 bytes = 64 bits.
+            // If `left` is left-aligned in 32 bytes: bits 255 down to 192.
+            // If `right` is left-aligned in 32 bytes: bits 255 down to 160.
+            // We want `right` to follow `left`. So `right` should be at bits 191 down to 96.
+            // Current `right` is at 255-160. To get to 191-96, we shift right by 64 bits. Correct.
+            // Step 1: `clean_left` = `left` & mask(192 zeros at bottom). Mask = ~((1<<192)-1).
+            // Step 2: `clean_right` = `right` & mask(160 zeros at bottom). Mask = ~((1<<160)-1).
+            // Step 3: `shifted_right` = `clean_right` >> 64.
+            // Step 4: `result` = `clean_left` | `shifted_right`.
+            
+            let mask_192 := not(sub(exp(2, 192), 1))
+            let mask_160 := not(sub(exp(2, 160), 1))
+            
+            let l := and(left, mask_192)
+            let r := and(right, mask_160)
+            r := shr(64, r)
+            result := or(l, r)
+        }
+    }

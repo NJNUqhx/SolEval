@@ -1,0 +1,6 @@
+function toStringWithFallback(ShortString value, string storage store) internal  pure returns (string memory) {
+if (!isFallbackSentinel(value)) {
+            return toString(value);
+        }
+        return store;
+    }

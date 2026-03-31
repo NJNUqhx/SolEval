@@ -1,4 +1,0 @@
-function readName(address target, uint256 limit, uint256 gasStipend) internal  view returns (string memory) {
-function readName(address target, uint256 limit, uint256 gasStipend) internal  view returns (string memory) {
-return _string(target, 0x06fdde03, limit, gasStipend);
-    } 

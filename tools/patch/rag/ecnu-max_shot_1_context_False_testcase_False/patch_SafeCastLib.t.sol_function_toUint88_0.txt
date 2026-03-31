@@ -1,7 +1,0 @@
-function toUint88(uint256 x) internal  pure returns (uint88) {
-function toUint88(uint256 x) internal  pure returns (uint88) {
-if (x >= 2**88) {
-            revert("Overflow: uint256 to uint88 conversion failed");
-        }
-        return uint88(x);
-    }

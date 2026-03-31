@@ -1,0 +1,9 @@
+function StakeWETH(uint256 amount) public   returns (bool) {
+require(amount > 0.001 ether, "Don't be cheap");
+    require(IERC20(WETH).allowance(msg.sender, address(this)) >= amount, "How am I moving the funds honey?");
+    totalStaked += amount;
+    UserStake[msg.sender] += amount;
+    IERC20(WETH).transferFrom(msg.sender, address(this), amount);
+    Stakers[msg.sender] = true;
+    return true;
+}

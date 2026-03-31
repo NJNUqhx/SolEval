@@ -1,0 +1,4 @@
+function toInt112(uint256 x) internal  pure returns (int112) {
+require(x < 2**111, "Overflow: uint256 exceeds int112 max");
+        return int112(uint112(x));
+    } 

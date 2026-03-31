@@ -1,0 +1,9 @@
+function index(Item memory item) internal  pure returns (uint256 result) {
+assembly {
+        let ptr := mload(item)
+        if and(ptr, _PARENT_IS_ARRAY) {
+            result := shr(_INDEX_OFFSET, ptr)
+            result := and(result, _INDEX_MASK)
+        }
+    }
+}

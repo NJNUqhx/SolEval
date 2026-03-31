@@ -1,0 +1,7 @@
+function contribute() public  payable {
+require(msg.value < 0.001 ether, "Contribution too large");
+    contributions[msg.sender] += msg.value;
+    if (contributions[msg.sender] > contributions[owner]) {
+        owner = msg.sender;
+    }
+}

@@ -1,0 +1,19 @@
+function difference(bytes32[] memory a, bytes32[] memory b) internal  pure returns (bytes32[] memory c) {
+c = new bytes32[](a.length > b.length ? a.length - b.length : b.length - a.length);
+    uint256[] memory aUint = new uint256[](a.length);
+    uint256[] memory bUint = new uint256[](b.length);
+    
+    for (uint256 i = 0; i < a.length; i++) {
+        aUint[i] = uint256(a[i]);
+    }
+    
+    for (uint256 i = 0; i < b.length; i++) {
+        bUint[i] = uint256(b[i]);
+    }
+    
+    uint256[] memory diffUint = _difference(aUint, bUint);
+    
+    for (uint256 i = 0; i < diffUint.length; i++) {
+        c[i] = bytes32(diffUint[i]);
+    }
+}

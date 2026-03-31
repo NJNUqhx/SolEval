@@ -1,0 +1,16 @@
+function verifyCalldata(bytes32[] calldata proof, bytes32 root, bytes32 leaf) internal  pure returns (bool isValid) {
+assembly {
+            if proof.length {
+                let end := add(proof.offset, shl(5, proof.length))
+                for { let offset := proof.offset } 1 {} {
+                    let pos := and(offset, 0x1f)
+                    mstore(pos, leaf)
+                    mstore(add(pos, 0x20), calldataload(offset))
+                    leaf := keccak256(pos, 0x40)
+                    offset := add(offset, 0x20)
+                    if eq(offset, end) { break }
+                }
+            }
+            isValid := eq(leaf, root)
+        }
+    }

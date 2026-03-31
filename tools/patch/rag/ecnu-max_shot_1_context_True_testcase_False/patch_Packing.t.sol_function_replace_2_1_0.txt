@@ -1,0 +1,10 @@
+function replace_2_1(bytes2 self, bytes1 value, uint8 offset) internal  pure returns (bytes2 result) {
+assembly {
+            let oldByte := byte(offset, self)
+            let maskedValue := and(value, 0xff)
+            let shift := shl(sub(16, mul(offset, 8)), 0xff00)
+            let cleared := and(self, not(shift))
+            let positioned := shl(sub(16, mul(offset, 8)), maskedValue)
+            result := or(cleared, positioned)
+        }
+}

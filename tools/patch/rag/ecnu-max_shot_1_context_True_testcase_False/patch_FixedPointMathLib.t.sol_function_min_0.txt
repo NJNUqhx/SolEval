@@ -1,0 +1,6 @@
+function min(int256 x, int256 y) internal  pure returns (int256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := xor(x, mul(xor(x, y), slt(x, y)))
+        }
+    }

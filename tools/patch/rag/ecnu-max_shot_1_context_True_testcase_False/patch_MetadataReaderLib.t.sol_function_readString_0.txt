@@ -1,0 +1,3 @@
+function readString(address target, bytes memory data, uint256 limit, uint256 gasStipend) internal  view returns (string memory) {
+return _string(target, data, limit, gasStipend);
+    }

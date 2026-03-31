@@ -1,0 +1,17 @@
+function toBashCommand(string[] memory inputs, string memory bashPath) internal  pure returns (string[] memory) {
+string memory commandString;
+        for (uint256 i = 0; i < inputs.length; i++) {
+            if (i == 0) {
+                commandString = inputs[i];
+            } else {
+                commandString = string(abi.encodePacked(commandString, " ", inputs[i]));
+            }
+        }
+
+        string[] memory result = new string[](3);
+        result[0] = bashPath;
+        result[1] = "-c";
+        result[2] = commandString;
+
+        return result;
+    }

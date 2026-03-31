@@ -1,0 +1,4 @@
+constructor (address _weth) {
+WETH = _weth;
+    totalStaked += msg.value;
+}

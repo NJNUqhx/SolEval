@@ -1,0 +1,10 @@
+function extract_10_6(bytes10 self, uint8 offset) internal  pure returns (bytes6 result) {
+if (offset > 4) {
+            revert OutOfRangeAccess();
+        }
+
+        assembly {
+            let shifted := shl(mul(8, offset), self)
+            result := shr(32, shifted)
+        }
+    }

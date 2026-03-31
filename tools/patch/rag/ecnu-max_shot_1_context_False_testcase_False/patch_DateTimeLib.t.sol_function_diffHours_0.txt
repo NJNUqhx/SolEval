@@ -1,6 +1,0 @@
-function diffHours(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
-function diffHours(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
-        require(toTimestamp >= fromTimestamp, "toTimestamp must be greater than or equal to fromTimestamp");
-        uint256 diffSeconds = toTimestamp - fromTimestamp;
-        result = diffSeconds / 3600;
-    }

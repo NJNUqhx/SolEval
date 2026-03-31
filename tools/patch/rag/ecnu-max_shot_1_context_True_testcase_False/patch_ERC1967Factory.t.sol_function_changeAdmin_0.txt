@@ -1,0 +1,35 @@
+function changeAdmin(address proxy, address admin) public {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Slot for admin is assumed to be 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103 (standard EIP-1967)
+            // However, without specific context on the proxy type, we assume a standard implementation where admin is at a specific slot.
+            // Given the requirement implies direct storage interaction, we'll use a common admin slot pattern or a generic approach.
+            // Let's assume the admin is stored at slot `ADMIN_SLOT` which is often derived or fixed.
+            // For this implementation, we will assume the admin is stored at slot 0 (simplified for the sake of the exercise if not specified)
+            // OR more likely, we need to read the current admin from a known slot.
+            // Since the prompt doesn't give the slot, but asks to "store the new admin address in the proxy's storage",
+            // and "Check if the caller is the current admin", we must know where the admin is stored.
+            // Standard EIP-1967 Admin Slot: 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
+            let ADMIN_SLOT := 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
+            
+            // Load current admin from proxy storage
+            let currentAdmin := sload(ADMIN_SLOT)
+            
+            // Check if caller (msg.sender) is the current admin
+            if iszero(eq(caller(), currentAdmin)) {
+                revert(0, 0) // Revert with empty reason for simplicity, or could encode error string
+            }
+            
+            // Store the new admin
+            sstore(ADMIN_SLOT, admin)
+            
+            // Emit AdminChanged event
+            // Event signature: AdminChanged(address previousAdmin, address newAdmin)
+            // Hash: 0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f
+            let m := mload(0x40)
+            mstore(m, 0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f)
+            mstore(add(m, 0x20), currentAdmin)
+            mstore(add(m, 0x40), admin)
+            log1(m, 0x60, proxy)
+        }
+}

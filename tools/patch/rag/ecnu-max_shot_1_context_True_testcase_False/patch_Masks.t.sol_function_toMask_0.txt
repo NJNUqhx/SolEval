@@ -1,0 +1,11 @@
+function toMask(uint8[] memory groups) internal  pure returns (Mask) {
+Mask set;
+        uint256 length = groups.length;
+        for (uint256 i = 0; i < length; ) {
+            set = set.union(groups[i].toMask());
+            unchecked {
+                ++i;
+            }
+        }
+        return set;
+    }

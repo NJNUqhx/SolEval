@@ -1,0 +1,9 @@
+function pop(DynamicArray memory a) internal  pure returns (uint256 result) {
+assembly {
+            let o := mload(a)
+            let n := mload(add(o, 32))
+            result := mload(add(add(o, 32), mul(n, 32)))
+            if n { n := sub(n, 1) }
+            mstore(add(o, 32), n)
+        }
+    }

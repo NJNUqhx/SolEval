@@ -1,115 +1,28 @@
 function replace_24_8(bytes24 self, bytes8 value, uint8 offset) internal  pure returns (bytes24 result) {
-function replace_24_8(bytes24 self, bytes8 value, uint8 offset) internal  pure returns (bytes24 result) {
 assembly {
-        // Load the 24-byte value into a variable (it occupies the lower 24 bytes of a 32-byte slot)
-        let s := self
-        // Load the new 8-byte value
-        let v := value
-        // Load the offset
-        let o := offset
+            let selfVal := self
+            let valueVal := value
+            let offsetVal := offset
 
-        // Calculate the shift amount in bits: (24 - 8 - offset) * 8
-        // We want to align the 8-byte segment within the 24-byte space.
-        // The 24 bytes are at the "left" (most significant) part of the 32-byte word if we consider standard padding,
-        // but in solidity bytes24 stored in a slot, it's left-aligned (MSB).
-        // Actually, bytes24 is stored in the higher 24 bytes of the 32-byte slot?
-        // No, Solidity stores static bytesN left-aligned (padded on the right with zeros in the lower bytes? No, padded on the right in memory, but in storage/calldata it's specific).
-        // Let's clarify: `bytes24` in a variable occupies 32 bytes. The data is in the most significant 24 bytes.
-        // So byte 0 is at bit 255 down to 248. Byte 23 is at bit 7 down to 0?
-        // Wait, standard Solidity `bytesN` are left-aligned in the 32-byte word.
-        // Byte 0 is the most significant byte. Byte 23 is the 24th byte from the left.
-        // Bits: [0-7] (Byte 0) ... [184-191] (Byte 23). The remaining 8 bytes (bits 192-255) are zero.
-        // If offset is 0, we replace bytes 0-7.
-        // If offset is 16, we replace bytes 16-23.
-        // Shift amount for the target position from the MSB: offset * 8.
-        // To isolate the old 8 bytes at `offset`:
-        // We need to shift right by (offset * 8) to bring them to the least significant position of the 24-byte block?
-        // Actually, it's easier to work with masks directly positioned.
-        
-        // Let's compute the shift for the 8-byte chunk relative to the 32-byte word.
-        // The 24-byte data starts at bit 255 (MSB).
-        // Byte `offset` starts at bit: 255 - (offset * 8).
-        // We want to extract 8 bytes (64 bits).
-        // Mask for 8 bytes: 0xFFFFFFFFFFFFFFFF (64 ones).
-        // We need to shift this mask to the correct position.
-        // Position from right (LSB = 0):
-        // Total bits = 256.
-        // The 24 bytes occupy bits 255 down to (256 - 24*8) = 256 - 192 = 64.
-        // So valid data is in bits [64, 255].
-        // Byte 0 is bits [248, 255].
-        // Byte `offset` is bits [248 - offset*8, 255 - offset*8].
-        // We need to clear these bits in `s` and insert `v` shifted to this position.
-        
-        // Shift amount for `v` to align with `offset`:
-        // `v` is currently left-aligned in its own 32-byte slot? No, `value` is bytes8, so it's left-aligned in 32 bytes.
-        // bits [192, 255] contain the data for bytes8?
-        // bytes8: 8 bytes. Left aligned. Bits [255-63, 255] = [192, 255].
-        // We need to move `v` from [192, 255] to [248 - offset*8, 255 - offset*8].
-        // Current MSB of v is 255. Target MSB is 255 - offset*8.
-        // So we need to shift RIGHT by (offset * 8).
-        
-        let shift := mul(o, 8)
-        
-        // Create a mask for 8 bytes (64 bits) at the target position.
-        // Start with 64 ones: 0xFFFFFFFFFFFFFFFF.
-        // In a 256-bit word, this is at the LSB. We need it at the target position.
-        // The target position for the 8 bytes ends at bit (255 - offset*8).
-        // So the mask should be shifted LEFT by (255 - offset*8 - 63) = (192 - offset*8)?
-        // Let's re-evaluate using simple shifts.
-        
-        // Strategy:
-        // 1. Normalize `v` to be right-aligned (LSB) first? Or keep left aligned?
-        // Let's assume `v` is left-aligned (standard bytes8).
-        // Shift `v` right by `shift` to align with the target slot in `s`.
-        let v_shifted := shr(shift, v)
-        
-        // Create a mask of 8 ones (bytes) at the correct position to clear the old data.
-        // 8 bytes = 64 bits.
-        // Mask of 64 ones at LSB: 0xFFFFFFFFFFFFFFFF.
-        // Shift it left to match the position of the data in the 24-byte structure?
-        // Wait, `s` is left-aligned. `v_shifted` is now aligned correctly relative to `s` if we shifted right.
-        // Example: offset=0. shift=0. `v` stays at [192, 255]. `s` data is at [64, 255].
-        // This doesn't match. `s` has data starting at bit 64 (if 24 bytes).
-        // Ah, `bytes24` in a `bytes32` slot:
-        // Value 0x1122... (24 bytes). Stored as 0x1122...00000000 (8 zeros).
-        // So data is in MSB 24 bytes. Bits 255 down to 64.
-        // `bytes8` value: 0xAABB... (8 bytes). Stored as 0xAABB...0000000000000000 (24 zeros).
-        // Data in bits 255 down to 192.
-        
-        // If offset = 0: Replace bits [255, 192] of `s` with `v`.
-        // If offset = 1: Replace bits [191, 128] of `s` with `v` (shifted right by 8).
-        // Generally, replace bits [255 - 8*offset, 192 - 8*offset].
-        
-        // Step 1: Shift `v` right by (offset * 8) so its MSB aligns with the target MSB.
-        // v is at [255, 192]. Target is [255-8o, 192-8o].
-        // Right shift by 8o moves [255, 192] to [255-8o, 192-8o]. Correct.
-        let v_aligned := shr(shift, v)
-        
-        // Step 2: Create a mask to clear the 8 bytes in `s` at the target position.
-        // We need 64 ones at [255-8o, 192-8o].
-        // Start with 64 ones at LSB: 0xFFFFFFFFFFFFFFFF.
-        // We need to shift them LEFT to reach the target position.
-        // The LSB of the target block is (192 - 8o).
-        // The LSB of 0xFFFFFFFFFFFFFFFF is 0.
-        // So shift left by (192 - 8o).
-        // 192 = 24 * 8.
-        let mask_shift := sub(192, shift)
-        let mask := shl(mask_shift, 0xFFFFFFFFFFFFFFFF)
-        
-        // Step 3: Clear the bits in `s` using the inverse mask.
-        let s_cleared := and(s, not(mask))
-        
-        // Step 4: Combine with the aligned new value.
-        // Note: `v_aligned` might have garbage in lower bits if `v` wasn't clean? 
-        // `value` is bytes8, so upper 8 bytes are data, lower 24 are zero.
-        // After `shr`, the data is at target, and lower bits are filled with zeros from the original padding?
-        // Yes, `shr` introduces zeros at MSB, but we are shifting right, so zeros come in at MSB?
-        // No, `shr` shifts right, zeros enter at MSB. The data moves to lower significance.
-        // Original `v`: [Data (64b)] [0...0 (192b)].
-        // Shift right by X: [0...X] [Data (64b)] [0...].
-        // The data is now at the correct position. The bits below the data are zeros (from original padding).
-        // The bits above are zeros (from shift).
-        // So `v_aligned` is clean.
-        
-        result := or(s_cleared, v_aligned)
-    }
+            // Calculate shift amount in bits (offset * 8)
+            let shift := mul(offsetVal, 8)
+
+            // Create a mask for 8 bytes (0xFFFFFFFFFFFFFFFF) shifted to the correct position
+            // 0xFFFFFFFFFFFFFFFF is (1 << 64) - 1
+            let mask := shr(sub(256, 64), shl(256, 1)) // This creates 0xFF...FF (64 bits of 1s) at LSB
+            mask := shl(shift, mask)
+
+            // Extract the old 8-byte segment at the offset
+            let oldSegment := and(selfVal, mask)
+
+            // Shift the new value to the correct position
+            let newSegment := shl(shift, valueVal)
+
+            // Ensure newSegment is strictly 8 bytes at the position (mask it again just in case, though shift handles placement)
+            newSegment := and(newSegment, mask)
+
+            // XOR out the old segment and XOR in the new segment
+            // result = (self ^ oldSegment) ^ newSegment
+            result := xor(xor(selfVal, oldSegment), newSegment)
+        }
+}

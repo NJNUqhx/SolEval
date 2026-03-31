@@ -1,0 +1,4 @@
+function searchSorted(bytes32[] memory a, bytes32 needle) internal  pure returns (bool found, uint256 index) {
+(uint256[] memory ints) = _toUints(a);
+        (found, index) = _searchSorted(ints, uint256(needle));
+    } 

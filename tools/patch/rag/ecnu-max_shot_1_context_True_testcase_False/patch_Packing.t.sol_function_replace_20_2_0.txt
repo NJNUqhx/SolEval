@@ -1,0 +1,8 @@
+function replace_20_2(bytes20 self, bytes2 value, uint8 offset) internal  pure returns (bytes20 result) {
+assembly {
+    let oldVal := and(shr(mul(8, sub(20, add(offset, 2))), self), 0xFFFF)
+    let newVal := and(value, 0xFFFF)
+    let shift := mul(8, sub(20, add(offset, 2)))
+    result := xor(xor(self, shl(shift, oldVal)), shl(shift, newVal))
+}
+}

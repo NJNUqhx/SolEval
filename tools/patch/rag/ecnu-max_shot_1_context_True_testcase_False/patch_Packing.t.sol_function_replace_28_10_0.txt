@@ -1,0 +1,29 @@
+function replace_28_10(bytes28 self, bytes10 value, uint8 offset) internal  pure returns (bytes28 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Ensure offset is within valid range (0 to 18 for 28 bytes - 10 bytes)
+            if gt(offset, 18) {
+                mstore(0x00, 0x4e487b71) // Selector for Panic(uint256)
+                mstore(0x20, 0x32) // Panic code 0x32 (out-of-bounds)
+                revert(0x1c, 0x24)
+            }
+
+            // Calculate the bit shift amount: (28 - 10 - offset) * 8 = (18 - offset) * 8
+            let shift := shl(3, sub(18, offset))
+
+            // Create a mask for 10 bytes: 0xFFFFFFFFFFFFFFFFFFFF (80 bits)
+            let mask := shr(176, not(0))
+
+            // Shift the mask to the correct position
+            let shiftedMask := shl(shift, mask)
+
+            // Clear the 10-byte segment in the original value
+            let cleared := and(self, not(shiftedMask))
+
+            // Shift the new value to the correct position and ensure it's masked
+            let shiftedValue := shl(shift, and(value, mask))
+
+            // Combine the cleared original value with the new shifted value
+            result := or(cleared, shiftedValue)
+        }
+    }

@@ -1,19 +1,5 @@
 function pack_4_4(bytes4 left, bytes4 right) internal  pure returns (bytes8 result) {
-function pack_4_4(bytes4 left, bytes4 right) internal  pure returns (bytes8 result) {
-/// @solidity memory-safe-assembly
-        assembly {
-            // Step 1: Clear the lower 32 bits of the `left` value to ensure it is properly aligned.
-            // Since `left` is bytes4 (32 bits), shifting left by 32 and right by 32 clears any potential garbage in upper bits,
-            // but more importantly, we want to position it in the upper 32 bits of the result.
-            // Actually, the requirement says "Clear the lower 32 bits", which implies we are treating it as part of a larger word.
-            // To pack left (4 bytes) into the high 4 bytes of an 8-byte result, we shift left by 32 bits.
-            let l := shl(32, and(left, 0xffffffff))
-
-            // Step 2: Clear the lower 32 bits of the `right` value to ensure it is properly aligned.
-            // We mask `right` to ensure only the lower 32 bits are taken (though bytes4 is already 32 bits).
-            let r := and(right, 0xffffffff)
-
-            // Step 3: Combine the `left` value (now in upper 32 bits) with the `right` value (in lower 32 bits) using bitwise OR.
-            result := or(l, r)
+assembly {
+            result := or(shl(32, and(left, 0xFFFFFFFF000000000000000000000000000000000000000000000000)), and(right, 0xFFFFFFFF000000000000000000000000000000000000000000000000))
         }
     }

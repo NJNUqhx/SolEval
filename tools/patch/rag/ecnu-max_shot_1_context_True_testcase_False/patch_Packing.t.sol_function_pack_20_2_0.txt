@@ -1,0 +1,37 @@
+function pack_20_2(bytes20 left, bytes2 right) internal  pure returns (bytes22 result) {
+assembly {
+        // Mask left to ensure it is exactly 20 bytes (though bytes20 is already 20 bytes, this is for safety/clarity in assembly)
+        let l := and(left, 0xffffffffffffffffffffffffffffffffffffffff000000000000000000000000)
+        // Mask right to ensure it is exactly 2 bytes
+        let r := and(right, 0xffff000000000000000000000000000000000000000000000000000000000000)
+        // Shift right value to align with the lower 2 bytes of the 22-byte sequence when combined
+        // Since we want left (20 bytes) || right (2 bytes), and they are stored left-aligned in their slots:
+        // left is at bits 248..255 down to 48..55 (if we consider 20 bytes = 160 bits, starting from MSB)
+        // Actually, bytes20 `left` is stored as left << 96 (in a 32 byte slot).
+        // bytes2 `right` is stored as right << 240 (in a 32 byte slot).
+        // We want a 22 byte result: (left << 16) | right.
+        // In 32-byte slot representation:
+        // left is already shifted by 96 bits (32-20=12 bytes = 96 bits).
+        // We need to shift left by another 16 bits (2 bytes) to make room for `right` at the end?
+        // No, the requirement says: "left" (20 bytes) and "right" (2 bytes) into 22 bytes.
+        // Usually this means concatenation: left || right.
+        // In memory/stack representation (big-endian style for bytesN):
+        // left (bytes20) occupies the first 20 bytes of the 32-byte word (bits 255 down to 96).
+        // right (bytes2) occupies the first 2 bytes of the 32-byte word (bits 255 down to 240).
+        // To pack them into 22 bytes (bits 255 down to 80):
+        // We take `left` as is (occupying bits 255..96).
+        // We need `right` to occupy bits 95..80.
+        // Currently `right` is at 255..240. We need to shift it right by (255-95) = 160 bits?
+        // Or simpler:
+        // left value in slot: L << 96
+        // right value in slot: R << 240
+        // Target: (L << 16) | R  ... wait, if result is bytes22, it will be stored as Result << 80.
+        // So we want (L << 16 | R) << 80 = (L << 96) | (R << 80).
+        // We have L << 96.
+        // We have R << 240. We need R << 80.
+        // Shift R right by (240 - 80) = 160 bits.
+        
+        r := shr(160, r)
+        result := or(l, r)
+    }
+}

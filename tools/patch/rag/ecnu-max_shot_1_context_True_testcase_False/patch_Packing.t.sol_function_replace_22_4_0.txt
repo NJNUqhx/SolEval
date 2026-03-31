@@ -1,0 +1,27 @@
+function replace_22_4(bytes22 self, bytes4 value, uint8 offset) internal  pure returns (bytes22 result) {
+assembly {
+        // Extract the 4-byte segment from the original 22-byte value at the specified offset.
+        // Shift self right by (22 - offset - 4) * 8 bits to align the target segment to the least significant bytes.
+        // Then mask with 0xFFFFFFFF to isolate the 4 bytes.
+        let shiftAmount := mul(sub(sub(22, offset), 4), 8)
+        let oldSegment := and(shr(shiftAmount, self), 0xFFFFFFFF)
+
+        // Mask the new 4-byte value to ensure it only contains 4 bytes.
+        let newSegment := and(value, 0xFFFFFFFF)
+
+        // If the old segment equals the new segment, no change is needed.
+        if eq(oldSegment, newSegment) {
+            result := self
+            leave
+        }
+
+        // Calculate the modified 22-byte value:
+        // 1. Shift the old segment back to its original position and XOR with self to clear those bits.
+        // 2. Shift the new segment to the original position and OR (or XOR since bits are cleared) with the result.
+        // Using XOR for both steps: self ^ (old << shift) ^ (new << shift)
+        let shiftedOld := shl(shiftAmount, oldSegment)
+        let shiftedNew := shl(shiftAmount, newSegment)
+        
+        result := xor(xor(self, shiftedOld), shiftedNew)
+    }
+}

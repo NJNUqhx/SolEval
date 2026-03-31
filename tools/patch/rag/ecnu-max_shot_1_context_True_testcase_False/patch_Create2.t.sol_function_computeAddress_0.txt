@@ -1,0 +1,10 @@
+function computeAddress(bytes32 salt, bytes32 bytecodeHash, address deployer) internal  pure returns (address addr) {
+assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, bytecodeHash)
+            mstore(add(ptr, 0x20), salt)
+            mstore(add(ptr, 0x40), deployer)
+            mstore8(add(ptr, 0x13), 0xff)
+            addr := and(keccak256(add(ptr, 0x13), 0x55), 0xffffffffffffffffffffffffffffffffffffffff)
+        }
+    }

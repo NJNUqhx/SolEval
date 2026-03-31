@@ -1,0 +1,6 @@
+function toInt88(uint256 x) internal  pure returns (int88) {
+if (x >= 1 << 87) {
+            revert("Overflow");
+        }
+        return int88(int256(x));
+    }

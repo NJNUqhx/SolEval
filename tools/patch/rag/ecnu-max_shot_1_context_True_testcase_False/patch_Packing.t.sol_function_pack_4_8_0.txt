@@ -1,0 +1,11 @@
+function pack_4_8(bytes4 left, bytes8 right) internal  pure returns (bytes12 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Clear higher-order bits of left (keep only lower 32 bits)
+            let l := and(left, 0xFFFFFFFF)
+            // Step 2: Clear higher-order bits of right (keep only lower 64 bits)
+            let r := and(right, 0xFFFFFFFFFFFFFFFF)
+            // Step 3: Shift right by 32 bits (to make room for left) and OR with left
+            result := or(shl(64, l), r)
+        }
+    }

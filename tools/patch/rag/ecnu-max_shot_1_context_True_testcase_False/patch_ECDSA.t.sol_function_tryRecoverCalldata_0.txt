@@ -1,0 +1,31 @@
+function tryRecoverCalldata(bytes32 hash, bytes calldata signature) internal  view returns (address result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            let len := signature.length
+            if eq(len, 64) {
+                let v := byte(0, calldataload(add(signature.offset, 63)))
+                v := add(v, 27)
+                calldatacopy(m, signature.offset, 64)
+                mstore8(add(m, 64), v)
+                mstore(m, hash)
+                if staticcall(gas(), 1, m, 0x65, m, 0x20) {
+                    if eq(returndatasize(), 32) {
+                        result := mload(m)
+                    }
+                }
+            } else {
+                if eq(len, 65) {
+                    calldatacopy(m, signature.offset, 65)
+                    mstore(m, hash)
+                    if staticcall(gas(), 1, m, 0x65, m, 0x20) {
+                        if eq(returndatasize(), 32) {
+                            result := mload(m)
+                        }
+                    }
+                }
+            }
+            mstore(0x40, m)
+            mstore(m, 0)
+        }
+    }

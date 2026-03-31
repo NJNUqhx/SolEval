@@ -1,23 +1,14 @@
 function replace_32_10(bytes32 self, bytes10 value, uint8 offset) internal  pure returns (bytes32 result) {
-function replace_32_10(bytes32 self, bytes10 value, uint8 offset) internal  pure returns (bytes32 result) {
 assembly {
-        // Calculate the bit shift amount: (32 - offset - 10) * 8
-        // This aligns the 10-byte value to the correct position within the 32-byte word.
-        let shift := shl(3, sub(sub(32, offset), 10))
+        let oldSegment := shr(mul(offset, 8), self)
+        oldSegment := and(oldSegment, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) // Mask for 10 bytes (80 bits)
         
-        // Extract the existing 10-byte segment from 'self' at the calculated position.
-        // We shift left to remove lower bytes, then right to remove upper bytes, isolating the 10 bytes.
-        let oldSegment := shr(shift, shl(shl(3, offset), self))
+        let newSegment := shr(128, shl(128, value)) // Ensure value is treated as 10 bytes and right-aligned
         
-        // Mask the input 'value' to ensure it is treated strictly as 10 bytes (80 bits).
-        // 0xFFFFFFFFFFFFFFFFFFFF is a mask of 10 bytes (80 bits).
-        let maskedValue := and(value, 0xFFFFFFFFFFFFFFFFFFFF)
+        let shiftAmount := mul(sub(31, offset), 8)
+        let shiftedOld := shl(shiftAmount, oldSegment)
+        let shiftedNew := shl(shiftAmount, newSegment)
         
-        // Position the new masked value to match the offset of the old segment.
-        let newSegment := shl(shift, maskedValue)
-        
-        // Perform the replacement using XOR logic:
-        // 1. XOR self with oldSegment to clear the target area (since x ^ x = 0).
-        // 2. XOR the result with newSegment to insert the new value (since 0 ^ y = y).
-        result := xor(xor(self, oldSegment), newSegment)
+        result := xor(xor(self, shiftedOld), shiftedNew)
     }
+}

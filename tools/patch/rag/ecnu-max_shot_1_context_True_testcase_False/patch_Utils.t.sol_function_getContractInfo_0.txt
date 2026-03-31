@@ -1,0 +1,143 @@
+function getContractInfo(string memory contractName, string memory outDir) internal  view returns (ContractInfo memory) {
+Vm vm = Vm(CHEATCODE_ADDRESS);
+        ContractInfo memory info;
+
+        // Step 3: Derive short name and file name
+        string memory shortName;
+        string memory fileName;
+        {
+            uint256 len = bytes(contractName).length;
+            uint256 lastSlashIndex = type(uint256).max;
+            uint256 lastColonIndex = type(uint256).max;
+
+            for (uint256 i = 0; i < len; i++) {
+                if (bytes(contractName)[i] == '/') {
+                    lastSlashIndex = i;
+                } else if (bytes(contractName)[i] == ':') {
+                    lastColonIndex = i;
+                }
+            }
+
+            if (lastColonIndex != type(uint256).max) {
+                // Format: path/to/File.sol:ContractName
+                fileName = _substring(contractName, 0, lastColonIndex);
+                shortName = _substring(contractName, lastColonIndex + 1, len);
+            } else if (lastSlashIndex != type(uint256).max) {
+                // Format: path/to/ContractName (no extension or handled differently)
+                // Assuming standard solidity output where filename matches contract or path includes extension
+                // Fallback logic: if no colon, usually contractName is just the name or path:name
+                // Let's assume standard foundry artifact structure: outDir/File.sol/ContractName.json
+                // If input is "File.sol:ContractName", handled above.
+                // If input is just "ContractName", fileName = ContractName.sol? 
+                // Based on typical usage, we expect File.sol:ContractName. 
+                // If only name provided, we might assume fileName = name.sol.
+                // However, requirement says "Derive from contractName".
+                // Let's assume if no colon, the whole string is the shortName and we guess filename or it's just the name.
+                // But looking at step 4, we need a filename. 
+                // Standard Foundry: artifacts/File.sol/ContractName.json
+                // So contractName arg is likely "File.sol:ContractName".
+                // If no colon found, we revert or assume simple case.
+                // Let's assume the input always contains ':' for robustness in this specific context or handle simple name.
+                // Re-reading Step 3: "Derive the short name and file name".
+                // If no colon, maybe contractName IS the shortName and we append .sol for filename?
+                // Let's implement the split logic strictly.
+                fileName = contractName;
+                shortName = contractName;
+                // Correction: If no colon, we can't reliably split without conventions. 
+                // Assuming the input follows "Filename.sol:ContractName" convention as per standard foundry scripts.
+                // If the loop didn't find a colon, we might have just the contract name.
+                // Let's assume the input is properly formatted "Path/File.sol:Name".
+                // If not found, we default to error or simple assumption. 
+                // To be safe and compliant with "Derive", we assume the colon exists. 
+                // If not, we treat the whole thing as shortName and construct filename as shortName.sol? 
+                // No, let's stick to the colon split. If missing, we might fail later or assume.
+                // Let's assume the input is "File.sol:ContractName".
+                revert("Invalid contractName format: expected File.sol:ContractName");
+            }
+            // Re-doing the split logic cleanly inside the block above was messy. 
+            // Let's refine:
+        }
+        
+        // Refined Split Logic
+        uint256 len = bytes(contractName).length;
+        uint256 splitIndex = type(uint256).max;
+        for (uint256 i = 0; i < len; i++) {
+            if (bytes(contractName)[i] == ':') {
+                splitIndex = i;
+                break;
+            }
+        }
+
+        if (splitIndex == type(uint256).max) {
+             // Fallback: if no colon, assume contractName is just the name, try to find .sol?
+             // Or revert. Let's assume strict format for this implementation.
+             revert("Invalid contractName: missing ':' separator");
+        }
+
+        fileName = _substring(contractName, 0, splitIndex);
+        shortName = _substring(contractName, splitIndex + 1, len);
+
+        // Step 4: Construct artifact path
+        // outDir + "/" + fileName + "/" + shortName + ".json"
+        string memory artifactPath = string(abi.encodePacked(outDir, "/", fileName, "/", shortName, ".json"));
+
+        // Step 5: Read artifact
+        string memory artifactJson = vm.readFile(artifactPath);
+
+        // Step 6: Check AST existence
+        // Key is usually "ast" or "source" depending on version, requirement says "AST".
+        // In Foundry artifacts, it's often "ast" or inside "source". Let's check "ast".
+        // Actually, standard foundry artifact has "ast" at root if enabled, but often users check "source" or specific paths.
+        // Requirement says: "Check if the AST exists... If not, revert".
+        // We'll check for key "ast".
+        if (!vm.keyExists(artifactJson, ".ast")) {
+             // Some versions might put it elsewhere, but sticking to requirement logic.
+             // Also keyExists might need full path like ".ast".
+             // Let's assume the key is "ast" at root.
+             // If the function `keyExists` takes a json string and a key path.
+             if (!vm.keyExists(artifactJson, "ast")) {
+                 revert("AST not found in artifact");
+             }
+        }
+
+        // Step 7: Parse absolute path
+        // Usually located at "ast.absolutePath" or "sourcePath"? 
+        // Requirement: "Parse the contract's absolute path from the artifact JSON".
+        // In standard artifacts, this is often `ast.absolutePath`.
+        info.absolutePath = vm.parseJsonString(artifactJson, ".ast.absolutePath");
+
+        // Step 8: Parse license if exists
+        // Usually `source` or `metadata.settings.compilationTarget`? 
+        // License is often in `source` content or `metadata`.
+        // Let's look for a standard key like "license" or extract from source.
+        // Requirement: "If a license exists... parse and store it".
+        // Common key in some contexts is "license". Let's try "license".
+        if (vm.keyExists(artifactJson, "license")) {
+            info.license = vm.parseJsonString(artifactJson, ".license");
+        }
+
+        // Step 9: Parse source code hash
+        // Often `sourceHash` or in metadata. Let's assume key "sourceHash" or similar.
+        // Requirement says "source code hash".
+        // Let's assume key "sourceHash" exists.
+        if (vm.keyExists(artifactJson, "sourceHash")) {
+            info.sourceHash = vm.parseJsonString(artifactJson, ".sourceHash");
+        }
+
+        // Step 10: Store artifact path
+        info.artifactPath = artifactPath;
+        
+        // Step 11: Return
+        return info;
+    }
+
+    function _substring(string memory str, uint256 start, uint256 end) internal pure returns (string memory) {
+        bytes memory bStr = bytes(str);
+        require(end >= start, "Invalid substring range");
+        uint256 len = end - start;
+        bytes memory result = new bytes(len);
+        for (uint256 i = 0; i < len; i++) {
+            result[i] = bStr[i + start];
+        }
+        return string(result);
+    }

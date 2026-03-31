@@ -1,16 +1,9 @@
 function extract_12_6(bytes12 self, uint8 offset) internal  pure returns (bytes6 result) {
-function extract_12_6(bytes12 self, uint8 offset) internal  pure returns (bytes6 result) {
 if (offset > 6) {
-    revert(); // Revert with OutOfRangeAccess error (selector handling omitted for brevity as per context style)
-}
-
-/// @solidity memory-safe-assembly
-assembly {
-    // Shift left to align the desired 6-byte segment to the most significant position
-    // Then shift right to move it to the least significant position of the 6-byte space.
-    // Total shift needed: (12 - 6 - offset) * 8 = (6 - offset) * 8 bits to the right after alignment.
-    // Alternatively: Shift left by (offset * 8) to remove preceding bytes, then shift right by (6 * 8) to drop trailing bytes.
-    
-    let shifted := shl(mul(offset, 8), self)
-    result := shr(48, shifted) // 48 bits = 6 bytes
-}
+            revert OutOfRangeAccess();
+        }
+        assembly {
+            result := shr(mul(sub(12, offset), 8), shl(mul(offset, 8), self))
+            result := and(result, 0xFFFFFFFFFFFF)
+        }
+    }

@@ -1,0 +1,12 @@
+function rescueERC20(address token, address to, uint256 amount) public virtual onlyRescuer(_LIFEBUOY_RESCUE_ERC20_LOCK) {
+assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, 0xa9059cbb00000000000000000000000000000000000000000000000000000000)
+            mstore(add(ptr, 0x04), to)
+            mstore(add(ptr, 0x24), amount)
+            if iszero(call(gas(), token, 0, ptr, 0x44, 0x00, 0x20)) {
+                revert(0, 0)
+            }
+            mstore(0x40, ptr)
+        }
+    }

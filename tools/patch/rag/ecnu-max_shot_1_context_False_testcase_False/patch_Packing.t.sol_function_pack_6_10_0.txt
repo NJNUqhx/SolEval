@@ -1,18 +1,6 @@
 function pack_6_10(bytes6 left, bytes10 right) internal  pure returns (bytes16 result) {
-function pack_6_10(bytes6 left, bytes10 right) internal  pure returns (bytes16 result) {
 /// @solidity memory-safe-assembly
-        assembly {
-            // Step 1: Mask the `bytes6` value (48 bits) and shift left by 208 bits (16*13)
-            // 0xFFFFFFFFFFFF is the mask for 48 bits (6 bytes)
-            let maskedLeft := and(left, 0xFFFFFFFFFFFF)
-            let shiftedLeft := shl(208, maskedLeft)
-
-            // Step 2: Mask the `bytes10` value (80 bits) and shift left by 176 bits (16*11)
-            // 0xFFFFFFFFFFFFFFFFFF is the mask for 80 bits (10 bytes)
-            let maskedRight := and(right, 0xFFFFFFFFFFFFFFFFFF)
-            let shiftedRight := shl(176, maskedRight)
-
-            // Step 3: Combine the two values using bitwise OR
-            result := or(shiftedLeft, shiftedRight)
-        }
+    assembly {
+        result := or(shl(80, and(left, 0xffffffffffff)), and(right, 0xffffffffffffffffff))
     }
+}

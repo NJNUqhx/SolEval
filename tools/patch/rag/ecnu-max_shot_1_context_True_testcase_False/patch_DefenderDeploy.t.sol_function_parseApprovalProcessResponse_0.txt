@@ -1,0 +1,42 @@
+function parseApprovalProcessResponse(string memory stdout) internal  pure returns (ApprovalProcessResponse memory) {
+VmSafe vm = VmSafe(CHEATCODE_ADDRESS);
+ApprovalProcessResponse memory response;
+
+bytes memory stdoutBytes = bytes(stdout);
+string memory approvalProcessIdKey = "Approval process ID";
+string memory viaKey = "Via";
+string memory viaTypeKey = "Via type";
+
+uint256 keyOffset;
+uint256 valueStart;
+uint256 valueEnd;
+
+// Parse Approval process ID
+keyOffset = findSubstring(stdoutBytes, bytes(approvalProcessIdKey));
+if (keyOffset != type(uint256).max) {
+    valueStart = findValueStart(stdoutBytes, keyOffset + bytes(approvalProcessIdKey).length);
+    valueEnd = findLineEnd(stdoutBytes, valueStart);
+    response.approvalProcessId = sliceString(stdout, valueStart, valueEnd);
+}
+
+// Parse Via
+keyOffset = findSubstring(stdoutBytes, bytes(viaKey));
+if (keyOffset != type(uint256).max) {
+    valueStart = findValueStart(stdoutBytes, keyOffset + bytes(viaKey).length);
+    valueEnd = findLineEnd(stdoutBytes, valueStart);
+    string memory viaStr = sliceString(stdout, valueStart, valueEnd);
+    if (bytes(viaStr).length > 0) {
+        response.via = parseAddress(viaStr);
+    }
+}
+
+// Parse Via type
+keyOffset = findSubstring(stdoutBytes, bytes(viaTypeKey));
+if (keyOffset != type(uint256).max) {
+    valueStart = findValueStart(stdoutBytes, keyOffset + bytes(viaTypeKey).length);
+    valueEnd = findLineEnd(stdoutBytes, valueStart);
+    response.viaType = sliceString(stdout, valueStart, valueEnd);
+}
+
+return response;
+}

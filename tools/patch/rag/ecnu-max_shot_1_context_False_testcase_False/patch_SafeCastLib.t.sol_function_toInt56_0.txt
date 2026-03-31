@@ -1,8 +1,0 @@
-function toInt56(int256 x) internal  pure returns (int56) {
-function toInt56(int256 x) internal  pure returns (int56) {
-int56 y = int56(x);
-        if (x != y) {
-            revert("Overflow");
-        }
-        return y;
-    }

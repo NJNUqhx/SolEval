@@ -1,0 +1,4 @@
+function cloneDeterministicWithImmutableArgs(address implementation, bytes memory args, bytes32 salt, uint256 value) internal   returns (address instance) {
+bytes memory bytecode = getCloneWithImmutableArgsBytecode(implementation, args);
+        instance = deploy(value, salt, bytecode);
+    }

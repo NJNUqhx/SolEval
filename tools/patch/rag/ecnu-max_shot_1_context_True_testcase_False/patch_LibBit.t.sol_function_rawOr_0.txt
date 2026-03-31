@@ -1,0 +1,6 @@
+function rawOr(bool x, bool y) internal  pure returns (bool z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := or(x, y)
+        }
+    }

@@ -1,0 +1,4 @@
+function remove(AddressToAddressMap storage map, address key) internal   returns (bool) {
+delete map._values[key];
+return EnumerableSetLib.remove(map._keys, key);
+}

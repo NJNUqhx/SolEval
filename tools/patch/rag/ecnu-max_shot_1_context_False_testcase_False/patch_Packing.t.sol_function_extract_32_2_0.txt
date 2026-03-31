@@ -1,24 +1,6 @@
 function extract_32_2(bytes32 self, uint8 offset) internal  pure returns (bytes2 result) {
-function extract_32_2(bytes32 self, uint8 offset) internal  pure returns (bytes2 result) {
-if (offset > 30) {
-            revert OutOfRangeAccess();
-        }
-
+if (offset > 30) revert OutOfRangeAccess();
         assembly {
-            // Shift left to move the target 2 bytes to the most significant position
-            // Then shift right by 240 bits (32 * 8 - 16) to align them to the least significant position
-            // Effectively: (self << (8 * offset)) >> 240
-            // This is equivalent to shifting right by (240 - 8 * offset) if we treat it as a single operation,
-            // but doing left then right ensures we isolate the correct 2 bytes regardless of endianness logic in solidty assembly.
-            // Actually, simpler logic:
-            // We want 2 bytes starting at 'offset'.
-            // Total bytes = 32. We want bytes at [offset, offset+1].
-            // In a bytes32, byte 0 is the most significant.
-            // To extract 2 bytes at offset X:
-            // Shift left by (8 * X) to move byte X to position 0 (MSB).
-            // Then shift right by (32 - 2) * 8 = 240 to move those 2 bytes to the LSB position.
-            
-            let shifted := shl(mul(8, offset), self)
-            result := shr(240, shifted)
+            result := shr(mul(8, sub(30, offset)), and(self, shl(240, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000)))
         }
     }

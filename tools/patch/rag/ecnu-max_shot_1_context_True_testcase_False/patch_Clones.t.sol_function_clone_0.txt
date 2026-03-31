@@ -1,0 +1,16 @@
+function clone(address implementation, uint256 value) internal   returns (address instance) {
+if address(this).balance < value {
+            revert InsufficientBalance();
+        }
+        assembly {
+            implementation := shr(96, shl(96, implementation))
+            mstore(0x00, 0x602d8060093d393df3363d3d373d3d3d363d73000000)
+            mstore(0x0c, implementation)
+            mstore(0x1c, 0x5af43d52803e903d91602b57fd5bf30000000000000000)
+            instance := create(value, 0x00, 0x3d)
+            if iszero(instance) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+        }
+    }

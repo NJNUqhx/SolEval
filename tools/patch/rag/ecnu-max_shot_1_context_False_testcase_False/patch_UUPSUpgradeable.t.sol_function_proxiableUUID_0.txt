@@ -1,4 +1,0 @@
-function proxiableUUID() public virtual notDelegated returns (bytes32) {
-function proxiableUUID() public virtual notDelegated returns (bytes32) {
-return _IMPLEMENTATION_SLOT;
-    }

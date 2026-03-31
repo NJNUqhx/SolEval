@@ -1,0 +1,5 @@
+function rawMod(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+assembly {
+            z := mod(x, y)
+        }
+    }

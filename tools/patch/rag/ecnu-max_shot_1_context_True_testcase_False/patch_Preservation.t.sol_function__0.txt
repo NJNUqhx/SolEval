@@ -1,0 +1,5 @@
+constructor (address _timeZone1LibraryAddress, address _timeZone2LibraryAddress) {
+timeZone1Library = _timeZone1LibraryAddress;
+        timeZone2Library = _timeZone2LibraryAddress;
+        owner = msg.sender;
+    } 

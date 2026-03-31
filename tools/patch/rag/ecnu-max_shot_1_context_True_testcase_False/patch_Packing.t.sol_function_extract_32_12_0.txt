@@ -1,0 +1,8 @@
+function extract_32_12(bytes32 self, uint8 offset) internal  pure returns (bytes12 result) {
+if (offset > 20) {
+            revert("OutOfRangeAccess");
+        }
+        assembly {
+            result := shr(mul(8, sub(32, add(offset, 12))), and(self, shr(mul(8, offset), not(0))))
+        }
+    }

@@ -1,0 +1,21 @@
+function incSignedCompat(TUint256 storage ptr, int256 delta) internal   returns (uint256 newValue) {
+if (block.chainid == 1) {
+        return incSigned(ptr, delta);
+    }
+    _compat(ptr);
+    /// @solidity memory-safe-assembly
+    assembly {
+        let current := sload(ptr.slot)
+        let new := add(current, delta)
+        let isPositive := sgt(delta, -1)
+        let overflow := and(isPositive, lt(new, current))
+        let underflow := and(iszero(isPositive), gt(new, current))
+        if or(overflow, underflow) {
+            mstore(0x00, 0x4e487b71)
+            mstore(0x20, 0x11)
+            revert(0x1c, 0x24)
+        }
+        sstore(ptr.slot, new)
+        newValue := new
+    }
+}

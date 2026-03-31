@@ -1,0 +1,7 @@
+function pack_12_20(bytes12 left, bytes20 right) internal  pure returns (bytes32 result) {
+assembly {
+        let l := shr(96, shl(96, left))
+        let r := shr(160, shl(160, right))
+        result := or(shl(160, l), r)
+    }
+}

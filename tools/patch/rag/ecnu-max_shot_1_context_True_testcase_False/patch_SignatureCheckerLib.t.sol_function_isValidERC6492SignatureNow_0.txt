@@ -1,0 +1,42 @@
+function isValidERC6492SignatureNow(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length > 0) {
+        bytes4 selector = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
+        (bool success, bytes memory result) = signer.staticcall(
+            abi.encodeWithSelector(selector, hash, signature)
+        );
+        if (success && result.length == 32) {
+            bytes4 returnValue = abi.decode(result, (bytes4));
+            if (returnValue == 0x1626ba7e) {
+                return true;
+            }
+        }
+    }
+
+    if (signature.length != 65) {
+        return false;
+    }
+
+    bytes32 r;
+    bytes32 s;
+    uint8 v;
+    assembly {
+        r := mload(add(signature, 0x20))
+        s := mload(add(signature, 0x40))
+        v := byte(0, mload(add(signature, 0x60)))
+    }
+
+    if (v < 27) {
+        v += 27;
+    }
+
+    if (v != 27 && v != 28) {
+        return false;
+    }
+
+    address recovered = ecrecover(hash, v, r, s);
+    if (recovered == address(0) || recovered != signer) {
+        return false;
+    }
+
+    return true;
+}

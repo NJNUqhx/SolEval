@@ -1,0 +1,4 @@
+function toUint40(uint256 x) internal  pure returns (uint40) {
+if (x >= 1 << 40) revert();
+        return uint40(x);
+    }

@@ -1,0 +1,12 @@
+function free(bytes32[] memory buffer) internal  pure {
+assembly {
+        let len := mload(buffer)
+        if iszero(len) { stop() }
+        let start := add(buffer, 0x20)
+        let end := add(start, mul(len, 0x20))
+        let fmp := mload(0x40)
+        if eq(end, fmp) {
+            mstore(0x40, start)
+        }
+    }
+}

@@ -1,53 +1,10 @@
 function replace_16_2(bytes16 self, bytes2 value, uint8 offset) internal  pure returns (bytes16 result) {
-function replace_16_2(bytes16 self, bytes2 value, uint8 offset) internal  pure returns (bytes16 result) {
 result = self;
         /// @solidity memory-safe-assembly
         assembly {
-            // Ensure value is exactly 2 bytes (mask upper bits if any, though bytes2 enforces this)
             let v := and(shl(240, value), 0xFFFF0000000000000000000000000000)
-            
-            // Calculate shift amount: (14 - offset) * 8
-            // We need to align the 2-byte value to the correct position in the 16-byte word.
-            // bytes16 is 16 bytes. If offset is 0, we want bytes at 0-1 (leftmost).
-            // In a uint256 representation (which mload uses), byte 0 is the most significant.
-            // So for offset 0, shift is (16-2)*8 = 112 bits? No.
-            // Let's trace: bytes16 layout in memory (big-endian interpretation for shifting):
-            // Byte 0 is at bit 120..127 (if 128 bits total, bit 127 is LSB? No, Solidity/Assembly usually treats mload as big integer).
-            // Actually, in assembly `mload`, the first byte of the memory location is the most significant byte of the integer.
-            // So for a 16-byte value:
-            // Byte index 0 -> bits 120-127 (if counting 0 as LSB of 128-bit word? No).
-            // Let's assume standard big-endian integer mapping:
-            // Byte 0 is the most significant (bits 120-127 of a 128-bit number, or bits 120-127 of the lower 128 bits of a 256-bit word).
-            // Actually, if we have 16 bytes:
-            // Byte 0 corresponds to `value >> 120`? No.
-            // If I have 0x001122...
-            // Byte 0 is 0x00. In a uint256 loaded from memory, 0x00 is at the highest bits.
-            // Shift for byte `i` in a 16-byte array: (15 - i) * 8.
-            // We want to replace 2 bytes starting at `offset`.
-            // The shift for the 2-byte chunk starting at `offset` is: (15 - offset - 1) * 8 = (14 - offset) * 8.
-            
-            let shift := mul(sub(14, offset), 8)
-            
-            // Extract old value at that position from self to verify or just overwrite? 
-            // The requirement says "XORing the original array with the old value and the new value".
-            // This is a standard trick: result = self ^ (old << shift) ^ (new << shift).
-            // But we don't strictly need the old value if we are just overwriting, unless we want to be safe.
-            // However, the prompt explicitly says: "Calculate the new 16-byte array by XORing the original array with the old value and the new value".
-            // This implies we must extract the old value first.
-            
-            // Extract old value: (self >> shift) & 0xFFFF
-            // Since we are working with bytes16 mapped to a larger word in assembly context (usually padded or just the lower 128 bits of a slot):
-            // `self` is passed as a value. In assembly, it's just a number.
-            // To extract: shift right by `shift`, then mask 0xFFFF.
-            let old_val := and(shr(shift, self), 0xFFFF)
-            
-            // Prepare the new value shifted to the correct position
-            let new_val_shifted := shl(shift, and(value, 0xFFFF))
-            
-            // Prepare the old value shifted to the correct position
-            let old_val_shifted := shl(shift, old_val)
-            
-            // Apply XOR logic: result = self ^ old_val_shifted ^ new_val_shifted
-            result := xor(xor(self, old_val_shifted), new_val_shifted)
+            let shift := shl(3, sub(15, offset))
+            let old := and(shr(shift, self), 0xFFFF0000000000000000000000000000)
+            result := xor(xor(self, old), shr(shift, v))
         }
     }

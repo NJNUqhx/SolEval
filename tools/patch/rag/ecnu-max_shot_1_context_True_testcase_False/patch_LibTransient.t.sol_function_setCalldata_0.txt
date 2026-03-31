@@ -1,0 +1,19 @@
+function setCalldata(TBytes storage ptr, bytes calldata value) internal {
+/// @solidity memory-safe-assembly
+        assembly {
+            let len := value.length
+            let slot := ptr.slot
+            if iszero(gt(len, 28)) {
+                let data := calldataload(value.offset)
+                let packed := or(shl(1, len), and(data, not(shl(mul(8, len), 0xFF))))
+                sstore(slot, packed)
+            } else {
+                sstore(slot, or(shl(1, len), 1))
+                let offset := value.offset
+                let end := add(offset, len)
+                for { let i := 0 } lt(add(offset, i), end) { i := add(i, 32) } {
+                    sstore(add(slot, add(1, div(i, 32))), calldataload(add(offset, i)))
+                }
+            }
+        }
+    }

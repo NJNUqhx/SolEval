@@ -1,0 +1,36 @@
+function isValidERC6492SignatureNowAllowSideEffects(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length > 0) {
+        (bool success, bytes memory result) = signer.staticcall(
+            abi.encodeCall(IAccount.isValidSignature, (hash, signature))
+        );
+        if (success && result.length >= 32) {
+            bytes32 returnValue = abi.decode(result, (bytes32));
+            return returnValue == IAccount.isValidSignature.selector;
+        }
+        return false;
+    } else {
+        uint256 len = signature.length;
+        if (len == 64) {
+            bytes32 r;
+            bytes32 s;
+            uint8 v;
+            assembly {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+            }
+            return ecrecover(hash, v, r, s) == signer;
+        } else if (len == 65) {
+            bytes32 r;
+            bytes32 s;
+            uint8 v;
+            assembly {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := and(mload(add(signature, 0x41)), 0xff)
+            }
+            return ecrecover(hash, v, r, s) == signer;
+        }
+        return false;
+    }
+}

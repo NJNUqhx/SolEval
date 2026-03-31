@@ -1,4 +1,0 @@
-function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
-assembly {
-    result := or(shl(8, and(left, 0xFF)), and(right, 0xFF))
-}

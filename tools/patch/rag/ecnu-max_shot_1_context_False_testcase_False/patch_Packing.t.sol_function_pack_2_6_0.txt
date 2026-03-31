@@ -1,43 +1,8 @@
 function pack_2_6(bytes2 left, bytes6 right) internal  pure returns (bytes8 result) {
-function pack_2_6(bytes2 left, bytes6 right) internal  pure returns (bytes8 result) {
 /// @solidity memory-safe-assembly
 assembly {
-    // Step 1: Mask the `left` value to ensure it only occupies the higher-order 2 bytes.
-    // not(0) is all 1s. shl(240, not(0)) creates a mask with the top 16 bits set (2 bytes).
-    let maskedLeft := and(left, shl(240, not(0)))
-
-    // Step 2: Mask the `right` value to ensure it only occupies the lower-order 6 bytes.
-    // shl(208, not(0)) creates a mask with the top 48 bits set. 
-    // Since `right` is passed as a left-aligned bytes6 in a bytes32 slot, we need to isolate the relevant 6 bytes.
-    // However, the requirement hint says `and(right, shl(208, not(0)))`. 
-    // In the context of packing into bytes8 where left is high 2 bytes and right is low 6 bytes:
-    // `left` (bytes2) is effectively in the top 2 bytes of a 32-byte word.
-    // `right` (bytes6) needs to be shifted to occupy the next 6 bytes.
-    // The hint `shr(16, right)` suggests `right` is treated as having its significant data starting after the first 2 bytes if combined directly, 
-    // or more likely, the standard Solidity representation of fixed bytes is left-aligned.
-    // Let's follow the assembly details provided in the requirement strictly:
-    
-    // Re-evaluating the hint logic for standard left-aligned fixed bytes:
-    // `left` (bytes2) is in bits 240-255. Masking with `shl(240, not(0))` keeps bits 240-255. Correct.
-    // `right` (bytes6) is in bits 208-255. Masking with `shl(208, not(0))` keeps bits 208-255. Correct.
-    // To pack them into `bytes8` (bits 192-255):
-    // `left` stays at 240-255.
-    // `right` needs to move from 208-255 down to 208-255? No.
-    // bytes8 layout: [0-15 bits unused][16-31: left][32-79: right].
-    // Actually, bytes8 is 64 bits.
-    // Layout in 256-bit word for bytes8 result: bits 192 to 255.
-    // Left (2 bytes) should be bits 240-255.
-    // Right (6 bytes) should be bits 192-239.
-    
-    // If `right` is a `bytes6`, Solidity stores it left-aligned in a 32-byte word (bits 208-255).
-    // We need it at bits 192-239. This requires shifting right by 16 bits.
-    // The mask `shl(208, not(0))` isolates the 6 bytes of `right` in their original position (208-255).
-    // Then `shr(16, ...)` moves them to 192-239.
-    
-    let maskedRight := and(right, shl(208, not(0)))
-    
-    // Step 3: Combine the masked `left` and `right` values.
-    // `left` is already at 240-255.
-    // `maskedRight` is at 208-255, shifting it right by 16 puts it at 192-239.
-    result := or(maskedLeft, shr(16, maskedRight))
+    let l := and(left, shl(240, not(0)))
+    let r := and(right, shl(208, not(0)))
+    result := or(l, shr(16, r))
+}
 }

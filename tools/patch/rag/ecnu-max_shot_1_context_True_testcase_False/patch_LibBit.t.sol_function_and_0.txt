@@ -1,0 +1,5 @@
+function and(bool x, bool y) internal  pure returns (bool z) {
+assembly {
+            z := and(iszero(iszero(x)), iszero(iszero(y)))
+        }
+    }

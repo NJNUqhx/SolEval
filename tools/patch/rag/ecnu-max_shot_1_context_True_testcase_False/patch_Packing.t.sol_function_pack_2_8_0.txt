@@ -1,0 +1,42 @@
+function pack_2_8(bytes2 left, bytes8 right) internal  pure returns (bytes10 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Step 1: Clear the lower 16 bits of the `left` value (though bytes2 is already 16 bits, this ensures safety if passed as larger type internally)
+            // In assembly, bytes2 is stored in the upper 16 bits of a 32-byte slot if treated as uint256, but here we treat them as raw values.
+            // Actually, bytes2 is 2 bytes. We want it in the HIGH order of bytes10 (bytes 0-1).
+            // bytes8 is 8 bytes. We want it in the LOW order of bytes10 (bytes 2-9).
+            // Wait, the requirement says: "left ... into higher-order bits", "right ... into lower-order bits".
+            // And step 3 says: "shifting `right` 16 bits to the right". This implies `right` is currently left-aligned or needs alignment.
+            // Let's re-read carefully: "Combine ... by shifting `right` 16 bits to the right".
+            // If `right` is a bytes8, in Solidity assembly context within a 32-byte word, it is usually left-aligned (MSB).
+            // bytes2 `left` is also left-aligned.
+            // Target: bytes10.
+            // Layout: [left (2 bytes)][right (8 bytes)][padding (22 bytes)]? No, bytes10 is 10 bytes.
+            // In a 32-byte slot (uint256 representation):
+            // left (bytes2) occupies bits 240-255.
+            // right (bytes8) occupies bits 192-255.
+            // We want result (bytes10) to have left at bits 240-255 and right at bits 160-223?
+            // Let's look at the "shift right 16 bits" instruction.
+            // If `right` is left-aligned (bits 192-255 used), shifting right by 16 moves it to 176-239.
+            // If `left` is left-aligned (bits 240-255 used).
+            // OR-ing them: bits 240-255 (left) and 176-239 (shifted right). Total 10 bytes used (bits 176-255).
+            // This matches bytes10 length (80 bits). 255-176+1 = 80 bits.
+            // So the logic is:
+            // 1. Ensure `left` only has the top 2 bytes (mask not strictly needed if input is bytes2, but good for safety).
+            // 2. Ensure `right` only has the top 8 bytes.
+            // 3. Shift `right` right by 16 bits (2 bytes).
+            // 4. OR with `left`.
+            
+            // Mask for bytes2 (keep top 16 bits): 0xFFFF0000...
+            let leftClean := and(left, 0xFFFF000000000000000000000000000000000000000000000000000000000000)
+            // Mask for bytes8 (keep top 64 bits): 0xFFFFFFFFFFFFFFFF0000...
+            let rightClean := and(right, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+            // Shift rightClean by 16 bits (2 bytes) to make room for left? 
+            // Wait, if left is at 240-255, and right is at 192-255.
+            // We want right to be at 176-239 so they don't overlap and form a contiguous 10 bytes at the top.
+            // Shifting rightClean (which is at 192-255) by 16 bits moves it to 176-239.
+            let rightShifted := shr(16, rightClean)
+            
+            result := or(leftClean, rightShifted)
+        }
+    }

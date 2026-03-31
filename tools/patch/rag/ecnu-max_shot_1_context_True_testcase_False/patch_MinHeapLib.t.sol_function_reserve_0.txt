@@ -1,0 +1,28 @@
+function reserve(MemHeap memory heap, uint256 minimum) internal  pure {
+/// @solidity memory-safe-assembly
+        assembly {
+            let data := mload(heap)
+            let n := mload(data)
+            let cap := not(mload(sub(data, 0x20)))
+            let prime := 204053801631428327883786711931463459222251954273621
+            cap := mul(iszero(mod(cap, prime)), div(cap, prime))
+
+            if lt(cap, minimum) {
+                let newCap := minimum
+                let m := add(mload(0x40), 0x20)
+                mstore(m, n)
+                mstore(0x40, add(add(m, 0x20), shl(5, newCap)))
+                mstore(mload(0x40), not(mul(newCap, prime)))
+
+                if cap {
+                    let w := not(0x1f)
+                    for { let i := shl(5, cap) } 1 {} {
+                        mstore(add(m, i), mload(add(data, i)))
+                        i := add(i, w)
+                        if iszero(i) { break }
+                    }
+                }
+                mstore(heap, m)
+            }
+        }
+    }

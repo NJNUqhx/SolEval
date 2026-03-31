@@ -1,45 +1,9 @@
 function replace_32_8(bytes32 self, bytes8 value, uint8 offset) internal  pure returns (bytes32 result) {
-function replace_32_8(bytes32 self, bytes8 value, uint8 offset) internal  pure returns (bytes32 result) {
 assembly {
-            // Calculate the shift amount: (32 - offset - 8) * 8 bits
-            // We need to align the 8-byte value to the correct position within the 32-byte word.
-            // Solidity bytes32 is big-endian in representation, but assembly operations are on the full 256-bit integer.
-            // To replace bytes at `offset` (0-indexed from left), we shift the 8-byte value left by (24 - offset) * 8.
-            
-            let shift := shl(3, sub(24, offset))
-            
-            // Mask the input value to ensure it's treated as an 8-byte value aligned to the left of the 256-bit word
-            // Actually, `value` is already a bytes8, which occupies the most significant 8 bytes when loaded as uint256?
-            // No, in assembly, `value` loaded from a bytes8 variable will be left-aligned (most significant bytes) if we treat it as uint256?
-            // Let's clarify: `bytes8` in Solidity is right-padded with zeros when converted to `bytes32`? 
-            // Actually, when passing `bytes8` to assembly, it is loaded as a uint256 where the data is in the MOST significant 8 bytes.
-            // Wait, Solidity ABI encoding for fixed bytes types places data in the most significant bytes.
-            // So `value` as a uint256 has the data in the top 8 bytes (bits 248-255).
-            // We need to move it to the target `offset`.
-            // Target position shift: The data currently starts at bit 248 (byte 0). We want it to start at `offset * 8`.
-            // So we need to shift RIGHT by (24 - offset) * 8? Or LEFT?
-            // If offset=0, we want it at the beginning (MSB). It is already there. Shift 0.
-            // If offset=24, we want it at the end (LSB). We need to shift right by 24*8.
-            // Formula: shift_right_amount = (24 - offset) * 8.
-            
-            let shifted_value := shr(shl(3, sub(24, offset)), value)
-            
-            // Create a mask for the 8 bytes at the specific offset to isolate the old value.
-            // Mask is 0xFF...FF (8 bytes) shifted to the correct position.
-            // 0xFFFFFFFFFFFFFFFF is 8 bytes of 1s.
-            let mask := shr(shl(3, sub(24, offset)), 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
-            // Correction: The constant above is 32 bytes with 8 bytes of 1s at the MSB.
-            // Let's use a simpler approach: Create a mask of 8 ones at MSB, then shift it.
-            let full_mask := 0xFFFFFFFFFFFFFFFF00000000000000000000000000000000000000000000000000000000
-            let pos_mask := shr(shl(3, sub(24, offset)), full_mask)
-            
-            // Extract the old value at the position (optional for logic, but good for understanding)
-            // let old_part := and(self, pos_mask)
-            
-            // Clear the bits at the target position in `self`
-            let cleared_self := and(self, not(pos_mask))
-            
-            // Combine the cleared self with the shifted new value
-            result := or(cleared_self, shifted_value)
+            let shift := shl(3, sub(32, offset))
+            let mask := not(shl(240, shift))
+            let old_val := and(self, mask)
+            let new_val := and(shl(shift, value), not(mask))
+            result := or(old_val, new_val)
         }
-    }
+}

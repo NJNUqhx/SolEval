@@ -1,23 +1,8 @@
 function extract_24_20(bytes24 self, uint8 offset) internal  pure returns (bytes20 result) {
-function extract_24_20(bytes24 self, uint8 offset) internal  pure returns (bytes20 result) {
 if (offset > 4) {
             revert("OutOfRangeAccess");
         }
-
         assembly {
-            // Shift the 24-byte value left by (offset * 8) bits to align the desired segment.
-            // Since we are working with a 32-byte slot, shifting left moves the relevant bytes
-            // towards the most significant position.
-            let shifted := shl(mul(offset, 8), self)
-            
-            // Mask to keep only the top 20 bytes (160 bits).
-            // The mask is 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
-            // However, since the result variable `result` is 20 bytes, Solidity/Assembly will naturally
-            // handle the size when returning, but explicitly masking ensures cleanliness.
-            // A 20-byte mask shifted to the top of a 32-byte word:
-            // 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF << (12 * 8)
-            let mask := shl(96, sub(shl(160, 1), 1))
-            
-            result := and(shifted, mask)
+            result := and(shl(mul(8, offset), self), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000)
         }
     }

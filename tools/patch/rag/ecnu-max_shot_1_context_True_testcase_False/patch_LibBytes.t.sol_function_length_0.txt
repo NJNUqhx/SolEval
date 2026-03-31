@@ -1,0 +1,12 @@
+function length(BytesStorage storage $) internal  view returns (uint256 result) {
+uint256 spacer = uint256($._spacer);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let lastByte := and(spacer, 0xff)
+            if eq(lastByte, 0xff) {
+                result := shr(8, spacer)
+            } else {
+                result := lastByte
+            }
+        }
+    }

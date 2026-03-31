@@ -1,15 +1,9 @@
 function extract_16_4(bytes16 self, uint8 offset) internal  pure returns (bytes4 result) {
-function extract_16_4(bytes16 self, uint8 offset) internal  pure returns (bytes4 result) {
-if (offset > 12) {
-            revert OutOfRangeAccess();
-        }
-
-        /// @solidity memory-safe-assembly
-        assembly {
-            // Shift left by (offset * 8) bits to align the target 4 bytes to the most significant position
-            // Then shift right by (12 * 8) = 96 bits to move them to the least significant 4 bytes position
-            // Equivalent to: (self << (offset * 8)) >> 96
-            let shifted := shl(mul(offset, 8), self)
-            result := shr(96, shifted)
-        }
+if (offset > 12) revert OutOfRangeAccess();
+    /// @solidity memory-safe-assembly
+    assembly {
+        let value := self
+        let shifted := shl(mul(8, offset), value)
+        result := and(shifted, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
     }
+}

@@ -1,87 +1,11 @@
 function replace_28_16(bytes28 self, bytes16 value, uint8 offset) internal  pure returns (bytes28 result) {
-function replace_28_16(bytes28 self, bytes16 value, uint8 offset) internal  pure returns (bytes28 result) {
 assembly {
-        // Load the original 28-byte value into 'res'
-        let res := self
-        // Load the new 16-byte value into 'val'
-        let val := value
-        
-        // Calculate the shift amount for the offset. 
-        // Since we are working with 32-byte words and the data is left-aligned in the 28-byte type:
-        // offset 0 corresponds to shifting left by 0 bits (most significant bytes).
-        // However, standard replacement logic usually implies replacing bytes at [offset, offset+16].
-        // In a 28-byte (224 bits) value stored in a 256-bit slot, the data occupies the upper 224 bits.
-        // Byte 0 is at bit 248 (256-8), Byte 27 is at bit 8.
-        // To replace 16 bytes starting at 'offset', we need to shift the mask and value to align.
-        // Shift amount in bits = (28 - 16 - offset) * 8 ? No.
-        // Let's align based on byte index from the left (0-indexed).
-        // Total bytes = 28. Target segment = 16 bytes.
-        // If offset = 0, we replace bytes 0-15. These are the most significant 16 bytes of the 28.
-        // The 28 bytes occupy bits 248 down to 8.
-        // Byte 0 is bits 248-241. Byte 15 is bits 136-129.
-        // So for offset 0, the segment starts at bit 248. Shift = 0? 
-        // Actually, if we treat 'self' as a number, byte 0 is the most significant.
-        // To isolate 16 bytes at 'offset', we shift right by (28 - 16 - offset) * 8?
-        // Let's verify:
-        // If offset = 0, we want the top 16 bytes of the 28. 
-        // The 28 bytes are left-padded with 4 zero bytes in the 32-byte slot? 
-        // No, `bytes28` is right-aligned in memory usually, but in a stack variable (uint256 representation), 
-        // solidity packs it to the left (most significant bits) or right?
-        // Solidity `bytesN` types are left-aligned in the 32-byte word when accessed via assembly as numbers?
-        // Actually, `bytes28` stored in a variable occupies the 28 most significant bytes (left-aligned) 
-        // OR the 28 least significant? 
-        // Testing standard behavior: `bytes32` is full. `bytes1` is in the first byte (most significant).
-        // Yes, `bytesN` are left-aligned. Byte 0 is at bit 248.
-        // So, 28 bytes occupy bits 248 down to 8.
-        // We want to replace 16 bytes starting at `offset`.
-        // Start bit position (from LSB 0) = (28 - offset - 16) * 8.
-        // Wait, if offset=0, start bit = (28-16)*8 = 12*8 = 96? 
-        // If left aligned: 
-        // Byte 0 is at shift 248. 
-        // Byte `offset` is at shift 248 - offset*8.
-        // We need to shift the 16-byte value to this position.
-        // 16 bytes = 128 bits.
-        // So the value should be shifted left by (248 - offset*8 - 128 + 8)? No.
-        // Let's use a mask approach.
-        // We need a mask of 16 ones (bytes) at the specific location.
-        // Mask = 0xFFFF... (16 bytes) shifted to the correct position.
-        // Position shift (left) = (28 - 16 - offset) * 8?
-        // If offset = 0 (start of 28 bytes), we want the mask at the very top of the 28 bytes.
-        // Top of 28 bytes is bit 248. 16 bytes end at bit 248-128+8 = 128?
-        // Let's simplify: 
-        // The 28-byte value effectively has 4 padding bytes on the right (LSB) if left aligned?
-        // No, `bytes28` in a `uint256` context: 
-        // Value `0x0102...` (28 bytes) is stored as `0x0102...0000` (4 zero bytes at LSB)?
-        // Actually, Solidity left-aligns `bytesN`. 
-        // So `bytes28` with value `0x112233...` (28 bytes) looks like `0x112233...00000000` in 32 bytes.
-        // Byte 0 is at bit 248. Byte 27 is at bit 8.
-        // We want to replace 16 bytes starting at `offset`.
-        // Start bit = 248 - offset * 8.
-        // We need to shift the 16-byte `value` (which is also left aligned in its 32-byte slot, so at bit 248)
-        // to the target start bit.
-        // Shift amount = (248 - offset * 8) - 248 = -offset * 8. 
-        // Wait, if `value` is `bytes16`, it is left aligned at bit 248.
-        // To move it to `248 - offset*8`, we shift RIGHT by `offset * 8`.
-        // Similarly for the mask.
-        
-        let shift := mul(offset, 8)
-        
-        // Create a mask for 16 bytes: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF (16 bytes)
-        // In a 256 bit word, 16 bytes of 1s is (1 << 128) - 1? No, that's 16 bytes at LSB.
-        // We need 16 bytes at MSB (left aligned) first, then shift right.
-        // 16 bytes of 1s at MSB: not(0) << 128? 
-        // not(0) is 32 bytes of 1s. Shift left by 128 bits (16 bytes) gives 16 bytes of 1s at MSB.
-        let fullMask := shl(128, not(0))
-        
-        // Shift the mask to the correct position (right shift by offset * 8)
-        let mask := shr(shift, fullMask)
-        
-        // Shift the new value to the correct position (right shift by offset * 8)
-        let shiftedVal := shr(shift, val)
-        
-        // Clear the bits in the original result where the mask is 1
-        let cleared := and(res, not(mask))
-        
-        // Apply the new value
-        result := or(cleared, shiftedVal)
-    }
+            let selfVal := and(self, not(0))
+            let val := and(value, not(0))
+            let shift := shl(mul(offset, 8), 1)
+            let mask := shr(sub(256, 128), sub(shl(128, shift), shift))
+            let oldSegment := and(selfVal, mask)
+            let newSegment := and(shl(mul(sub(offset, 16), 8), val), mask)
+            result := xor(xor(selfVal, oldSegment), newSegment)
+        }
+}

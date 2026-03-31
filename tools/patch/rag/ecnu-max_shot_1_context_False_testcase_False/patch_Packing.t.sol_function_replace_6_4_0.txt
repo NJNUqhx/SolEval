@@ -1,44 +1,7 @@
 function replace_6_4(bytes6 self, bytes4 value, uint8 offset) internal  pure returns (bytes6 result) {
-function replace_6_4(bytes6 self, bytes4 value, uint8 offset) internal  pure returns (bytes6 result) {
-function replace_6_4(bytes6 self, bytes4 value, uint8 offset) internal pure returns (bytes6 result) {
-    assembly {
-        // Load the 6-byte value into the lower bits of a word.
-        // bytes6 is stored left-aligned in the 32-byte slot, so we shift right by (32 - 6) * 8 = 208 bits.
-        let s := shr(208, self)
-        
-        // Load the 4-byte value. It is also left-aligned, shift right by (32 - 4) * 8 = 224 bits.
-        let v := shr(224, value)
-        
-        // Calculate the bit shift amount for the offset within the 6-byte segment.
-        // Each byte is 8 bits. The offset is from the start of the 6-byte array.
-        let shift := mul(sub(5, offset), 8)
-        
-        // Create a mask for 4 bytes: 0xFFFFFFFF
-        let mask := 0xFFFFFFFF
-        
-        // Shift the mask to the correct position within the 6-byte aligned space.
-        let shifted_mask := shl(shift, mask)
-        
-        // Shift the new value to the correct position.
-        let shifted_value := shl(shift, v)
-        
-        // Extract the old 4-byte value at the specific offset to verify logic (optional per requirement step 1, 
-        // but the XOR swap method inherently handles the replacement without explicit extraction variable).
-        // Requirement says: "Extract... Use inline assembly to... XORing original with old... then with new".
-        // To strictly follow the "extract old" step conceptually in the XOR math:
-        // result = (self ^ old_part) ^ new_part
-        // Since we don't have 'old_part' as a variable, we can derive it or just do:
-        // result = (self & ~mask_part) | new_part
-        // However, the requirement specifically asks for the XOR approach: "XORing the original array with the old value and then XORing with the new value".
-        // To do this, we must isolate the old value first.
-        
-        let old_part := and(s, shifted_mask)
-        
-        // Perform the replacement: (s ^ old_part) ^ shifted_value
-        // This clears the old bits and sets the new bits.
-        let res := xor(xor(s, old_part), shifted_value)
-        
-        // Shift back to left-align for bytes6 return type.
-        result := shl(208, res)
+assembly {
+        let oldVal := and(shl(sub(48, mul(8, offset)), self), 0xFFFFFFFF000000000000000000000000000000000000000000000000)
+        let newVal := and(shl(sub(48, mul(8, offset)), and(value, 0xFFFFFFFF)), 0xFFFFFFFF000000000000000000000000000000000000000000000000)
+        result := xor(xor(self, oldVal), newVal)
     }
 }

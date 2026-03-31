@@ -1,0 +1,4 @@
+function unlock(bytes32 _password) public {
+require(_password == password, "Incorrect password");
+    locked = false;
+} 

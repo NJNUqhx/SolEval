@@ -1,0 +1,66 @@
+function verifyMultiProof(bytes32[] memory proof, bytes32 root, bytes32[] memory leaves, bool[] memory flags) internal  pure returns (bool isValid) {
+uint256 proofLength = proof.length;
+    uint256 leavesLength = leaves.length;
+    uint256 flagsLength = flags.length;
+
+    assembly {
+        function memoryPointer(array) -> ptr {
+            ptr := add(array, 0x20)
+        }
+
+        let proofPtr := memoryPointer(proof)
+        let leavesPtr := memoryPointer(leaves)
+        let flagsPtr := memoryPointer(flags)
+
+        if iszero(eq(flagsLength, add(proofLength, sub(leavesLength, 1)))) {
+            isValid := 0
+            leave
+        }
+
+        if iszero(flagsLength) {
+            if eq(leavesLength, 1) {
+                isValid := eq(mload(leavesPtr), root)
+            } else {
+                isValid := eq(mload(proofPtr), root)
+            }
+            leave
+        }
+
+        let queueSize := add(leavesLength, proofLength)
+        let queue := mload(0x40)
+        let hashQueue := add(queue, 0x20)
+        
+        mstore(queue, queueSize)
+        
+        let leavesEnd := add(leavesPtr, mul(leavesLength, 0x20))
+        let hashPtr := hashQueue
+        for { let i := 0 } lt(i, leavesLength) { i := add(i, 1) } {
+            mstore(hashPtr, mload(leavesPtr))
+            leavesPtr := add(leavesPtr, 0x20)
+            hashPtr := add(hashPtr, 0x20)
+        }
+
+        let proofEnd := add(proofPtr, mul(proofLength, 0x20))
+        let flagsEnd := add(flagsPtr, mul(flagsLength, 0x20))
+        
+        for {} lt(flagsPtr, flagsEnd) { flagsPtr := add(flagsPtr, 0x20) } {
+            let flag := mload(flagsPtr)
+            let a := mload(sub(hashPtr, 0x20))
+            let b
+            if flag {
+                b := mload(sub(hashPtr, 0x40))
+                hashPtr := sub(hashPtr, 0x20)
+            } else {
+                b := mload(proofPtr)
+                proofPtr := add(proofPtr, 0x20)
+            }
+            
+            mstore(0x00, a)
+            mstore(0x20, b)
+            let hash := keccak256(0x00, 0x40)
+            mstore(sub(hashPtr, 0x20), hash)
+        }
+
+        isValid := and(eq(mload(hashQueue), root), eq(proofPtr, proofEnd))
+    }
+}

@@ -1,0 +1,86 @@
+function replace_28_12(bytes28 self, bytes12 value, uint8 offset) internal  pure returns (bytes28 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Ensure offset is within valid range (0 to 16, since 28 - 12 = 16)
+            if gt(offset, 16) {
+                mstore(0x00, 0x2194895a) // Revert with error selector (reusing previous for brevity, ideally specific error)
+                revert(0x1c, 0x04)
+            }
+
+            // Calculate shift amount: (16 - offset) * 8 bits
+            // We are working with bytes28 stored in the lower 224 bits of a bytes32 slot effectively.
+            // bytes28 layout: [0...27]. We want to replace [offset...offset+11].
+            // In a bytes32 representation (right-aligned), byte 27 is at bit 0-7, byte 0 is at bit 216-223.
+            // Actually, solidity bytesNN are left-aligned in the 32-byte word when loaded as uint256?
+            // No, bytesNN are stored right-aligned in the 32-byte word in memory/storage slots, 
+            // but when cast to uint256 or manipulated in assembly, we treat the whole 32 bytes.
+            // Let's assume standard uint256 representation where MSB is bit 255.
+            // bytes28 occupies bits 255 down to 32 (28 bytes = 224 bits). Bits 31-0 are zero.
+            // Wait, bytes28 in solidity is a value type. When loaded into a variable, it's in the lower 28 bytes of the 32-byte word?
+            // Actually, for `bytes28`, the data is left-aligned in the 32-byte word (MSB first).
+            // Byte 0 is at bit 248-255. Byte 27 is at bit 0-7.
+            // Let's verify: `bytes1` value `0x12` is `0x1200...00`.
+            // So `self` has data in bits 255 down to 32.
+            // We want to replace 12 bytes starting at `offset`.
+            // Byte index `offset` corresponds to bit start: 255 - (offset * 8) - 7 = 248 - offset*8.
+            // We need to clear 12 bytes (96 bits) at that position and OR in the new value.
+            
+            // Shift amount for the mask and the new value to align with the target position.
+            // Total bits = 256.
+            // Position of byte `offset` (0-indexed from left) in a 32-byte word:
+            // Bit index of the MSB of the target byte = 255 - (offset * 8).
+            // We need to shift the 12-byte value (which is in the MSB of its 32-byte word if loaded as bytes12)
+            // Actually, `value` (bytes12) is also left-aligned. Its data is in bits 255 down to 128.
+            // We need to shift `value` right by (offset * 8) to align it with the target slot in `self`.
+            
+            let shift := mul(offset, 8)
+            
+            // Create a mask to clear the 12 bytes at the target position.
+            // 12 bytes = 96 bits.
+            // We want 1s everywhere except 0s in the 96-bit window starting at `shift` from the left?
+            // No, if we shift `value` right by `shift`, we assume `value` is aligned to MSB.
+            // `bytes12` constant or variable `value`: data is in bits 255..128.
+            // To put it at `offset`, we shift right by `offset * 8`.
+            // Example: offset=0. Shift=0. Value stays at 255..128. Correct.
+            // Example: offset=16. Shift=128. Value moves to 127..32. Correct (since 28-12=16, max offset is 16).
+            
+            // Mask generation:
+            // We need 0s in the range [255-shift, 255-shift-95] and 1s elsewhere.
+            // Easier approach: 
+            // 1. Create a mask of 12 bytes of 0s surrounded by 1s?
+            // Or: Clear the bits in `self` then OR.
+            // Mask to clear: NOT (0xFF...FF (96 bits) shifted right by `shift`).
+            // 96 bits of 1s: `0xFFFFFFFFFFFFFFFFFFFFFFFF` (shifted to MSB first? No, just 96 ones).
+            // 96 ones starting at MSB: `0xFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000`?
+            // No, 96 ones is `2^96 - 1`. In 256 bits, that's low 96 bits.
+            // We want 96 ones at the TOP (MSB) to represent the `bytes12` structure before shifting.
+            // So `mask96 = 0xFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000`?
+            // 12 bytes = 0x1000000000000000000000000 - 1 ?? No.
+            // 12 bytes of 1s = 0xFFFFFFFFFFFFFFFFFFFFFFFF. This is 96 bits.
+            // If we put this at the MSB of a 256-bit word: `0xFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000`
+            // Wait, 256 - 96 = 160 bits of zeros at the end.
+            // Let's construct `fullMask` = 12 bytes of 1s at MSB.
+            // `fullMask = 0xFFFFFFFFFFFFFFFFFFFFFFFF` << 160.
+            // Then shift `fullMask` right by `shift`.
+            // Then NOT that to get the clearing mask.
+            
+            let ones12 := 0xFFFFFFFFFFFFFFFFFFFFFFFF
+            let fullMask := shl(160, ones12) // 12 bytes of 1s at the very left (MSB)
+            let targetMask := shr(shift, fullMask) // Shift to the correct offset
+            let clearMask := not(targetMask) // 0s where we want to replace, 1s elsewhere
+            
+            // Load self into a temporary variable (it's already in `self` arg, but let's use `result` as accumulator)
+            result := self
+            
+            // Clear the old 12 bytes
+            result := and(result, clearMask)
+            
+            // Align the new value
+            // `value` is bytes12, so it is left-aligned (bits 255-128).
+            // We shift it right by `shift` to align with the hole we just made.
+            let alignedValue := shr(shift, value)
+            
+            // Insert the new value
+            result := or(result, alignedValue)
+        }
+    }

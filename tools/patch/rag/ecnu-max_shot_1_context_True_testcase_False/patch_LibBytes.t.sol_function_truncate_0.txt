@@ -1,0 +1,10 @@
+function truncate(bytes memory subject, uint256 n) internal  pure returns (bytes memory result) {
+result = subject;
+        /// @solidity memory-safe-assembly
+        assembly {
+            let len := mload(result)
+            if lt(n, len) {
+                mstore(result, n)
+            }
+        }
+}

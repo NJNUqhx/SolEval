@@ -1,0 +1,25 @@
+function nonReentrant()  virtual {
+if (block.chainid == 1) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                if tload(0) { revert(0, 0) }
+                tstore(0, address())
+            }
+            _;
+            /// @solidity memory-safe-assembly
+            assembly {
+                tstore(0, 0)
+            }
+        } else {
+            /// @solidity memory-safe-assembly
+            assembly {
+                if sload(0) { revert(0, 0) }
+                sstore(0, address())
+            }
+            _;
+            /// @solidity memory-safe-assembly
+            assembly {
+                sstore(0, 0)
+            }
+        }
+    }

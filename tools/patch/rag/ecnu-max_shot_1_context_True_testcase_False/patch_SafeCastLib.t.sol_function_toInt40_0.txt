@@ -1,0 +1,4 @@
+function toInt40(uint256 x) internal  pure returns (int40) {
+if (x >= 2**39) revert Overflow();
+        return int40(int256(x));
+    } 

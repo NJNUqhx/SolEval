@@ -1,0 +1,6 @@
+function toInt192(uint256 x) internal  pure returns (int192) {
+if (x >= (1 << 191)) {
+            revert();
+        }
+        return int192(int256(x));
+    }

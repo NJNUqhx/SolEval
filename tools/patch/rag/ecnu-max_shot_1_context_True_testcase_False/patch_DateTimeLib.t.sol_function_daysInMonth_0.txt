@@ -1,0 +1,17 @@
+function daysInMonth(uint256 year, uint256 month) internal  pure returns (uint256 result) {
+bool leap = isLeapYear(year);
+    assembly {
+        // Packed days in months: Jan(31), Feb(28), Mar(31), Apr(30), May(31), Jun(30), Jul(31), Aug(31), Sep(30), Oct(31), Nov(30), Dec(31)
+        // Stored as bytes: 0x1f 1c 1f 1e 1f 1e 1f 1f 1e 1f 1e 1f
+        let days := 0x1f1c1f1e1f1e1f1f1e1f1e1f
+        let offset := mul(sub(12, month), 8)
+        let daysInMonth := and(shr(offset, days), 0xff)
+        
+        // Add 1 day if leap year and month is February (month == 2)
+        if and(leap, eq(month, 2)) {
+            daysInMonth := add(daysInMonth, 1)
+        }
+        
+        result := daysInMonth
+    }
+}

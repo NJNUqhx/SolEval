@@ -1,0 +1,3 @@
+function p(bytes memory data0, bytes memory data1, bytes memory data2, bytes memory data3, bytes memory data4, bytes memory data5, bytes memory data6) internal  pure returns (DynamicBuffer memory result) {
+result = p(p(p(p(p(p(data0, data1), data2), data3), data4), data5), data6);
+    }

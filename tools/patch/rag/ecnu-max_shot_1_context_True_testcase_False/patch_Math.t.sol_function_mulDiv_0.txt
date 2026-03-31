@@ -1,0 +1,25 @@
+function mulDiv(uint256 x, uint256 y, uint256 denominator) internal  pure returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mm := mulmod(x, y, denominator)
+            let prod0 := mul(x, y)
+            let prod1 := sub(sub(mm, prod0), lt(mm, prod0))
+            if iszero(prod1) {
+                if iszero(denominator) { panic(DIVISION_BY_ZERO) }
+                result := div(prod0, denominator)
+                leave
+            }
+            if or(iszero(denominator), lt(denominator, prod1)) { panic(UNDER_OVERFLOW) }
+            let remainder := mod(prod0, denominator)
+            prod0 := sub(prod0, remainder)
+            let denominatorTwos := and(denominator, sub(0, denominator))
+            let inv := mul(3, xor(div(0, denominatorTwos), div(0, sub(denominatorTwos, 1))))
+            inv := mul(inv, sub(2, mul(denominatorTwos, inv)))
+            inv := mul(inv, sub(2, mul(denominatorTwos, inv)))
+            inv := mul(inv, sub(2, mul(denominatorTwos, inv)))
+            inv := mul(inv, sub(2, mul(denominatorTwos, inv)))
+            inv := mul(inv, sub(2, mul(denominatorTwos, inv)))
+            let rhs := mul(inv, add(div(prod0, denominatorTwos), 1))
+            result := div(rhs, shr(128, sub(0, denominatorTwos)))
+        }
+}

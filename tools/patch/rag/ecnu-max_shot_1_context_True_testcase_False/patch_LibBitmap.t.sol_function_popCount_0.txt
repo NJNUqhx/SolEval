@@ -1,0 +1,35 @@
+function popCount(Bitmap storage bitmap, uint256 start, uint256 amount) internal  view returns (uint256 count) {
+uint256 bucket = start >> 8;
+        uint256 shift = start & 0xff;
+        uint256 end = start + amount;
+        
+        if (amount == 0) return 0;
+
+        if (shift + amount > 256) {
+            uint256 currentBucket = bitmap[bucket];
+            uint256 mask = type(uint256).max << shift;
+            count += popCount(currentBucket & mask);
+            
+            bucket++;
+            uint256 remainingBits = 256 - shift;
+            uint256 fullBuckets = (amount - remainingBits) >> 8;
+            
+            unchecked {
+                for (uint256 i = 0; i < fullBuckets; i++) {
+                    count += popCount(bitmap[bucket + i]);
+                }
+            }
+            
+            bucket += fullBuckets;
+            uint256 finalShift = (amount - remainingBits) & 0xff;
+            if (finalShift > 0) {
+                uint256 finalBucket = bitmap[bucket];
+                uint256 finalMask = (type(uint256).max >> (256 - finalShift));
+                count += popCount(finalBucket & finalMask);
+            }
+        } else {
+            uint256 currentBucket = bitmap[bucket];
+            uint256 mask = (type(uint256).max << shift) & (type(uint256).max >> (256 - amount));
+            count += popCount(currentBucket & mask);
+        }
+    }

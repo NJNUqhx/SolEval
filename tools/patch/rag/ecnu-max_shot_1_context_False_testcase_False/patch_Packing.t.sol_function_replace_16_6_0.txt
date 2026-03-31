@@ -1,52 +1,5 @@
 function replace_16_6(bytes16 self, bytes6 value, uint8 offset) internal  pure returns (bytes16 result) {
-function replace_16_6(bytes16 self, bytes6 value, uint8 offset) internal  pure returns (bytes16 result) {
-require(offset <= 10, "Offset out of bounds");
-
-    assembly {
-        // Load the original 16-byte value
-        result := self
-        
-        // Calculate the number of bits to shift to align the 6-byte segment to the least significant position
-        // 16 bytes = 128 bits. Segment starts at 'offset'.
-        // We want to shift right by (16 - offset - 6) * 8 bits to bring the segment to the right end?
-        // Actually, it's easier to think in terms of masking.
-        // We need a mask for 6 bytes: 0xFFFFFFFFFFFF (48 bits set to 1).
-        let mask6 := shr(mul(sub(256, 48), 8), not(0)) // Shifts 0xFFFF... to get 0x0000...FFFFFFFFFFFF
-        
-        // Calculate shift amount: (16 - offset - 6) * 8
-        // The segment occupies bytes [offset, offset+5].
-        // In a bytes16 loaded as a uint256, byte 0 is the MSB (bit 120-127) and byte 15 is LSB (bit 0-7).
-        // Wait, Solidity bytes16 loading: 
-        // If we load bytes16 into a uint256 slot, the first byte of the array is at the highest significant byte of the 16-byte chunk.
-        // However, standard practice for fixed-size bytes manipulation in assembly often treats the value as a big-endian integer.
-        // Let's assume standard uint256 representation where `self` is left-aligned in the 32-byte slot if it were bytes, 
-        // BUT `bytes16` loaded directly into a variable in assembly occupies the lower 16 bytes of the 32-byte word? 
-        // No, `bytes16` in assembly when assigned to a variable like `result := self` puts the 16 bytes in the lower 16 bytes of the 32-byte word?
-        // Actually, for fixed-size types `bytesN`, the value is stored in the least significant N bytes of the 32-byte word ONLY if N <= 32?
-        // Let's verify Solidity assembly behavior for `bytes16`.
-        // If `self` is `bytes16`, `mload` or direct assignment puts the data in the lower 16 bytes (right-aligned) or upper?
-        // Solidity stores fixed-size bytes types right-aligned (LSB) in the 32-byte slot.
-        // So byte index 0 of `bytes16` is at bit position (16-1)*8 = 120? No.
-        // If right aligned: Byte 15 is at bits 0-7. Byte 0 is at bits 120-127.
-        // So `offset` 0 means bits 120-127. `offset` 10 means bits (16-10-1)*8 = 40 to 47?
-        // Formula: Shift right by (16 - offset - 6) * 8 to align the 6-byte segment to the lowest 6 bytes.
-        // Then apply mask. Then shift back left by the same amount.
-        
-        let shiftAmount := mul(sub(10, offset), 8) // (16 - 6 - offset) * 8
-        
-        // Extract the old segment
-        let oldSegment := and(shr(shiftAmount, result), mask6)
-        
-        // Prepare the new value (ensure it is treated as 6 bytes and shifted to correct position)
-        // `value` is bytes6, so it is also right-aligned in its 32-byte slot (bits 0-47 used).
-        let newSegment := shl(shiftAmount, and(value, mask6))
-        
-        // Clear the old segment from result: result & ~(oldSegment << shiftAmount)
-        // But we already extracted oldSegment shifted down. So we need to shift it back up to clear.
-        let clearMask := not(shl(shiftAmount, and(shr(shiftAmount, result), mask6)))
-        result := and(result, clearMask)
-        
-        // OR in the new segment
-        result := or(result, newSegment)
-    }
-}
+bytes16 mask = bytes16(uint128(0xFFFFFFFFFFFF) << (8 * (16 - offset - 6)));
+    bytes16 shiftedValue = bytes16(uint128(uint48(value)) << (8 * (16 - offset - 6)));
+    result = (self & ~mask) | shiftedValue;
+} 

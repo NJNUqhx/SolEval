@@ -1,0 +1,9 @@
+function log10(uint256 value, Rounding rounding) internal  pure returns (uint256) {
+uint256 result = Math.log10(value);
+        if (rounding == Rounding.Up && value > 10 ** result) {
+            unchecked {
+                result += 1;
+            }
+        }
+        return result;
+    }

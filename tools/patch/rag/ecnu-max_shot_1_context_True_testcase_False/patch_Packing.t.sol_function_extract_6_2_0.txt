@@ -1,0 +1,12 @@
+function extract_6_2(bytes6 self, uint8 offset) internal  pure returns (bytes2 result) {
+require(offset <= 4, "OutOfRangeAccess");
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Load the 6-byte value into a 32-byte word (aligned to the left)
+            let value := shl(160, self)
+            // Shift left by 8 * offset bits to align the desired 2-byte segment to the top
+            let shifted := shl(mul(8, offset), value)
+            // Mask to keep only the top 2 bytes (16 bits) and shift right to align to the bottom
+            result := shr(240, shifted)
+        }
+}

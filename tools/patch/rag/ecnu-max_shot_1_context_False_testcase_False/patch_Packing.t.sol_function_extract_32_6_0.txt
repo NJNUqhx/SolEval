@@ -1,12 +1,7 @@
 function extract_32_6(bytes32 self, uint8 offset) internal  pure returns (bytes6 result) {
-function extract_32_6(bytes32 self, uint8 offset) internal  pure returns (bytes6 result) {
-require(offset <= 26, "Offset out of range");
+if (offset > 26) revert();
     assembly {
-        // Shift left to align the desired 6 bytes to the most significant position
         let shifted := shl(mul(offset, 8), self)
-        // Mask to keep only the top 6 bytes (48 bits)
-        // 0xFFFFFFFFFF00...00 (48 ones followed by 208 zeros)
-        let masked := and(shifted, 0xFFFFFFFFFF000000000000000000000000000000000000000000000000000000)
-        // Shift right to move the 6 bytes to the least significant position for the return value
-        result := shr(208, masked)
+        result := shr(208, shifted)
     }
+}

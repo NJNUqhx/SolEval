@@ -1,5 +1,0 @@
-constructor () {
-constructor () {
-owner = msg.sender;
-        contributions[msg.sender] = 1000 ether;
-    }

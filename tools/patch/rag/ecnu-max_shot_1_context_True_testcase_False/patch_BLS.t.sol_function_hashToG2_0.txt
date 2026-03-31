@@ -1,0 +1,76 @@
+function hashToG2(bytes memory message) internal  view returns (G2Point memory result) {
+assembly ("memory-safe") {
+            let msgLen := mload(message)
+            let msgPtr := add(message, 0x20)
+            let freeMem := mload(0x40)
+            let dst := "BLS12381G2_XMD:SHA-256_SSWU_RO_"
+            let dstLen := 24
+            let counter := 1
+            let k := 48
+            let L := 128
+            let hashInputSize := add(add(msgLen, dstLen), 1)
+            let hashOutputSize := 32
+            let totalHashes := 2
+            let expandedSize := mul(totalHashes, hashOutputSize)
+            let workArea := freeMem
+            let hashInputPtr := add(workArea, 0x100)
+            let hashOutputPtr := add(workArea, 0x200)
+            let g2PointsPtr := add(workArea, 0x300)
+            let finalPointPtr := add(workArea, 0x500)
+
+            mstore(hashInputPtr, msgLen)
+            mcopy(add(hashInputPtr, 0x20), msgPtr, msgLen)
+            mstore(add(add(hashInputPtr, 0x20), msgLen), dstLen)
+            mcopy(add(add(hashInputPtr, 0x20), add(msgLen, 0x20)), dst, dstLen)
+
+            let expandPtr := hashOutputPtr
+            for { let i := 0 } lt(i, totalHashes) { i := add(i, 1) } {
+                mstore(add(hashInputPtr, add(add(msgLen, dstLen), 0x21)), i)
+                let success := staticcall(gas(), 0x02, add(hashInputPtr, 0x20), hashInputSize, expandPtr, hashOutputSize)
+                if iszero(success) {
+                    mstore(0x00, 0x8c379a0000000000000000000000000000000000000000000000000000000000)
+                    mstore(0x04, 0x20)
+                    mstore(0x24, 0x14)
+                    mstore(0x44, "HashToG2Failed")
+                    revert(0x00, 0x64)
+                }
+                expandPtr := add(expandPtr, hashOutputSize)
+            }
+
+            let pointPtr := g2PointsPtr
+            for { let i := 0 } lt(i, totalHashes) { i := add(i, 1) } {
+                let hPtr := add(hashOutputPtr, mul(i, hashOutputSize))
+                mstore(pointPtr, 0x100)
+                mcopy(add(pointPtr, 0x20), hPtr, 0x100)
+                let success := staticcall(gas(), 0x0b, pointPtr, 0x120, pointPtr, 0x100)
+                if iszero(success) {
+                    mstore(0x00, 0x8c379a0000000000000000000000000000000000000000000000000000000000)
+                    mstore(0x04, 0x20)
+                    mstore(0x24, 0x14)
+                    mstore(0x44, "MapToG2Failed")
+                    revert(0x00, 0x64)
+                }
+                pointPtr := add(pointPtr, 0x100)
+            }
+
+            mstore(finalPointPtr, 0x100)
+            mcopy(add(finalPointPtr, 0x20), g2PointsPtr, 0x100)
+            if eq(totalHashes, 2) {
+                let p2 := add(g2PointsPtr, 0x100)
+                let inputPtr := add(workArea, 0x600)
+                mcopy(inputPtr, finalPointPtr, 0x100)
+                mcopy(add(inputPtr, 0x100), p2, 0x100)
+                let success := staticcall(gas(), 0x0a, inputPtr, 0x200, finalPointPtr, 0x100)
+                if iszero(success) {
+                    mstore(0x00, 0x8c379a0000000000000000000000000000000000000000000000000000000000)
+                    mstore(0x04, 0x20)
+                    mstore(0x24, 0x14)
+                    mstore(0x44, "G2AddFailed")
+                    revert(0x00, 0x64)
+                }
+            }
+
+            mcopy(result, finalPointPtr, 0x100)
+            mstore(0x40, add(workArea, 0x700))
+        }
+    }

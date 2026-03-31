@@ -1,5 +1,0 @@
-function toUint72(uint256 x) internal  pure returns (uint72) {
-function toUint72(uint256 x) internal  pure returns (uint72) {
-if (x > type(uint72).max) revert("Overflow: uint256 exceeds uint72 range");
-    return uint72(x);
-} 

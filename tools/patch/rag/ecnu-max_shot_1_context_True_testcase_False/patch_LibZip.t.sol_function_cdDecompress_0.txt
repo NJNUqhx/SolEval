@@ -1,0 +1,48 @@
+function cdDecompress(bytes memory data) internal  pure returns (bytes memory result) {
+assembly {
+            if iszero(mload(data)) {
+                result := mload(0x40)
+                mstore(result, 0)
+                mstore(0x40, add(result, 0x20))
+                stop()
+            }
+
+            let dataPtr := add(data, 0x20)
+            let dataLen := mload(data)
+            let endData := add(dataPtr, dataLen)
+
+            let temp0 := mload(dataPtr)
+            let temp1 := mload(add(dataPtr, 0x20))
+            mstore(dataPtr, 0)
+            mstore(add(dataPtr, 0x20), 0)
+
+            result := mload(0x40)
+            let resultPtr := add(result, 0x20)
+            let resultLen := 0
+
+            let i := dataPtr
+            for {} lt(i, endData) { i := add(i, 1) } {
+                let byteVal := and(mload(i), 0xFF)
+                if iszero(byteVal) {
+                    let count := and(mload(add(i, 1)), 0xFF)
+                    let fillByte := and(mload(add(i, 2)), 0xFF)
+                    i := add(i, 2)
+                    for { let j := 0 } lt(j, count) { j := add(j, 1) } {
+                        mstore8(add(resultPtr, resultLen), fillByte)
+                        resultLen := add(resultLen, 1)
+                    }
+                } else {
+                    mstore8(add(resultPtr, resultLen), byteVal)
+                    resultLen := add(resultLen, 1)
+                }
+            }
+
+            mstore(dataPtr, temp0)
+            mstore(add(dataPtr, 0x20), temp1)
+
+            mstore(result, resultLen)
+            let last := add(resultPtr, resultLen)
+            mstore(last, 0)
+            mstore(0x40, add(last, 0x20))
+        }
+    }

@@ -1,20 +1,6 @@
 function extract_10_8(bytes10 self, uint8 offset) internal  pure returns (bytes8 result) {
-function extract_10_8(bytes10 self, uint8 offset) internal  pure returns (bytes8 result) {
-if (offset > 2) {
-            revert("OutOfRangeAccess");
-        }
-
-        assembly {
-            // Shift the 10-byte input left by (8 * offset) bits to align the desired segment.
-            // Since `self` is stored in the lower bytes of the slot, shifting left moves the
-            // target 8 bytes to the most significant position.
-            let shifted := shl(mul(8, offset), self)
-            
-            // Mask to retain only the top 8 bytes (64 bits).
-            // not(0) is all 1s. shl(192, ...) creates a mask with the top 64 bits set to 1.
-            let mask := shl(192, not(0))
-            
-            // Apply the mask and store the result.
-            result := and(shifted, mask)
-        }
+if (offset > 2) revert OutOfRangeAccess();
+    assembly {
+        result := and(shl(192, not(0)), shl(mul(8, offset), self))
     }
+}

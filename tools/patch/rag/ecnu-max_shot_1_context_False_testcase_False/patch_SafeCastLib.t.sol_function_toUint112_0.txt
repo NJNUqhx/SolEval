@@ -1,7 +1,0 @@
-function toUint112(uint256 x) internal  pure returns (uint112) {
-function toUint112(uint256 x) internal  pure returns (uint112) {
-if (x >= (1 << 112)) {
-            revert();
-        }
-        return uint112(x);
-    }

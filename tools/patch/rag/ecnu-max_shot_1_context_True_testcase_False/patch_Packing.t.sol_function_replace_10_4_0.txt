@@ -1,0 +1,8 @@
+function replace_10_4(bytes10 self, bytes4 value, uint8 offset) internal  pure returns (bytes10 result) {
+require(offset <= 6, "Offset out of bounds");
+        assembly {
+            let mask := not(shl(mul(8, sub(10, add(offset, 4))), 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000))
+            let shiftedValue := shl(mul(8, sub(10, add(offset, 4))), and(value, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000))
+            result := or(and(self, mask), shiftedValue)
+        }
+    }

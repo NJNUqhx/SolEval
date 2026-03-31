@@ -1,0 +1,4 @@
+function toUint184(uint256 x) internal  pure returns (uint184) {
+if (x >= 2**184) revert();
+        return uint184(x);
+    }

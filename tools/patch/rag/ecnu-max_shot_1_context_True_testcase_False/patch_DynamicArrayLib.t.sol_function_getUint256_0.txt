@@ -1,0 +1,7 @@
+function getUint256(DynamicArray memory a, uint256 i) internal  pure returns (uint256 result) {
+assembly {
+        let dataStart := add(a, 0x20)
+        let elementPtr := add(dataStart, mul(i, 0x20))
+        result := mload(elementPtr)
+    }
+}

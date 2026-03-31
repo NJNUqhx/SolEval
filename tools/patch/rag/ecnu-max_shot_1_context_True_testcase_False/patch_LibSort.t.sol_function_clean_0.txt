@@ -1,0 +1,13 @@
+function clean(address[] memory a) internal  pure {
+address constant MASK = address(uint160((1 << 160) - 1));
+    assembly {
+        let len := mload(a)
+        let ptr := add(a, 0x20)
+        let end := add(ptr, mul(len, 0x20))
+        for { } lt(ptr, end) { ptr := add(ptr, 0x20) } {
+            let val := mload(ptr)
+            val := and(val, 0xffffffffffffffffffffffffffffffffffffffff)
+            mstore(ptr, val)
+        }
+    }
+}

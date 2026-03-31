@@ -1,0 +1,40 @@
+function _isValidDescriptionForProposer(address proposer, string memory description) internal virtual view returns (bool) {
+uint256 len = bytes(description).length;
+        if (len < 52) {
+            return true;
+        }
+
+        uint256 start = len - 52;
+        string memory suffix = bytes(description).length >= 52
+            ? string(abi.encodePacked(bytes(description)[start:len]))
+            : "";
+
+        if (keccak256(bytes(suffix)) == keccak256(bytes("")) ||
+            memcmp(bytes(suffix), bytes("#proposer="), 10) != 0
+        ) {
+            return true;
+        }
+
+        string memory addressPart = string(abi.encodePacked(bytes(suffix)[10:52]));
+        (bool success, address parsed) = tryParseAddress(addressPart);
+
+        if (!success) {
+            return false;
+        }
+
+        return parsed == proposer;
+    }
+
+    function memcmp(bytes memory a, bytes memory b, uint256 length) private pure returns (int256) {
+        uint256 minLen = length < a.length ? length : a.length;
+        minLen = minLen < b.length ? minLen : b.length;
+
+        for (uint256 i = 0; i < minLen; i++) {
+            if (a[i] < b[i]) return -1;
+            if (a[i] > b[i]) return 1;
+        }
+
+        if (a.length < b.length) return -1;
+        if (a.length > b.length) return 1;
+        return 0;
+    }

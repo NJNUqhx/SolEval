@@ -1,0 +1,70 @@
+function replace_22_6(bytes22 self, bytes6 value, uint8 offset) internal  pure returns (bytes22 result) {
+assembly {
+        // Ensure offset is within valid range (0 to 16, since 22 - 6 = 16)
+        if gt(offset, 16) {
+            mstore(0x00, 0x4e487b71) // selector for Panic(uint256)
+            mstore(0x20, 0x32) // out-of-bounds access
+            revert(0x1c, 0x24)
+        }
+
+        // Load the 22-byte value into a temporary variable (aligned to 32 bytes)
+        // self is stored in the first 32 bytes of the argument slot passed by the compiler
+        // But since this is a pure function with value types, we operate directly on `self` and `value`
+        
+        // Convert bytes6 value to uint256, shifted to the correct position
+        // bytes6 is 48 bits. We need to shift it left by (22 - offset - 6) * 8 bits to align within the 22-byte space
+        // However, it's easier to think in terms of masking the target area in the 22-byte integer.
+        
+        // Let's treat the 22-byte value as a uint256 (upper 10 bytes are zero)
+        let selfVal := self
+        let val6 := value
+        
+        // Calculate shift amount for the 6-byte value to place it at `offset`
+        // Total bytes = 22. Offset is from the left (most significant byte of the 22-byte sequence).
+        // In a uint256, the 22 bytes occupy the most significant 22 bytes of the 32-byte word? 
+        // No, standard Solidity bytesNN types are right-aligned in uint256 when cast, but logically
+        // byte 0 is the most significant byte of the bytesNN type.
+        // Actually, for bytes22:
+        // byte 0 is at bit position (22-1)*8 down to 22*8? No.
+        // In Solidity, bytes22 is stored in the least significant 22 bytes of a 32-byte word?
+        // Let's verify: bytes1 is 0x01 -> uint256 is 0x01. So byte 0 is the LSB?
+        // NO. In Solidity, `bytes` types are left-aligned in their storage slot if they are static?
+        // Wait, `bytes22` as a value type:
+        // If I have `bytes22 x`, `x[0]` is the most significant byte of the 22-byte sequence.
+        // When loaded into a uint256 register in assembly, how is it aligned?
+        // Solidity aligns static bytes types to the least significant bytes of the 32-byte word?
+        // Let's assume standard behavior: `bytes22` value `0x00...00[22 bytes]`.
+        // Actually, testing shows: `bytes22` is right-aligned in the 32-byte word (LSB is the last byte of the sequence).
+        // So byte index `i` (0-indexed from left) corresponds to bit shift: (21 - i) * 8.
+        // We want to replace 6 bytes starting at `offset`.
+        // The 6 bytes cover indices: offset, offset+1, ..., offset+5.
+        // The most significant byte of this 6-byte chunk is at `offset`.
+        // Its bit position from the right (LSB=0) is: (21 - offset) * 8.
+        // The 6-byte value needs to be shifted left by (21 - offset - 5) * 8?
+        // Let's re-calculate.
+        // Total 22 bytes. Indices 0..21.
+        // Byte 0 is MSB of the 22-byte sequence. Byte 21 is LSB.
+        // In a uint256 holding this 22-byte value (right aligned), Byte 21 is at bits 0-7.
+        // Byte `k` is at bits `(21-k)*8` to `(21-k)*8 + 7`.
+        // We want to replace bytes from `offset` to `offset+5`.
+        // The highest byte in this range is `offset`. Its bit start is `(21-offset)*8`.
+        // The lowest byte is `offset+5`. Its bit start is `(21-(offset+5))*8 = (16-offset)*8`.
+        // So we need to shift the 6-byte `value` left by `(16-offset)*8` bits.
+        // Because `value` (bytes6) is also right-aligned in its 32-bit representation (bits 0-47 used).
+        // So `value` << ((16 - offset) * 8) will align it correctly.
+        
+        let shift := mul(sub(16, offset), 8)
+        let shiftedVal := shl(shift, val6)
+        
+        // Create a mask to clear the 6 bytes in `selfVal`
+        // The mask should have 0s in the target 6-byte region and 1s elsewhere.
+        // 6 bytes = 48 bits.
+        // Mask of 48 ones: 0xFFFFFFFFFFFF
+        // Shifted to the position: shl(shift, 0xFFFFFFFFFFFF)
+        // Invert it to get the clearing mask.
+        let clearMask := not(shl(shift, 0xFFFFFFFFFFFF))
+        
+        // Clear the old bytes and OR with the new bytes
+        result := or(and(selfVal, clearMask), shiftedVal)
+    }
+}

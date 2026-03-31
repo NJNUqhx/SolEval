@@ -1,0 +1,20 @@
+function extract_12_2(bytes12 self, uint8 offset) internal  pure returns (bytes2 result) {
+if (offset > 10) {
+            revert OutOfRangeAccess();
+        }
+
+        assembly {
+            // Shift left by 8 * offset bits to align the desired 2 bytes to the most significant position
+            // Then shift right by 80 bits (128 - 48 = 80? No, 12 bytes = 96 bits. We want 2 bytes = 16 bits.
+            // Total bits in bytes12 is 96.
+            // We want to extract 2 bytes starting at offset.
+            // Shift left by (offset * 8) to move the target to the front.
+            // The value is stored in the lower 96 bits of the 256-bit slot.
+            // To get the 2 bytes to the top of the 96-bit range, we shift left by (offset * 8).
+            // Then we need to shift right by (96 - 16) = 80 bits to isolate the 2 bytes at the bottom.
+            
+            let val := self
+            let shifted := shl(mul(offset, 8), val)
+            result := shr(80, shifted)
+        }
+    }

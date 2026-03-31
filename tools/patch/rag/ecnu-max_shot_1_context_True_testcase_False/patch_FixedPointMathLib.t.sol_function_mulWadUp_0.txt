@@ -1,0 +1,15 @@
+function mulWadUp(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+assembly {
+            // Multiply x and y
+            z := mul(x, y)
+            // Check for overflow: if z / y != x, then overflow occurred
+            if and(iszero(eq(div(z, y), x)), gt(x, 0)) {
+                revert(0, 0)
+            }
+        }
+        // Round up to the nearest WAD
+        if (z % WAD != 0) {
+            z += WAD;
+        }
+        z -= z % WAD;
+    }

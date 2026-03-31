@@ -1,0 +1,35 @@
+function unsetBatch(Bitmap storage bitmap, uint256 start, uint256 amount) internal {
+assembly {
+    let shift := mod(start, 256)
+    let slot := add(bitmap.slot, div(start, 256))
+    let end := add(start, amount)
+    let endSlot := div(end, 256)
+    let currentSlot := slot
+
+    if eq(currentSlot, endSlot) {
+        let mask := not(sub(shl(amount, 1), 1))
+        mask := shr(shift, mask)
+        let val := sload(currentSlot)
+        val := and(val, mask)
+        sstore(currentSlot, val)
+    } else {
+        let maskFirst := not(sub(shl(sub(256, shift), 1), 1))
+        let valFirst := sload(currentSlot)
+        valFirst := and(valFirst, maskFirst)
+        sstore(currentSlot, valFirst)
+
+        currentSlot := add(currentSlot, 1)
+        for {} lt(currentSlot, endSlot) { currentSlot := add(currentSlot, 1) } {
+            sstore(currentSlot, 0)
+        }
+
+        if lt(endSlot, currentSlot) {
+            let remaining := mod(end, 256)
+            let maskLast := sub(shl(remaining, 1), 1)
+            let valLast := sload(endSlot)
+            valLast := and(valLast, not(maskLast))
+            sstore(endSlot, valLast)
+        }
+    }
+}
+}

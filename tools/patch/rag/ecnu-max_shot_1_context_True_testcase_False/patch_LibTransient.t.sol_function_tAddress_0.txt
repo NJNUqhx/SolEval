@@ -1,0 +1,6 @@
+function tAddress(uint256 tSlot) internal  pure returns (TAddress storage ptr) {
+/// @solidity memory-safe-assembly
+        assembly {
+            ptr.slot := tSlot
+        }
+    }

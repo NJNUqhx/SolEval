@@ -1,0 +1,9 @@
+function replace_28_6(bytes28 self, bytes6 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+        let maskedValue := and(shl(176, shr(176, value)), 0x000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+        let shiftAmount := shl(3, sub(27, offset))
+        let oldSegment := and(shr(shiftAmount, self), 0x000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+        let clearedSelf := and(self, not(shl(shiftAmount, 0x000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)))
+        result := or(clearedSelf, shl(shiftAmount, maskedValue))
+    }
+}

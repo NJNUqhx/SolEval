@@ -1,0 +1,8 @@
+function replace_24_2(bytes24 self, bytes2 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+            let oldSegment := shr(sub(192, mul(offset, 8)), shl(mul(offset, 8), self))
+            let newSegment := shr(208, shl(208, value))
+            let mask := not(shl(sub(192, mul(offset, 8)), 0xffff))
+            result := or(and(self, mask), shl(sub(192, mul(offset, 8)), newSegment))
+        }
+}

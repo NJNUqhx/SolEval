@@ -1,8 +1,0 @@
-function size(Item memory item) internal  pure returns (uint256 result) {
-function size(Item memory item) internal  pure returns (uint256 result) {
-bytes memory input = _toInput(item);
-    bytes memory queried = _query(input, 3);
-    /// @solidity memory-safe-assembly
-    assembly {
-        result := mload(add(queried, 0x20))
-    }

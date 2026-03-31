@@ -1,0 +1,4 @@
+constructor (IERC20 asset_) {
+_tryGetAssetDecimals(address(asset_));
+        _asset = asset_;
+    }

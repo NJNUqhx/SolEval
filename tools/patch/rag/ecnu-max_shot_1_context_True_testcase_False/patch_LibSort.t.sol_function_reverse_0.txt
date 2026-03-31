@@ -1,0 +1,15 @@
+function reverse(uint256[] memory a) internal  pure {
+if (a.length < 2) {
+            return;
+        }
+
+        uint256 length = a.length;
+        uint256 half = length / 2;
+
+        for (uint256 i = 0; i < half; ++i) {
+            uint256 j = length - 1 - i;
+            uint256 temp = a[i];
+            a[i] = a[j];
+            a[j] = temp;
+        }
+    }

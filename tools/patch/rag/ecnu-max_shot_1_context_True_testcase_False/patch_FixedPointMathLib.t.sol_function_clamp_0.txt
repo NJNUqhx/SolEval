@@ -1,0 +1,9 @@
+function clamp(int256 x, int256 minValue, int256 maxValue) internal  pure returns (int256 z) {
+if (x < minValue) {
+            z = minValue;
+        } else if (x > maxValue) {
+            z = maxValue;
+        } else {
+            z = x;
+        }
+    }

@@ -1,0 +1,72 @@
+function _union(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+uint256 aLen = a.length;
+    uint256 bLen = b.length;
+    uint256 aPtr;
+    uint256 bPtr;
+    uint256 cPtr;
+    uint256 aEnd;
+    uint256 bEnd;
+
+    assembly {
+        aPtr := add(a, 0x20)
+        bPtr := add(b, 0x20)
+        aEnd := add(aPtr, mul(aLen, 0x20))
+        bEnd := add(bPtr, mul(bLen, 0x20))
+        
+        // Allocate memory for result (max size = aLen + bLen)
+        c := mload(0x40)
+        mstore(c, 0) // Initialize length to 0
+        cPtr := add(c, 0x20)
+        
+        let s := iszero(iszero(signed))
+        let len := 0
+
+        for {} and lt(aPtr, aEnd) lt(bPtr, bEnd) {} {
+            let valA := mload(aPtr)
+            let valB := mload(bPtr)
+            let isLess
+            
+            if s {
+                // Signed comparison: convert to int256 logic via casting
+                isLess := slt(signextend(31, valA), signextend(31, valB))
+            } else {
+                isLess := lt(valA, valB)
+            }
+
+            if eq(valA, valB) {
+                mstore(cPtr, valA)
+                cPtr := add(cPtr, 0x20)
+                aPtr := add(aPtr, 0x20)
+                bPtr := add(bPtr, 0x20)
+                len := add(len, 1)
+            } else if isLess {
+                mstore(cPtr, valA)
+                cPtr := add(cPtr, 0x20)
+                aPtr := add(aPtr, 0x20)
+                len := add(len, 1)
+            } else {
+                mstore(cPtr, valB)
+                cPtr := add(cPtr, 0x20)
+                bPtr := add(bPtr, 0x20)
+                len := add(len, 1)
+            }
+        }
+
+        for {} lt(aPtr, aEnd) {} {
+            mstore(cPtr, mload(aPtr))
+            cPtr := add(cPtr, 0x20)
+            aPtr := add(aPtr, 0x20)
+            len := add(len, 1)
+        }
+
+        for {} lt(bPtr, bEnd) {} {
+            mstore(cPtr, mload(bPtr))
+            cPtr := add(cPtr, 0x20)
+            bPtr := add(bPtr, 0x20)
+            len := add(len, 1)
+        }
+
+        mstore(c, len)
+        mstore(0x40, cPtr)
+    }
+}

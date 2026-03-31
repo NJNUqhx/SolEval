@@ -1,0 +1,16 @@
+function predictDeterministicAddress(bytes32 salt, address deployer) internal  pure returns (address deployed) {
+bytes32 PROXY_BYTECODE_HASH = 0x5af43d5f5f3e6029573d5ffd5b3d5ff35f5f365f5f37365f730000000000000000;
+    /// @solidity memory-safe-assembly
+    assembly {
+        let m := mload(0x40)
+        mstore(m, deployer)
+        mstore(add(m, 0x14), 0xff00000000000000000000000000000000000000000000000000000000000000)
+        mstore(add(m, 0x15), salt)
+        mstore(add(m, 0x35), PROXY_BYTECODE_HASH)
+        let hash := keccak256(add(m, 0x04), 0x55)
+        mstore(add(m, 0x20), 0x9400000000000000000000000000000000000000000000000000000000000000)
+        mstore(add(m, 0x34), 0x0100000000000000000000000000000000000000000000000000000000000000)
+        deployed := and(keccak256(add(m, 0x14), 0x37), 0xffffffffffffffffffffffffffffffffffffffff)
+        mstore(0x40, m)
+    }
+}

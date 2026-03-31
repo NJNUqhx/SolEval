@@ -1,0 +1,35 @@
+function getCompat(TBytes storage ptr) internal  view returns (bytes memory result) {
+if (block.chainid == 1) {
+            return get(ptr);
+        }
+        ptr = _compat(ptr);
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := mload(0x40)
+            let slot := ptr.slot
+            let value := sload(slot)
+            let len := and(value, 0xff)
+            if eq(and(value, 0xff00), 0xff00) {
+                len := shr(8, value)
+            }
+            mstore(result, len)
+            let data := add(result, 0x20)
+            mstore(data, and(value, not(0xff)))
+            if gt(len, 0x1c) {
+                let end := add(data, len)
+                let i := 0x20
+                for {} lt(add(data, i), end) {} {
+                    i := add(i, 0x20)
+                    let slotValue := sload(add(keccak256(slot, 0x20), shr(5, sub(i, 0x20))))
+                    mstore(add(data, i), slotValue)
+                }
+                let remainder := and(len, 0x1f)
+                if remainder {
+                    let clearPos := add(data, len)
+                    let mask := not(shl(mul(8, sub(0x20, remainder)), 0))
+                    mstore(clearPos, and(mload(clearPos), mask))
+                }
+            }
+            mstore(0x40, add(data, add(len, 0x20)))
+        }
+    }

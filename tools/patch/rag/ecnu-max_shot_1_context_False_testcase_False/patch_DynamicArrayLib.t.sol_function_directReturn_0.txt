@@ -1,9 +1,0 @@
-function directReturn(uint256[] memory a) internal  pure {
-function directReturn(uint256[] memory a) internal  pure {
-assembly {
-            let start := sub(a, 0x20)
-            mstore(start, 0x20)
-            let size := add(0x40, mul(mload(a), 0x20))
-            return(start, size)
-        }
-    }

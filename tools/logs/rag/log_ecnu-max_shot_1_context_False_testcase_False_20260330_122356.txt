@@ -1,0 +1,925 @@
+[2026-03-30 12:23:56] [INFO] Current context: context_False_testcase_False
+[2026-03-30 12:23:56] [INFO] filter Over!
+[2026-03-30 12:23:56] [INFO] file_path:
+repository/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-03-30 12:23:56] [INFO] now testing function:
+function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
+
+[2026-03-30 12:23:56] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83508:32:
+      |
+83508 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:56] [INFO] -----------------------------
+[2026-03-30 12:23:56] [INFO] pass@1: 0.0
+[2026-03-30 12:23:56] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:56] [INFO] compile@1: 0.0
+[2026-03-30 12:23:56] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:56] [INFO] now testing function:
+function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
+
+[2026-03-30 12:23:57] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83506:32:
+      |
+83506 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:57] [INFO] -----------------------------
+[2026-03-30 12:23:57] [INFO] pass@1: 0.0
+[2026-03-30 12:23:57] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:57] [INFO] compile@1: 0.0
+[2026-03-30 12:23:57] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:57] [INFO] now testing function:
+function pack_2_4(bytes2 left, bytes4 right) internal  pure returns (bytes6 result) {
+
+[2026-03-30 12:23:57] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:57] [INFO] -----------------------------
+[2026-03-30 12:23:57] [INFO] pass@1: 0.0
+[2026-03-30 12:23:57] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:57] [INFO] compile@1: 0.0
+[2026-03-30 12:23:57] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:57] [INFO] now testing function:
+function pack_2_6(bytes2 left, bytes6 right) internal  pure returns (bytes8 result) {
+
+[2026-03-30 12:23:57] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83508:32:
+      |
+83508 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:57] [INFO] -----------------------------
+[2026-03-30 12:23:57] [INFO] pass@1: 0.0
+[2026-03-30 12:23:57] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:57] [INFO] compile@1: 0.0
+[2026-03-30 12:23:57] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:57] [INFO] now testing function:
+function pack_2_8(bytes2 left, bytes8 right) internal  pure returns (bytes10 result) {
+
+[2026-03-30 12:23:57] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83508:32:
+      |
+83508 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:57] [INFO] -----------------------------
+[2026-03-30 12:23:57] [INFO] pass@1: 0.0
+[2026-03-30 12:23:57] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:57] [INFO] compile@1: 0.0
+[2026-03-30 12:23:57] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:57] [INFO] now testing function:
+function pack_2_10(bytes2 left, bytes10 right) internal  pure returns (bytes12 result) {
+
+[2026-03-30 12:23:58] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:58] [INFO] -----------------------------
+[2026-03-30 12:23:58] [INFO] pass@1: 0.0
+[2026-03-30 12:23:58] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:58] [INFO] compile@1: 0.0
+[2026-03-30 12:23:58] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:58] [INFO] now testing function:
+function pack_2_20(bytes2 left, bytes20 right) internal  pure returns (bytes22 result) {
+
+[2026-03-30 12:23:58] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:58] [INFO] -----------------------------
+[2026-03-30 12:23:58] [INFO] pass@1: 0.0
+[2026-03-30 12:23:58] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:58] [INFO] compile@1: 0.0
+[2026-03-30 12:23:58] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:58] [INFO] now testing function:
+function pack_2_22(bytes2 left, bytes22 right) internal  pure returns (bytes24 result) {
+
+[2026-03-30 12:23:58] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:58] [INFO] -----------------------------
+[2026-03-30 12:23:58] [INFO] pass@1: 0.0
+[2026-03-30 12:23:58] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:58] [INFO] compile@1: 0.0
+[2026-03-30 12:23:58] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:58] [INFO] now testing function:
+function pack_4_2(bytes4 left, bytes2 right) internal  pure returns (bytes6 result) {
+
+[2026-03-30 12:23:59] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:59] [INFO] -----------------------------
+[2026-03-30 12:23:59] [INFO] pass@1: 0.0
+[2026-03-30 12:23:59] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:59] [INFO] compile@1: 0.0
+[2026-03-30 12:23:59] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:59] [INFO] now testing function:
+function pack_4_4(bytes4 left, bytes4 right) internal  pure returns (bytes8 result) {
+
+[2026-03-30 12:23:59] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:59] [INFO] -----------------------------
+[2026-03-30 12:23:59] [INFO] pass@1: 0.0
+[2026-03-30 12:23:59] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:59] [INFO] compile@1: 0.0
+[2026-03-30 12:23:59] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:59] [INFO] now testing function:
+function pack_4_6(bytes4 left, bytes6 right) internal  pure returns (bytes10 result) {
+
+[2026-03-30 12:23:59] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:23:59] [INFO] -----------------------------
+[2026-03-30 12:23:59] [INFO] pass@1: 0.0
+[2026-03-30 12:23:59] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:23:59] [INFO] compile@1: 0.0
+[2026-03-30 12:23:59] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:23:59] [INFO] now testing function:
+function pack_4_8(bytes4 left, bytes8 right) internal  pure returns (bytes12 result) {
+
+[2026-03-30 12:24:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83508:32:
+      |
+83508 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:00] [INFO] -----------------------------
+[2026-03-30 12:24:00] [INFO] pass@1: 0.0
+[2026-03-30 12:24:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:00] [INFO] compile@1: 0.0
+[2026-03-30 12:24:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:00] [INFO] now testing function:
+function pack_4_12(bytes4 left, bytes12 right) internal  pure returns (bytes16 result) {
+
+[2026-03-30 12:24:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:00] [INFO] -----------------------------
+[2026-03-30 12:24:00] [INFO] pass@1: 0.0
+[2026-03-30 12:24:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:00] [INFO] compile@1: 0.0
+[2026-03-30 12:24:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:00] [INFO] now testing function:
+function pack_4_16(bytes4 left, bytes16 right) internal  pure returns (bytes20 result) {
+
+[2026-03-30 12:24:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:00] [INFO] -----------------------------
+[2026-03-30 12:24:00] [INFO] pass@1: 0.0
+[2026-03-30 12:24:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:00] [INFO] compile@1: 0.0
+[2026-03-30 12:24:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:00] [INFO] now testing function:
+function pack_4_20(bytes4 left, bytes20 right) internal  pure returns (bytes24 result) {
+
+[2026-03-30 12:24:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83508:32:
+      |
+83508 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:00] [INFO] -----------------------------
+[2026-03-30 12:24:00] [INFO] pass@1: 0.0
+[2026-03-30 12:24:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:00] [INFO] compile@1: 0.0
+[2026-03-30 12:24:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:00] [INFO] now testing function:
+function pack_4_24(bytes4 left, bytes24 right) internal  pure returns (bytes28 result) {
+
+[2026-03-30 12:24:01] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83506:32:
+      |
+83506 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:01] [INFO] -----------------------------
+[2026-03-30 12:24:01] [INFO] pass@1: 0.0
+[2026-03-30 12:24:01] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:01] [INFO] compile@1: 0.0
+[2026-03-30 12:24:01] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:01] [INFO] now testing function:
+function pack_4_28(bytes4 left, bytes28 right) internal  pure returns (bytes32 result) {
+
+[2026-03-30 12:24:01] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:01] [INFO] -----------------------------
+[2026-03-30 12:24:01] [INFO] pass@1: 0.0
+[2026-03-30 12:24:01] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:01] [INFO] compile@1: 0.0
+[2026-03-30 12:24:01] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:01] [INFO] now testing function:
+function pack_6_2(bytes6 left, bytes2 right) internal  pure returns (bytes8 result) {
+
+[2026-03-30 12:24:01] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83520:32:
+      |
+83520 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:01] [INFO] -----------------------------
+[2026-03-30 12:24:01] [INFO] pass@1: 0.0
+[2026-03-30 12:24:01] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:01] [INFO] compile@1: 0.0
+[2026-03-30 12:24:01] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:01] [INFO] now testing function:
+function pack_6_4(bytes6 left, bytes4 right) internal  pure returns (bytes10 result) {
+
+[2026-03-30 12:24:02] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:02] [INFO] -----------------------------
+[2026-03-30 12:24:02] [INFO] pass@1: 0.0
+[2026-03-30 12:24:02] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:02] [INFO] compile@1: 0.0
+[2026-03-30 12:24:02] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:02] [INFO] now testing function:
+function pack_6_6(bytes6 left, bytes6 right) internal  pure returns (bytes12 result) {
+
+[2026-03-30 12:24:02] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83508:32:
+      |
+83508 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:02] [INFO] -----------------------------
+[2026-03-30 12:24:02] [INFO] pass@1: 0.0
+[2026-03-30 12:24:02] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:02] [INFO] compile@1: 0.0
+[2026-03-30 12:24:02] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:02] [INFO] now testing function:
+function pack_6_10(bytes6 left, bytes10 right) internal  pure returns (bytes16 result) {
+
+[2026-03-30 12:24:02] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:02] [INFO] -----------------------------
+[2026-03-30 12:24:02] [INFO] pass@1: 0.0
+[2026-03-30 12:24:02] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:02] [INFO] compile@1: 0.0
+[2026-03-30 12:24:02] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:02] [INFO] now testing function:
+function pack_6_16(bytes6 left, bytes16 right) internal  pure returns (bytes22 result) {
+
+[2026-03-30 12:24:03] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:03] [INFO] -----------------------------
+[2026-03-30 12:24:03] [INFO] pass@1: 0.0
+[2026-03-30 12:24:03] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:03] [INFO] compile@1: 0.0
+[2026-03-30 12:24:03] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:03] [INFO] now testing function:
+function pack_6_22(bytes6 left, bytes22 right) internal  pure returns (bytes28 result) {
+
+[2026-03-30 12:24:03] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83506:32:
+      |
+83506 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:03] [INFO] -----------------------------
+[2026-03-30 12:24:03] [INFO] pass@1: 0.0
+[2026-03-30 12:24:03] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:03] [INFO] compile@1: 0.0
+[2026-03-30 12:24:03] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:03] [INFO] now testing function:
+function pack_8_2(bytes8 left, bytes2 right) internal  pure returns (bytes10 result) {
+
+[2026-03-30 12:24:03] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83506:32:
+      |
+83506 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:03] [INFO] -----------------------------
+[2026-03-30 12:24:03] [INFO] pass@1: 0.0
+[2026-03-30 12:24:03] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:03] [INFO] compile@1: 0.0
+[2026-03-30 12:24:03] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:03] [INFO] now testing function:
+function pack_8_4(bytes8 left, bytes4 right) internal  pure returns (bytes12 result) {
+
+[2026-03-30 12:24:03] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:03] [INFO] -----------------------------
+[2026-03-30 12:24:03] [INFO] pass@1: 0.0
+[2026-03-30 12:24:03] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:03] [INFO] compile@1: 0.0
+[2026-03-30 12:24:03] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:03] [INFO] now testing function:
+function pack_8_8(bytes8 left, bytes8 right) internal  pure returns (bytes16 result) {
+
+[2026-03-30 12:24:04] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:04] [INFO] -----------------------------
+[2026-03-30 12:24:04] [INFO] pass@1: 0.0
+[2026-03-30 12:24:04] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:04] [INFO] compile@1: 0.0
+[2026-03-30 12:24:04] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:04] [INFO] now testing function:
+function pack_8_12(bytes8 left, bytes12 right) internal  pure returns (bytes20 result) {
+
+[2026-03-30 12:24:04] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83506:32:
+      |
+83506 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:04] [INFO] -----------------------------
+[2026-03-30 12:24:04] [INFO] pass@1: 0.0
+[2026-03-30 12:24:04] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:04] [INFO] compile@1: 0.0
+[2026-03-30 12:24:04] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:04] [INFO] now testing function:
+function pack_8_16(bytes8 left, bytes16 right) internal  pure returns (bytes24 result) {
+
+[2026-03-30 12:24:04] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:04] [INFO] -----------------------------
+[2026-03-30 12:24:04] [INFO] pass@1: 0.0
+[2026-03-30 12:24:04] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:04] [INFO] compile@1: 0.0
+[2026-03-30 12:24:04] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:04] [INFO] now testing function:
+function pack_8_20(bytes8 left, bytes20 right) internal  pure returns (bytes28 result) {
+
+[2026-03-30 12:24:05] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:05] [INFO] -----------------------------
+[2026-03-30 12:24:05] [INFO] pass@1: 0.0
+[2026-03-30 12:24:05] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:05] [INFO] compile@1: 0.0
+[2026-03-30 12:24:05] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:05] [INFO] now testing function:
+function pack_8_24(bytes8 left, bytes24 right) internal  pure returns (bytes32 result) {
+
+[2026-03-30 12:24:05] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:05] [INFO] -----------------------------
+[2026-03-30 12:24:05] [INFO] pass@1: 0.0
+[2026-03-30 12:24:05] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:05] [INFO] compile@1: 0.0
+[2026-03-30 12:24:05] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:05] [INFO] now testing function:
+function pack_10_2(bytes10 left, bytes2 right) internal  pure returns (bytes12 result) {
+
+[2026-03-30 12:24:05] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:05] [INFO] -----------------------------
+[2026-03-30 12:24:05] [INFO] pass@1: 0.0
+[2026-03-30 12:24:05] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:05] [INFO] compile@1: 0.0
+[2026-03-30 12:24:05] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:05] [INFO] now testing function:
+function pack_10_6(bytes10 left, bytes6 right) internal  pure returns (bytes16 result) {
+
+[2026-03-30 12:24:06] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83506:32:
+      |
+83506 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:06] [INFO] -----------------------------
+[2026-03-30 12:24:06] [INFO] pass@1: 0.0
+[2026-03-30 12:24:06] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:06] [INFO] compile@1: 0.0
+[2026-03-30 12:24:06] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:06] [INFO] now testing function:
+function pack_10_10(bytes10 left, bytes10 right) internal  pure returns (bytes20 result) {
+
+[2026-03-30 12:24:06] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83508:32:
+      |
+83508 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:06] [INFO] -----------------------------
+[2026-03-30 12:24:06] [INFO] pass@1: 0.0
+[2026-03-30 12:24:06] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:06] [INFO] compile@1: 0.0
+[2026-03-30 12:24:06] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:06] [INFO] now testing function:
+function pack_10_12(bytes10 left, bytes12 right) internal  pure returns (bytes22 result) {
+
+[2026-03-30 12:24:06] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83508:32:
+      |
+83508 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:06] [INFO] -----------------------------
+[2026-03-30 12:24:06] [INFO] pass@1: 0.0
+[2026-03-30 12:24:06] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:06] [INFO] compile@1: 0.0
+[2026-03-30 12:24:06] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:06] [INFO] now testing function:
+function pack_10_22(bytes10 left, bytes22 right) internal  pure returns (bytes32 result) {
+
+[2026-03-30 12:24:06] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:06] [INFO] -----------------------------
+[2026-03-30 12:24:06] [INFO] pass@1: 0.0
+[2026-03-30 12:24:06] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:06] [INFO] compile@1: 0.0
+[2026-03-30 12:24:06] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:06] [INFO] now testing function:
+function pack_12_4(bytes12 left, bytes4 right) internal  pure returns (bytes16 result) {
+
+[2026-03-30 12:24:07] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:07] [INFO] -----------------------------
+[2026-03-30 12:24:07] [INFO] pass@1: 0.0
+[2026-03-30 12:24:07] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:07] [INFO] compile@1: 0.0
+[2026-03-30 12:24:07] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:07] [INFO] now testing function:
+function pack_12_8(bytes12 left, bytes8 right) internal  pure returns (bytes20 result) {
+
+[2026-03-30 12:24:07] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:07] [INFO] -----------------------------
+[2026-03-30 12:24:07] [INFO] pass@1: 0.0
+[2026-03-30 12:24:07] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:07] [INFO] compile@1: 0.0
+[2026-03-30 12:24:07] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:07] [INFO] now testing function:
+function pack_12_10(bytes12 left, bytes10 right) internal  pure returns (bytes22 result) {
+
+[2026-03-30 12:24:07] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:07] [INFO] -----------------------------
+[2026-03-30 12:24:07] [INFO] pass@1: 0.0
+[2026-03-30 12:24:07] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:07] [INFO] compile@1: 0.0
+[2026-03-30 12:24:07] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:07] [INFO] now testing function:
+function pack_12_12(bytes12 left, bytes12 right) internal  pure returns (bytes24 result) {
+
+[2026-03-30 12:24:08] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:08] [INFO] -----------------------------
+[2026-03-30 12:24:08] [INFO] pass@1: 0.0
+[2026-03-30 12:24:08] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:08] [INFO] compile@1: 0.0
+[2026-03-30 12:24:08] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:08] [INFO] now testing function:
+function pack_12_16(bytes12 left, bytes16 right) internal  pure returns (bytes28 result) {
+
+[2026-03-30 12:24:08] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:08] [INFO] -----------------------------
+[2026-03-30 12:24:08] [INFO] pass@1: 0.0
+[2026-03-30 12:24:08] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:08] [INFO] compile@1: 0.0
+[2026-03-30 12:24:08] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:08] [INFO] now testing function:
+function pack_12_20(bytes12 left, bytes20 right) internal  pure returns (bytes32 result) {
+
+[2026-03-30 12:24:08] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:08] [INFO] -----------------------------
+[2026-03-30 12:24:08] [INFO] pass@1: 0.0
+[2026-03-30 12:24:08] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:08] [INFO] compile@1: 0.0
+[2026-03-30 12:24:08] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:08] [INFO] now testing function:
+function pack_16_4(bytes16 left, bytes4 right) internal  pure returns (bytes20 result) {
+
+[2026-03-30 12:24:09] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:09] [INFO] -----------------------------
+[2026-03-30 12:24:09] [INFO] pass@1: 0.0
+[2026-03-30 12:24:09] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:09] [INFO] compile@1: 0.0
+[2026-03-30 12:24:09] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:09] [INFO] now testing function:
+function pack_16_6(bytes16 left, bytes6 right) internal  pure returns (bytes22 result) {
+
+[2026-03-30 12:24:09] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83510:32:
+      |
+83510 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:09] [INFO] -----------------------------
+[2026-03-30 12:24:09] [INFO] pass@1: 0.0
+[2026-03-30 12:24:09] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:09] [INFO] compile@1: 0.0
+[2026-03-30 12:24:09] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:09] [INFO] now testing function:
+function pack_16_8(bytes16 left, bytes8 right) internal  pure returns (bytes24 result) {
+
+[2026-03-30 12:24:09] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:09] [INFO] -----------------------------
+[2026-03-30 12:24:09] [INFO] pass@1: 0.0
+[2026-03-30 12:24:09] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:09] [INFO] compile@1: 0.0
+[2026-03-30 12:24:09] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:09] [INFO] now testing function:
+function pack_16_12(bytes16 left, bytes12 right) internal  pure returns (bytes28 result) {
+
+[2026-03-30 12:24:09] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:09] [INFO] -----------------------------
+[2026-03-30 12:24:09] [INFO] pass@1: 0.0
+[2026-03-30 12:24:09] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:09] [INFO] compile@1: 0.0
+[2026-03-30 12:24:09] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:09] [INFO] now testing function:
+function pack_16_16(bytes16 left, bytes16 right) internal  pure returns (bytes32 result) {
+
+[2026-03-30 12:24:10] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:10] [INFO] -----------------------------
+[2026-03-30 12:24:10] [INFO] pass@1: 0.0
+[2026-03-30 12:24:10] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:10] [INFO] compile@1: 0.0
+[2026-03-30 12:24:10] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:10] [INFO] now testing function:
+function pack_20_2(bytes20 left, bytes2 right) internal  pure returns (bytes22 result) {
+
+[2026-03-30 12:24:10] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:10] [INFO] -----------------------------
+[2026-03-30 12:24:10] [INFO] pass@1: 0.0
+[2026-03-30 12:24:10] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:10] [INFO] compile@1: 0.0
+[2026-03-30 12:24:10] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:10] [INFO] now testing function:
+function pack_20_4(bytes20 left, bytes4 right) internal  pure returns (bytes24 result) {
+
+[2026-03-30 12:24:10] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:10] [INFO] -----------------------------
+[2026-03-30 12:24:10] [INFO] pass@1: 0.0
+[2026-03-30 12:24:10] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:10] [INFO] compile@1: 0.0
+[2026-03-30 12:24:10] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:10] [INFO] now testing function:
+function pack_20_8(bytes20 left, bytes8 right) internal  pure returns (bytes28 result) {
+
+[2026-03-30 12:24:11] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:11] [INFO] -----------------------------
+[2026-03-30 12:24:11] [INFO] pass@1: 0.0
+[2026-03-30 12:24:11] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:11] [INFO] compile@1: 0.0
+[2026-03-30 12:24:11] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:11] [INFO] now testing function:
+function pack_20_12(bytes20 left, bytes12 right) internal  pure returns (bytes32 result) {
+
+[2026-03-30 12:24:11] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83502:32:
+      |
+83502 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:11] [INFO] -----------------------------
+[2026-03-30 12:24:11] [INFO] pass@1: 0.0
+[2026-03-30 12:24:11] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:11] [INFO] compile@1: 0.0
+[2026-03-30 12:24:11] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:11] [INFO] now testing function:
+function pack_22_2(bytes22 left, bytes2 right) internal  pure returns (bytes24 result) {
+
+[2026-03-30 12:24:11] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83504:32:
+      |
+83504 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:11] [INFO] -----------------------------
+[2026-03-30 12:24:11] [INFO] pass@1: 0.0
+[2026-03-30 12:24:11] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:11] [INFO] compile@1: 0.0
+[2026-03-30 12:24:11] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:11] [INFO] now testing function:
+function pack_22_6(bytes22 left, bytes6 right) internal  pure returns (bytes28 result) {
+
+[2026-03-30 12:24:12] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83512:32:
+      |
+83512 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:12] [INFO] -----------------------------
+[2026-03-30 12:24:12] [INFO] pass@1: 0.0
+[2026-03-30 12:24:12] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:12] [INFO] compile@1: 0.0
+[2026-03-30 12:24:12] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:12] [INFO] now testing function:
+function pack_22_10(bytes22 left, bytes10 right) internal  pure returns (bytes32 result) {
+
+[2026-03-30 12:24:12] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83672:32:
+      |
+83672 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:12] [INFO] -----------------------------
+[2026-03-30 12:24:12] [INFO] pass@1: 0.0
+[2026-03-30 12:24:12] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:12] [INFO] compile@1: 0.0
+[2026-03-30 12:24:12] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:12] [INFO] now testing function:
+function pack_24_4(bytes24 left, bytes4 right) internal  pure returns (bytes28 result) {
+
+[2026-03-30 12:24:12] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected ',' but got identifier
+     --> contracts/utils/Packing.sol:83506:32:
+      |
+83506 | function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+      |                                ^^^^
+
+
+[2026-03-30 12:24:12] [INFO] -----------------------------
+[2026-03-30 12:24:12] [INFO] pass@1: 0.0
+[2026-03-30 12:24:12] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-30 12:24:12] [INFO] compile@1: 0.0
+[2026-03-30 12:24:12] [INFO] COMPILE successful rate: 0.0
+[2026-03-30 12:24:12] [INFO] now testing function:
+function pack_24_8(bytes24 left, bytes8 right) internal  pure returns (bytes32 result) {
+

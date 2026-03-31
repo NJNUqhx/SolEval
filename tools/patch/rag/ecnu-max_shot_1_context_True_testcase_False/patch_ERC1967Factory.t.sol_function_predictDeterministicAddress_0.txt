@@ -1,0 +1,15 @@
+function predictDeterministicAddress(bytes32 salt) public  view returns (address predicted) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let bytecodeHash := keccak256(0x0e, 0x36)
+            mstore(0x00, 0xff)
+            mstore(0x01, address())
+            mstore(0x15, salt)
+            mstore(0x35, bytecodeHash)
+            predicted := keccak256(0x00, 0x55)
+            mstore(0x35, 0)
+            mstore(0x15, 0)
+            mstore(0x01, 0)
+            mstore(0x00, 0)
+        }
+}

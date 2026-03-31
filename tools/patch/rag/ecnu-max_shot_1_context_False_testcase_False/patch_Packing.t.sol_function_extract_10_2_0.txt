@@ -1,55 +1,10 @@
 function extract_10_2(bytes10 self, uint8 offset) internal  pure returns (bytes2 result) {
-function extract_10_2(bytes10 self, uint8 offset) internal  pure returns (bytes2 result) {
 if (offset > 8) {
             revert("OutOfRangeAccess");
         }
 
         assembly {
-            // Shift the 10-byte value left by (offset * 8) bits to align the target 2 bytes to the most significant position.
-            // Since `self` is 10 bytes, it occupies the upper 80 bits of the 32-byte slot.
-            // We calculate the shift amount: (10 - offset - 2) * 8 = (8 - offset) * 8.
-            // However, a simpler approach given the layout:
-            // The value is stored as: [0...0][B0][B1]...[B9]
-            // We want bytes at index `offset` and `offset+1`.
-            // Shifting left by `offset * 8` moves the byte at `offset` to the position of B0.
-            // Then we shift right by (32 - 2) * 8 = 240 bits (or just mask the top 2 bytes).
-            
-            // Let's do it purely with shifts relative to the 32-byte word.
-            // Current effective start of data is bit 224 (32*8 - 10*8).
-            // Target byte starts at bit: 224 + (offset * 8).
-            // We want to move this to bit 240 (so 2 bytes fit in the top 16 bits).
-            // Shift left by: 240 - (224 + offset * 8) = 16 - (offset * 8).
-            // Wait, `shl` takes bits. 
-            // Let's re-calculate:
-            // Value layout in 256-bit word: 0x000000...(6 bytes)...[B0][B1][B2][B3][B4][B5][B6][B7][B8][B9]
-            // B0 is at bit position 248 (counting from 0 as LSB? No, Solidity/Assembly usually treats high bits as left).
-            // In EVM, byte 0 of a bytesN is the most significant.
-            // So B0 is at bits 248-255. B9 is at bits 168-175.
-            // We want bytes at `offset` and `offset+1`.
-            // Their starting bit position is: 248 - (offset * 8).
-            // We want them to end up at bits 240-255 (the top 2 bytes of the result).
-            // So we need to shift LEFT by: 240 - (248 - offset * 8) = (offset * 8) - 8.
-            // This seems wrong if offset is 0. If offset is 0, we want B0, B1. They are already at 248-255 and 240-247.
-            // Actually, if we just shift LEFT by `offset * 8`, B0 moves out, and B_offset moves to the top.
-            // Let's trace:
-            // Original: [0...0][B0][B1]...[B9]
-            // shl(offset * 8, self): [0...0][B_offset][B_offset+1]...[B9][0...0]
-            // Now the desired 2 bytes are at the very top (bits 240-255).
-            // We can then shift RIGHT by 240 bits (or mask) to isolate them?
-            // No, `bytes2` return expects the data in the top 2 bytes of the 32-byte return slot.
-            // So if we `shl(offset * 8, self)`, the result naturally has the 2 bytes in the correct position for a `bytes2` return?
-            // Let's verify.
-            // If offset=0: shl(0, self) -> [0...0][B0][B1]... -> Top 2 bytes are B0, B1. Correct.
-            // If offset=1: shl(8, self) -> [0...0][B1][B2]... -> Top 2 bytes are B1, B2. Correct.
-            // If offset=8: shl(64, self) -> [0...0][B8][B9][0]... -> Top 2 bytes are B8, B9. Correct.
-            
-            result := shl(mul(offset, 8), self)
-            
-            // Ensure only the first 2 bytes are kept (clear lower bits just in case, though return type handles it visually, 
-            // strict cleaning is safer).
-            // Mask: 0xFFFF0000...0000 (16 ones followed by 240 zeros).
-            // This is `not(0)` shifted right by 240? Or `0xFFFF` shifted left by 240.
-            // 0xFFFF << 240.
-            result := and(result, shl(240, 0xFFFF))
+            result := and(shl(mul(offset, 8), self), 0xFFFF000000000000000000000000000000000000000000000000000000000000)
+            result := shr(240, result)
         }
     }

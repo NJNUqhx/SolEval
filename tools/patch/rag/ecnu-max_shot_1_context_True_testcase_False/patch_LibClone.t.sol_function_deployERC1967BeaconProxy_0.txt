@@ -1,0 +1,32 @@
+function deployERC1967BeaconProxy(uint256 value, address beacon, bytes memory args) internal   returns (address instance) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let argsLength := mload(args)
+            let argsStart := add(args, 0x20)
+            let freePtr := mload(0x40)
+
+            if gt(argsLength, 0xffad) {
+                mstore(freePtr, 0x30116425)
+                revert(freePtr, 0x04)
+            }
+
+            let codeSize := add(0x6d, argsLength)
+            let codeStart := sub(freePtr, codeSize)
+
+            mstore(codeStart, 0x606d5f395f51365f5f37365f73)
+            mstore(add(codeStart, 0x08), beacon)
+            mstore(add(codeStart, 0x18), 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            mstore(add(codeStart, 0x26), 0x365f5f37365f73)
+            mstore(add(codeStart, 0x30), beacon)
+            mstore(add(codeStart, 0x3a), 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+
+            calldatacopy(add(codeStart, 0x4d), argsStart, argsLength)
+
+            instance := create(value, codeStart, codeSize)
+
+            if iszero(instance) {
+                mstore(freePtr, 0x30116425)
+                revert(freePtr, 0x04)
+            }
+        }
+}

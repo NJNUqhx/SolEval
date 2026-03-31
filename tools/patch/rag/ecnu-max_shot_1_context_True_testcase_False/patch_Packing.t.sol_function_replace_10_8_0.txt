@@ -1,0 +1,13 @@
+function replace_10_8(bytes10 self, bytes8 value, uint8 offset) internal  pure returns (bytes10 result) {
+assembly {
+        let selfVal := shl(128, self)
+        let valueVal := shl(128, value)
+        let shift := shl(3, sub(9, offset))
+        let mask := not(shl(64, sub(shl(64, 1), 1)))
+        mask := shr(shift, mask)
+        let oldSegment := and(selfVal, not(mask))
+        let newSegment := and(valueVal, not(mask))
+        newSegment := shr(shift, newSegment)
+        result := shr(128, xor(xor(selfVal, oldSegment), newSegment))
+    }
+}

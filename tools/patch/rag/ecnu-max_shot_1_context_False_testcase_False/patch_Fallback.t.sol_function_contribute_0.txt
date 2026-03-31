@@ -1,9 +1,0 @@
-function contribute() public  payable {
-function contribute() public  payable {
-require(msg.value < 1e15, "Contribution too large");
-
-contributions[msg.sender] += msg.value;
-
-if (contributions[msg.sender] > contributions[owner()]) {
-    owner = msg.sender;
-}

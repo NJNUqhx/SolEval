@@ -1,0 +1,6 @@
+function toUint168(uint256 x) internal  pure returns (uint168) {
+if (x > type(uint168).max) {
+            revert("Overflow");
+        }
+        return uint168(x);
+    }

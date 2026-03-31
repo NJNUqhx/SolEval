@@ -1,0 +1,6 @@
+function toInt96(uint256 x) internal  pure returns (int96) {
+if (x >= 2**95) {
+            revert Overflow();
+        }
+        return int96(uint96(x));
+    }

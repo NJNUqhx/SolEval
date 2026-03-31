@@ -1,0 +1,12 @@
+function pack_16_8(bytes16 left, bytes8 right) internal  pure returns (bytes24 result) {
+/// @solidity memory-safe-assembly
+    assembly {
+        // Clear lower 128 bits of left (though bytes16 input is already clean, this ensures safety)
+        left := and(left, shl(128, not(0)))
+        // Clear lower 192 bits of right to keep only upper 8 bytes
+        right := and(right, shl(192, not(0)))
+        // Shift right by 128 bits to align with the lower part of the 24-byte slot
+        // Then OR with left
+        result := or(left, shr(128, right))
+    }
+}

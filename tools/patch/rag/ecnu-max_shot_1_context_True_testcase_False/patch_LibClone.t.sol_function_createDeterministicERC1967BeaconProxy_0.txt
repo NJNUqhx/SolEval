@@ -1,0 +1,41 @@
+function createDeterministicERC1967BeaconProxy(uint256 value, address beacon, bytes memory args, bytes32 salt) internal   returns (bool alreadyDeployed, address instance) {
+assembly {
+        let m := mload(0x40)
+        let argsLength := mload(args)
+
+        if iszero(staticcall(gas(), beacon, add(args, 0x20), argsLength, m, 0x00)) {
+            revert(0, 0)
+        }
+
+        mstore(m, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73)
+        mstore(add(m, 0x14), beacon)
+        mstore(add(m, 0x28), 0x5af43d82803e903d91602b57fd5bf3)
+
+        let codeHash := keccak256(m, 0x37)
+        let computedAddress := keccak256(0, 0)
+        mstore(0, 0xff)
+        mstore1(0x01, address())
+        mstore(0x15, salt)
+        mstore(0x35, codeHash)
+        computedAddress := and(keccak256(0, 0x55), 0xffffffffffffffffffffffffffffffffffffffff)
+
+        instance := computedAddress
+        if gt(extcodesize(instance), 0) {
+            alreadyDeployed := true
+            if value {
+                if iszero(call(gas(), instance, value, 0, 0, 0, 0)) {
+                    mstore(0, 0x6b46d19c00000000000000000000000000000000000000000000000000000000)
+                    revert(0x1c, 0x04)
+                }
+            }
+        } else {
+            instance := create2(value, m, 0x37, salt)
+            if iszero(instance) {
+                mstore(0, 0x6b46d19c00000000000000000000000000000000000000000000000000000000)
+                revert(0x1c, 0x04)
+            }
+        }
+
+        mstore(0x40, add(m, 0x60))
+    }
+}

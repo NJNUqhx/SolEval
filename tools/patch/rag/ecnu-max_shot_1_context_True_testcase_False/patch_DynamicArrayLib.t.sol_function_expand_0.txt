@@ -1,0 +1,18 @@
+function expand(DynamicArray memory a, uint256 n) internal  pure returns (DynamicArray memory result) {
+assembly {
+            let dataPtr := mload(add(a, 0x20))
+            let len := mload(dataPtr)
+            if gt(n, len) {
+                let newData := mload(0x40)
+                let newSize := add(0x20, mul(n, 0x20))
+                mstore(0x40, add(newData, newSize))
+                mstore(newData, n)
+                for { let i := 0 } lt(i, len) { i := add(i, 1) } {
+                    mstore(add(add(newData, 0x20), mul(i, 0x20)), mload(add(add(dataPtr, 0x20), mul(i, 0x20))))
+                }
+                mstore(add(result, 0x20), newData)
+            } else {
+                mstore(add(result, 0x20), mload(add(a, 0x20)))
+            }
+        }
+    }

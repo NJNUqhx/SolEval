@@ -1,60 +1,9 @@
 function extract_10_6(bytes10 self, uint8 offset) internal  pure returns (bytes6 result) {
-function extract_10_6(bytes10 self, uint8 offset) internal  pure returns (bytes6 result) {
-if (offset > 4) revert OutOfRangeAccess();
-
-    assembly {
-        // Shift left by 8 * offset to align the desired 6-byte segment to the most significant position
-        let shifted := shl(mul(offset, 8), self)
-        // Mask to keep only the top 6 bytes (48 bits).
-        // The mask 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000 keeps bits 208-255.
-        // Since `self` is 10 bytes (80 bits) stored in the lower part of a 32-byte slot,
-        // after shifting left, the 6 bytes we want are at the very top (bits 208-255).
-        // We mask out everything else.
-        let masked := and(shifted, 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
-        
-        // The result needs to be right-aligned for the `bytes6` return variable if interpreted as a value,
-        // but `bytes6` in Solidity is left-aligned in the 32-byte word when returned from assembly usually.
-        // However, standard practice for fixed bytes types in assembly return slots:
-        // If we return `masked` directly, it occupies the top 6 bytes of the 32-byte word.
-        // Solidity expects `bytes6` to be left-aligned in the return slot (bits 208-255).
-        // Our mask already isolates bits 208-255.
-        // Let's verify alignment:
-        // Input `self` (10 bytes) is in the lower 80 bits (bits 176-255? No, usually right aligned in variable).
-        // Actually, in assembly, `self` (bytes10) is passed as a value right-aligned? 
-        // No, fixed size bytes types are left-aligned in the 32-byte word in Solidity ABI and assembly operations.
-        // bytes10 occupies bits 176 to 255 (first 10 bytes).
-        // If we shift left by offset*8, we move the window.
-        // We want 6 bytes starting at offset.
-        // Original: [10 bytes data][6 bytes zero]
-        // Shift left by offset*8: [offset zeros][10 bytes data][6-offset zeros] -> effectively moving data left.
-        // We want the 6 bytes starting at index `offset`.
-        // In the left-aligned 32-byte word:
-        // Byte 0 is at bit 248-255. Byte 9 is at bit 176-183.
-        // We want bytes from index `offset` to `offset+5`.
-        // These correspond to bits (248 - 8*offset) down to (248 - 8*(offset+6)).
-        // If we shift LEFT by (8 * offset), the byte at `offset` moves to position 0 (bits 248-255).
-        // Then we mask the top 6 bytes.
-        
-        result := shr(128, masked) // Wait, if we masked the top 6 bytes, they are at bits 208-255. 
-        // To make it a valid `bytes6` value (which is left aligned), it should stay at 208-255.
-        // But `bytes6` variable `result` expects the value to be left-aligned in its 32-byte slot representation.
-        // The `and` operation with `0xFFFFFFFFFFFF...` (48 ones followed by zeros) keeps the top 6 bytes.
-        // This is exactly the format Solidity uses for `bytes6`.
-        // So `result := masked` is correct if the mask is correct.
-        
-        // Let's re-calculate the mask.
-        // We want 6 bytes = 48 bits.
-        // Top 48 bits mask: 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000
-        // If `shifted` has the target 6 bytes at the top, then `and` works.
-        // Does `shl(mul(offset, 8), self)` put the target bytes at the top?
-        // `self` is left-aligned. Byte 0 is at top.
-        // If offset=0, we want bytes 0-5. They are already at top. Shift 0. Mask top 6. Correct.
-        // If offset=1, we want bytes 1-6. Byte 1 is currently at bits 240-247.
-        // We need it at 248-255. So shift left by 8. Correct.
-        // So `shifted` has the correct 6 bytes at the top.
-        // The mask `0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000` preserves top 6 bytes.
-        // So `result := masked` is sufficient.
-        
-        result := masked
+if (offset > 4) {
+            revert("OutOfRangeAccess");
+        }
+        assembly {
+            let shifted := shl(mul(8, offset), self)
+            result := and(shifted, 0xffffffffffff000000000000000000000000000000000000000000000000)
+        }
     }
-}

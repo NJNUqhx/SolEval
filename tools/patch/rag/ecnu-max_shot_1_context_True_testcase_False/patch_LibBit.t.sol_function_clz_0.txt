@@ -1,0 +1,44 @@
+function clz(uint256 x) internal  pure returns (uint256 r) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mask := 0x8000000000000000000000000000000000000000000000000000000000000000
+            let shift := 0
+            let temp := x
+
+            if iszero(temp) {
+                r := 256
+                leave
+            }
+
+            // Binary search approach to count leading zeros
+            if iszero(and(temp, shr(shift, mask))) {
+                shift := add(shift, 128)
+            }
+            if iszero(and(temp, shr(shift, shr(128, mask)))) {
+                shift := add(shift, 64)
+            }
+            if iszero(and(temp, shr(shift, shr(192, mask)))) {
+                shift := add(shift, 32)
+            }
+            if iszero(and(temp, shr(shift, shr(224, mask)))) {
+                shift := add(shift, 16)
+            }
+            if iszero(and(temp, shr(shift, shr(240, mask)))) {
+                shift := add(shift, 8)
+            }
+            if iszero(and(temp, shr(shift, shr(248, mask)))) {
+                shift := add(shift, 4)
+            }
+            if iszero(and(temp, shr(shift, shr(252, mask)))) {
+                shift := add(shift, 2)
+            }
+            if iszero(and(temp, shr(shift, shr(254, mask)))) {
+                shift := add(shift, 1)
+            }
+            if iszero(and(temp, shr(shift, shr(255, mask)))) {
+                shift := add(shift, 1)
+            }
+
+            r := shift
+        }
+    }

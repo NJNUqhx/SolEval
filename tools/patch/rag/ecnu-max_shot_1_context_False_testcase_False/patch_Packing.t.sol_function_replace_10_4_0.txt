@@ -1,65 +1,8 @@
 function replace_10_4(bytes10 self, bytes4 value, uint8 offset) internal  pure returns (bytes10 result) {
-function replace_10_4(bytes10 self, bytes4 value, uint8 offset) internal  pure returns (bytes10 result) {
 assembly {
-        // Load the 10-byte value into the first slot of `value`'s memory layout for manipulation
-        // Since `value` is a parameter, we can't directly modify it in place easily without a temp var.
-        // We will construct the result in `result`'s storage slot (which acts as a temporary variable in pure functions).
-        
-        // Let's load `self` into a temporary variable `temp`.
-        // `self` is passed as a value (bytes10), so it resides in the call data or memory depending on context, 
-        // but in assembly for pure functions with value types, it's often on the stack.
-        // However, `self` is already on the stack as the first argument.
-        
-        // We need to construct the mask and shift amounts based on `offset`.
-        // A bytes10 is 80 bits. We are replacing 4 bytes (32 bits) starting at `offset`.
-        // The bytes are stored left-aligned in a bytes32 slot conceptually for bytesNN types, 
-        // but solidity handles bytes10 as a value. 
-        // To do bitwise ops easily, we treat it as a uint256 where the data is left-aligned (multiplied by 2^(256-80)).
-        // Actually, for `bytes10`, Solidity stores it right-aligned in the lower 10 bytes of a 32-byte word when loaded?
-        // No, `bytesNN` types are left-aligned in the 32-byte word when stored in memory/storage slots, 
-        // but when loaded onto the stack for operations, they are often treated as values.
-        // Let's assume standard left-aligned behavior for `bytesNN` in a 32-byte word:
-        // Data occupies bits [255 : 256 - 8*N]. For bytes10, bits [255 : 176].
-        
-        // Let `x` be the uint256 representation of `self`.
-        let x := self
-        
-        // Calculate shift amount for the 4-byte value.
-        // Total bits = 256.
-        // Data starts at bit (256 - 80) = 176.
-        // Offset is in bytes. We want to replace starting at `offset`.
-        // The target position in the 10-byte block is `offset`.
-        // In the 256-bit word, the bit index of the start of the replacement is:
-        // Start bit of data (176) + (offset * 8).
-        // We need to shift the `value` (which is 4 bytes, left aligned in its own 32 bytes) to this position.
-        // `value` (bytes4) is left aligned in 32 bytes: bits [255 : 224].
-        // We need to move bits [255:224] to [176 + 8*offset : 176 + 8*offset + 31].
-        // Shift right by: 255 - (176 + 8*offset) = 79 - 8*offset.
-        
-        let shiftAmount := sub(79, mul(offset, 8))
-        
-        // Ensure offset is valid (0 to 6, since 6+4=10). If not, revert? Requirement doesn't say, assuming valid.
-        // Mask for the new value: We need 4 bytes (32 bits) of 1s.
-        // 0xFFFFFFFF0000... (left aligned 4 bytes) shifted right by `shiftAmount`.
-        // Or simpler: Take `value`, shift it right by `shiftAmount`.
-        // But `value` is bytes4. When loaded as uint, it is left aligned.
-        // So `shr(shiftAmount, value)` moves the 4 bytes to the correct spot.
-        
-        let shiftedValue := shr(shiftAmount, value)
-        
-        // Create a mask to clear the 4 bytes in `x` at the target location.
-        // Mask should be 0s at the target 4 bytes, and 1s elsewhere.
-        // 4 bytes = 32 bits.
-        // Invert a mask of 32 ones shifted to the position.
-        // 32 ones left aligned: 0xFFFFFFFF0000...
-        // Shifted right by `shiftAmount`: gives 0s everywhere except 32 bits at target.
-        // Invert that: `not(shr(shiftAmount, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000))`
-        // Constant for 4 bytes left aligned: 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
-        let clearMask := not(shr(shiftAmount, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000))
-        
-        // Apply mask to clear old bits
-        let clearedSelf := and(x, clearMask)
-        
-        // Combine with new value
-        result := or(clearedSelf, shiftedValue)
+            result := self
+            let mask := not(shl(mul(8, sub(10, add(offset, 4))), 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000))
+            let shiftedValue := shl(mul(8, sub(10, add(offset, 4))), and(0xFFFFFFFF00000000000000000000000000000000000000000000000000000000, value))
+            result := or(and(result, mask), shiftedValue)
+        }
     }

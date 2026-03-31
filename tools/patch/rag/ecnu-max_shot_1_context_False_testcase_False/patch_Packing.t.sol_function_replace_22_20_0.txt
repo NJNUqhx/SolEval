@@ -1,47 +1,9 @@
 function replace_22_20(bytes22 self, bytes20 value, uint8 offset) internal  pure returns (bytes22 result) {
-function replace_22_20(bytes22 self, bytes20 value, uint8 offset) internal  pure returns (bytes22 result) {
 assembly {
-            // Load the original 22-byte value into a temporary variable
-            let original := self
-            // Load the 20-byte replacement value
-            let newValue := value
-            
-            // Calculate the bit shift amount: (22 - offset - 20) * 8
-            // The 22-byte value is left-aligned in the 32-byte slot.
-            // Index 0 starts at bit 24 (32-8). 
-            // We want to replace 20 bytes starting at `offset`.
-            // The position of the first byte of the segment in bits from the right is:
-            // (22 - offset - 20) * 8 = (2 - offset) * 8.
-            // However, since `offset` can be 0, 1, or 2, let's verify alignment.
-            // If offset is 0: replace bytes 0-19. Shift = (2-0)*8 = 16 bits.
-            // If offset is 1: replace bytes 1-20. Shift = (2-1)*8 = 8 bits.
-            // If offset is 2: replace bytes 2-21. Shift = (2-2)*8 = 0 bits.
-            
-            let shift := shl(3, sub(2, offset))
-            
-            // Create a mask for 20 bytes: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
-            // 20 bytes = 160 bits. Mask = (1 << 160) - 1, then shifted left by (32-22)*8 = 80 bits?
-            // Actually, easier to construct: not(0) >> (12 * 8) gives 20 bytes of 1s at the top?
-            // 32 bytes total. We want 20 bytes. 32-20 = 12 bytes of zeros at the bottom.
-            // Mask = not(0) >> (12 * 8) -> This gives 1s in the top 20 bytes.
-            let mask20 := shr(mul(12, 8), not(0))
-            
-            // Align the mask to the specific offset
-            let alignedMask := shr(shift, mask20)
-            
-            // Extract the old segment to be replaced (for verification/logic, though XOR method skips explicit extraction)
-            // oldSegment := and(original, alignedMask)
-            
-            // Align the new value to the specific offset
-            let alignedNewValue := shr(shift, and(newValue, mask20))
-            
-            // Perform the replacement using XOR logic:
-            // result = (original & ~alignedMask) | alignedNewValue
-            // Equivalent to: original ^ (original & alignedMask) ^ alignedNewValue
-            // Which simplifies to: original ^ ((original ^ alignedNewValue) & alignedMask)
-            // Or simply: (original & not(alignedMask)) | alignedNewValue
-            
-            let clearedOriginal := and(original, not(alignedMask))
-            result := or(clearedOriginal, alignedNewValue)
+            let mask := shl(mul(sub(32, 20), 8), not(0))
+            let shiftedMask := shr(mul(offset, 8), mask)
+            let shiftedValue := shl(mul(sub(20, offset), 8), and(value, shr(mul(12, 8), not(0))))
+            let oldValue := and(self, shiftedMask)
+            result := xor(xor(self, oldValue), shiftedValue)
         }
     }

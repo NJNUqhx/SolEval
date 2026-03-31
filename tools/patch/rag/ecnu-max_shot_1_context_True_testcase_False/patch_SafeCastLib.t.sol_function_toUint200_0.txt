@@ -1,0 +1,4 @@
+function toUint200(uint256 x) internal  pure returns (uint200) {
+if (x >= 2**200) revert();
+        return uint200(x);
+    } 

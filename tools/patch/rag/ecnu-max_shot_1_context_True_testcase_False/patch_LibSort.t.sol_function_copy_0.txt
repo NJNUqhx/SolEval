@@ -1,0 +1,15 @@
+function copy(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+assembly {
+            let length := mload(a)
+            result := mload(0x40)
+            mstore(result, length)
+            let dataStart := add(a, 0x20)
+            let copyStart := add(result, 0x20)
+            let copyEnd := add(copyStart, mul(length, 0x20))
+            for { let i := copyStart } lt(i, copyEnd) { i := add(i, 0x20) } {
+                mstore(i, mload(dataStart))
+                dataStart := add(dataStart, 0x20)
+            }
+            mstore(0x40, copyEnd)
+        }
+    }

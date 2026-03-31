@@ -1,15 +1,7 @@
 function extract_22_4(bytes22 self, uint8 offset) internal  pure returns (bytes4 result) {
-function extract_22_4(bytes22 self, uint8 offset) internal  pure returns (bytes4 result) {
-if (offset > 18) {
-            revert("OutOfRangeAccess");
-        }
-
-        assembly {
-            // Shift the 22-byte value left by (8 * offset) bits to align the target segment
-            // to the most significant position of the 32-byte word.
-            let shifted := shl(mul(8, offset), self)
-            // Mask to retain only the first 4 bytes (32 bits).
-            // 0xFFFFFFFF0000... keeps the top 4 bytes and zeros out the rest.
-            result := and(shifted, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
-        }
+if (offset > 18) revert OutOfRangeAccess();
+    assembly {
+        let val := shr(mul(8, sub(22, add(offset, 4))), shl(mul(8, sub(32, 22)), self))
+        result := and(val, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
     }
+}

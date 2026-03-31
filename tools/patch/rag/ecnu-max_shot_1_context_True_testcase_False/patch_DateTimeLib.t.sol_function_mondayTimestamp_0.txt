@@ -1,0 +1,10 @@
+function mondayTimestamp(uint256 timestamp) internal  pure returns (uint256 result) {
+if (timestamp > 345599) {
+        uint256 days = timestamp / 86400;
+        uint256 dayOfWeek = (days + 3) % 7;
+        uint256 mondayDays = days - dayOfWeek;
+        result = mondayDays * 86400;
+    } else {
+        result = 0;
+    }
+}

@@ -1,0 +1,7 @@
+function swap(address from, address to, uint256 amount) public {
+require(IERC20(from).balanceOf(msg.sender) >= amount, "Insufficient balance");
+        uint256 swapAmount = getSwapAmount(from, to, amount);
+        IERC20(from).transferFrom(msg.sender, address(this), amount);
+        IERC20(to).approve(address(this), swapAmount);
+        IERC20(to).transferFrom(address(this), msg.sender, swapAmount);
+    }

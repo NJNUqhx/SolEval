@@ -1,0 +1,4 @@
+function toInt24(uint256 x) internal  pure returns (int24) {
+if (x >= 0x800000) revert Overflow();
+        return int24(uint24(x));
+    }

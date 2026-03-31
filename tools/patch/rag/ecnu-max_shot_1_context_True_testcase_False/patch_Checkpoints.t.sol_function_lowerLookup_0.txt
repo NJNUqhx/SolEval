@@ -1,0 +1,26 @@
+function lowerLookup(Trace160 storage self, uint96 key) internal  view returns (uint160) {
+uint256 len = self._checkpoints.length;
+if (len == 0) {
+    return 0;
+}
+
+uint256 low = 0;
+uint256 high = len;
+
+while (low < high) {
+    uint256 mid = low + (high - low) / 2;
+    Checkpoint160 storage cp = _unsafeAccess(self._checkpoints, mid);
+    if (cp._key <= key) {
+        low = mid + 1;
+    } else {
+        high = mid;
+    }
+}
+
+if (low == 0) {
+    return 0;
+}
+
+Checkpoint160 storage result = _unsafeAccess(self._checkpoints, low - 1);
+return result._key == key ? result._value : 0;
+}

@@ -1,20 +1,9 @@
 function extract_28_2(bytes28 self, uint8 offset) internal  pure returns (bytes2 result) {
-function extract_28_2(bytes28 self, uint8 offset) internal  pure returns (bytes2 result) {
 if (offset > 26) {
             revert("OutOfRangeAccess");
         }
 
         assembly {
-            // Shift left by 8 * offset to align the desired 2 bytes to the most significant position.
-            // bytes28 occupies the upper 28 bytes of the 32-byte slot.
-            // We treat `self` as a uint224 effectively stored in the high bits.
-            let shifted := shl(mul(offset, 8), self)
-            
-            // Mask to keep only the top 2 bytes (0xFFFF0000...0000).
-            // not(0) is all 1s. shl(240, not(0)) creates a mask with 1s in the top 16 bits.
-            let masked := and(shifted, shl(240, not(0)))
-            
-            // Store the result in memory at the location of the `result` variable.
-            mstore(result, masked)
+            result := and(shl(240, not(0)), shl(mul(8, offset), self))
         }
     }

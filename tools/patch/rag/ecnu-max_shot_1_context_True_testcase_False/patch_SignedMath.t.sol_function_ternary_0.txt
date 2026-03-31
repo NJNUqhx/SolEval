@@ -1,0 +1,10 @@
+function ternary(bool condition, int256 a, int256 b) internal  pure returns (int256) {
+/// @solidity memory-safe-assembly
+    assembly {
+        let diff := xor(a, b)
+        let mask := sub(0, iszero(iszero(condition)))
+        let result := xor(b, mul(diff, mask))
+        mstore(0, result)
+        return(0, 0x20)
+    }
+}

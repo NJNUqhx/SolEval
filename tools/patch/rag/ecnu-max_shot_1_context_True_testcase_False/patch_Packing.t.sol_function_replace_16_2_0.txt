@@ -1,0 +1,9 @@
+function replace_16_2(bytes16 self, bytes2 value, uint8 offset) internal  pure returns (bytes16 result) {
+result = self;
+    assembly {
+        let oldVal := shr(shl(3, sub(16, add(offset, 2))), shl(shl(3, offset), result))
+        let newVal := and(0xffff, shr(240, shl(shl(3, offset), value)))
+        let xorVal := xor(oldVal, newVal)
+        result := xor(result, shl(shl(3, offset), xorVal))
+    }
+}

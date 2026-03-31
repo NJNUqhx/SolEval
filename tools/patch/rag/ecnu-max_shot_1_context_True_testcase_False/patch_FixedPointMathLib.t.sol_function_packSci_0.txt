@@ -1,0 +1,13 @@
+function packSci(uint256 x) internal  pure returns (uint256 packed) {
+uint256 m;
+        uint256 e;
+        (m, e) = sci(x);
+        /// @solidity memory-safe-assembly
+        assembly {
+            if gt(m, 0x1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) {
+                mstore(0x00, 0x1a15a929) // `MantissaOverflow()`.
+                revert(0x1c, 0x04)
+            }
+            packed := or(shl(7, m), e)
+        }
+    }

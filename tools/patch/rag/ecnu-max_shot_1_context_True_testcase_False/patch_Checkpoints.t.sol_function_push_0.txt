@@ -1,0 +1,3 @@
+function push(Trace160 storage self, uint96 key, uint160 value) internal   returns (uint160 oldValue, uint160 newValue) {
+(oldValue, newValue) = _insert(self, key, value);
+}

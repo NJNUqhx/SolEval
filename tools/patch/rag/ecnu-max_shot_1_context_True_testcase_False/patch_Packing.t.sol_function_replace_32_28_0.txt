@@ -1,0 +1,8 @@
+function replace_32_28(bytes32 self, bytes28 value, uint8 offset) internal  pure returns (bytes32 result) {
+assembly {
+        let mask := not(shl(mul(8, sub(32, offset)), not(0)))
+        mask := and(mask, not(shr(mul(8, add(offset, 28)), not(0))))
+        let val := and(shr(mul(8, sub(32, offset)), value), not(mask))
+        result := or(and(self, mask), val)
+    }
+}

@@ -5,7 +5,6 @@ import json
 import os
 import random
 import re
-import sys
 import subprocess
 import warnings
 from collections import defaultdict
@@ -60,6 +59,9 @@ if __name__ == '__main__':
     if not os.path.exists("patch/"):
         os.makedirs("patch/")
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    compile_pass_output_filename = f"/root/contract2solidity/SolEval/tools/results/compile_pass/results_{current_time}.txt"
+    
     warnings.filterwarnings("ignore")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     parser = argparse.ArgumentParser()
@@ -68,7 +70,7 @@ if __name__ == '__main__':
     parser.add_argument("--context", type=str, default="y")
     parser.add_argument("--rag", type=str, default="true")
     parser.add_argument("--shot", type=int, default=1)
-    parser.add_argument("--model", type=str, default="debug")
+    parser.add_argument("--model", type=str, default="CodeLlama_7b")
     args = parser.parse_args()
     context_or_not = args.context
     if context_or_not == "y":
@@ -101,11 +103,9 @@ if __name__ == '__main__':
     logger = MyLogger(f"logs/{rag_path}/{log_file}")
     logger.info_blue(f"Current context: {context}")
     set_seed(args.seed)
-    # LLM生成的次数
     num_return_sequences = args.sample
     log_dict = {}
     real_path_cargo = {}
-    
     for file_path, file_content in tqdm(data.items()):
         file_path = file_path.replace("/root/", "repository/")
         if "forge" in file_path:
@@ -134,24 +134,6 @@ if __name__ == '__main__':
     task_correct = defaultdict(int)
     task_compiled_correct = defaultdict(int)
     task_id = 0
-    
-    if args.model == "debug":
-        unique_paths = set()
-        for path in data.keys():
-            transformed_path = path.replace("/root/", "repository/")
-            unique_paths.add(transformed_path)
-        
-        logger.info_blue(f"原始文件数: {len(data)}, 转换后的唯一文件数: {len(unique_paths)}")
-        
-        # 使用列表推导式快速过滤统计
-        valid_files = [
-            p for p in data.keys() 
-            if "forge" not in p and (p.endswith(".t.sol") or "test" in p)
-        ]
-
-        logger.info_blue(f"符合测试条件的文件数量: {len(valid_files)}")
-        sys.exit(0)
-    
     for file_path, file_content in tqdm(data.items(), colour='green'):
         file_path = file_path.replace("/root/", "repository/")
         if file_path not in real_path_cargo.keys():
@@ -219,6 +201,15 @@ if __name__ == '__main__':
                 with open(f"{file_path}", 'r') as f:
                     source_bk = f.read()
                 file_path_bk = file_path.replace(".sol", ".sol.bak")
+                
+                # 检查是否已经有备份，如果有先写入到原文件，防止突然中断
+                if os.path.exists(file_path_bk):
+                    # 如果备份存在，先把备份内容覆盖回原文件，确保原文件恢复初始
+                    with open(file_path_bk, 'r', encoding='utf-8') as f:
+                        original_data = f.read()
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(original_data)    
+                
                 with open(f"{file_path_bk}", 'w') as f:
                     f.write(source_bk)
                 with open(f"{file_path}", 'w') as f:
@@ -353,3 +344,14 @@ if __name__ == '__main__':
             compile_success_rate = (number_compiled_total - number_compiled_fail) \
                                    / number_compiled_total if number_compiled_total > 0 else 0.0
             logger.info(f"COMPILE successful rate: {compile_success_rate}")
+            
+            with open(compile_pass_output_filename, "w", encoding="utf-8") as f:
+                f.write("-----------------------------\n")
+                for key, value in pass_at_k_values.items():
+                    f.write(f"{key}: {value}\n")
+                
+                f.write("-*-**-*-**-*-**-*-**-*-**-*-*\n")
+                for key, value in compile_at_k_values.items():
+                    f.write(f"{key}: {value}\n")
+                    
+                f.write(f"COMPILE successful rate: {compile_success_rate}\n")

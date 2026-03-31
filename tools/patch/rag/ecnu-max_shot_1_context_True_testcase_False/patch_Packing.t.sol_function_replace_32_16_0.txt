@@ -1,0 +1,7 @@
+function replace_32_16(bytes32 self, bytes16 value, uint8 offset) internal  pure returns (bytes32 result) {
+assembly {
+            let mask := not(shl(mul(offset, 8), 0xffffffffffffffffffffffffffffffff))
+            let shiftedValue := shl(mul(offset, 8), value)
+            result := or(and(self, mask), shiftedValue)
+        }
+}

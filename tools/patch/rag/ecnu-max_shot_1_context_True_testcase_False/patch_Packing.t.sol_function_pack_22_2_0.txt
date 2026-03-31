@@ -1,0 +1,7 @@
+function pack_22_2(bytes22 left, bytes2 right) internal  pure returns (bytes24 result) {
+assembly {
+            left := and(left, not(shl(176, 0xffffffffffffffffffffffffffffffffffff)))
+            right := and(right, 0xffff)
+            result := or(shl(16, left), right)
+        }
+    } 

@@ -1,0 +1,7 @@
+constructor () {
+constructor () {
+        owner = msg.sender;
+        king = msg.sender;
+        prizeAmount = msg.value;
+    }
+}

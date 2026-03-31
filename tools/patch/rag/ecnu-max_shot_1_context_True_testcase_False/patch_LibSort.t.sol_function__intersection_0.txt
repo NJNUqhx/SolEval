@@ -1,0 +1,64 @@
+function _intersection(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+uint256 aPointer;
+    uint256 bPointer;
+    uint256 cPointer;
+
+    assembly {
+        aPointer := add(a, 0x20)
+        bPointer := add(b, 0x20)
+        cPointer := add(c, 0x20)
+    }
+
+    uint256 aLength = a.length;
+    uint256 bLength = b.length;
+    uint256 aIndex = 0;
+    uint256 bIndex = 0;
+    uint256 cLength = 0;
+
+    while (aIndex < aLength && bIndex < bLength) {
+        uint256 valueA;
+        uint256 valueB;
+
+        assembly {
+            valueA := mload(add(aPointer, mul(aIndex, 0x20)))
+            valueB := mload(add(bPointer, mul(bIndex, 0x20)))
+        }
+
+        if (signed == 1) {
+            int256 signedA = int256(valueA);
+            int256 signedB = int256(valueB);
+
+            if (signedA == signedB) {
+                assembly {
+                    mstore(add(cPointer, mul(cLength, 0x20)), valueA)
+                }
+                cLength++;
+                aIndex++;
+                bIndex++;
+            } else if (signedA < signedB) {
+                aIndex++;
+            } else {
+                bIndex++;
+            }
+        } else {
+            if (valueA == valueB) {
+                assembly {
+                    mstore(add(cPointer, mul(cLength, 0x20)), valueA)
+                }
+                cLength++;
+                aIndex++;
+                bIndex++;
+            } else if (valueA < valueB) {
+                aIndex++;
+            } else {
+                bIndex++;
+            }
+        }
+    }
+
+    assembly {
+        mstore(c, cLength)
+    }
+
+    return c;
+}

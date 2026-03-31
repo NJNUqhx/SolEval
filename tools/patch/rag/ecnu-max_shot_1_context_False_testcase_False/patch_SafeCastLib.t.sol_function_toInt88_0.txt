@@ -1,7 +1,0 @@
-function toInt88(int256 x) internal  pure returns (int88) {
-function toInt88(int256 x) internal  pure returns (int88) {
-if (x < type(int88).min || x > type(int88).max) {
-            revert();
-        }
-        return int88(x);
-    }

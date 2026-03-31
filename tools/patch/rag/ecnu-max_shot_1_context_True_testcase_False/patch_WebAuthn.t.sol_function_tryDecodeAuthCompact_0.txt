@@ -1,0 +1,41 @@
+function tryDecodeAuthCompact(bytes memory encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+if (encodedAuth.length < 0x46) {
+            return decoded;
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let ptr := add(encodedAuth, 0x20)
+            let authDataLen := shr(240, mload(ptr))
+            
+            mstore(decoded, authDataLen)
+            let authDataPtr := mload(add(decoded, 0x20))
+            if iszero(authDataPtr) {
+                authDataPtr := mload(0x40)
+                mstore(add(decoded, 0x20), authDataPtr)
+                mstore(0x40, add(authDataPtr, and(add(authDataLen, 0x3f), not(0x1f))))
+            }
+            pop(staticcall(gas(), 0x04, add(ptr, 0x02), authDataLen, authDataPtr, authDataLen))
+
+            let clientDataJsonLen := sub(sub(mload(encodedAuth), 0x44), authDataLen)
+            let clientDataJsonPtr := mload(add(decoded, 0x40))
+            if iszero(clientDataJsonPtr) {
+                clientDataJsonPtr := mload(0x40)
+                mstore(add(decoded, 0x40), clientDataJsonPtr)
+                mstore(0x40, add(clientDataJsonPtr, and(add(clientDataJsonLen, 0x3f), not(0x1f))))
+            }
+            pop(staticcall(gas(), 0x04, add(add(ptr, 0x02), authDataLen), clientDataJsonLen, clientDataJsonPtr, clientDataJsonLen))
+
+            let challengeIndexPtr := add(add(add(ptr, 0x02), authDataLen), clientDataJsonLen)
+            mstore(add(decoded, 0x60), shr(248, mload(challengeIndexPtr)))
+            
+            let typeIndexPtr := add(challengeIndexPtr, 0x01)
+            mstore(add(decoded, 0x80), shr(248, mload(typeIndexPtr)))
+
+            let rPtr := add(typeIndexPtr, 0x01)
+            mstore(add(decoded, 0xa0), mload(rPtr))
+
+            let sPtr := add(rPtr, 0x20)
+            mstore(add(decoded, 0xc0), mload(sPtr))
+        }
+    }

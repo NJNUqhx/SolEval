@@ -1,0 +1,4 @@
+function toUint104(uint256 x) internal  pure returns (uint104) {
+if (x > type(uint104).max) revert Overflow();
+        return uint104(x);
+    }

@@ -1,44 +1,10 @@
 function extract_28_12(bytes28 self, uint8 offset) internal  pure returns (bytes12 result) {
-function extract_28_12(bytes28 self, uint8 offset) internal  pure returns (bytes12 result) {
 if (offset > 16) {
-    revert OutOfRangeAccess();
-}
+            revert("OutOfRangeAccess");
+        }
 
-assembly {
-    // Shift left by (offset * 8) bits to align the desired 12-byte segment to the most significant position.
-    // Since `self` is 28 bytes, it occupies the upper 28 bytes of the 32-byte slot.
-    // We want to extract 12 bytes starting at `offset`.
-    // The total value is treated as a 256-bit integer.
-    // Shifting left moves the target segment towards the high bits.
-    let shifted := shl(mul(offset, 8), self)
-    
-    // Mask to keep only the upper 12 bytes (96 bits).
-    // 0xFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
-    // This mask has 12 bytes of 1s followed by 20 bytes of 0s.
-    let masked := and(shifted, 0xFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
-    
-    // Shift right by (20 * 8) = 160 bits to align the 12-byte result to the least significant position
-    // so it fits correctly into a bytes12 variable (which is left-aligned in the 32-byte word when returned,
-    // but standard practice for extraction often aligns to LSB then lets solidity handle packing, 
-    // OR we align directly to the bytes12 expected position).
-    //
-    // Correction for Solidity bytesN layout:
-    // bytes12 is stored in the first 12 bytes of the 32-byte word (bits 255 down to 160).
-    // Our mask `0xFFFFFFFFFFFFFFFFFFFFFFFF...` already isolates bits 255-160.
-    // However, the `shl(offset * 8)` moved the data up. 
-    // Let's re-evaluate the bit math carefully.
-    //
-    // Input `self` (bytes28): Occupies bits 255 down to (256 - 28*8) = 255 down to 32.
-    // We want 12 bytes starting at `offset`.
-    // Target bits in `self`: from (255 - offset*8) down to (255 - offset*8 - 96 + 1).
-    //
-    // Operation:
-    // 1. `shl(offset * 8)`: Moves the bit at (255 - offset*8) to 255.
-    //    Now the desired 12 bytes are at bits 255 down to (255 - 96 + 1) = 255 down to 160.
-    // 2. `and(..., mask)`: Mask with 12 leading 1s (bits 255-160) and rest 0.
-    //    This clears everything below bit 160.
-    // 3. The result is now exactly in the position required for `bytes12` (bits 255-160).
-    //    No final `shr` is needed if the mask is `0xFFFFFFFFFFFFFFFFFFFFFFFF0000...`.
-    
-    result := masked
-}
+        assembly {
+            let shifted := shl(mul(8, offset), self)
+            result := shr(128, shifted)
+        }
+    }

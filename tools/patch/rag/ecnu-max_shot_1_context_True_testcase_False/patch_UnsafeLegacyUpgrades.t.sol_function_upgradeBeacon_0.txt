@@ -1,0 +1,4 @@
+function upgradeBeacon(address beacon, string memory contractName, address tryCaller) internal {
+Options memory opts;
+        Core.upgradeBeacon(beacon, contractName, opts, tryCaller);
+    }

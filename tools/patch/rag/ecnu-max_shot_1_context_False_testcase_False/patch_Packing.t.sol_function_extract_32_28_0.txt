@@ -1,15 +1,11 @@
 function extract_32_28(bytes32 self, uint8 offset) internal  pure returns (bytes28 result) {
-function extract_32_28(bytes32 self, uint8 offset) internal  pure returns (bytes28 result) {
 if (offset > 4) {
             revert OutOfRangeAccess();
         }
 
         assembly {
-            // Shift left by 8 * offset to align the desired segment to the most significant bytes
             let shifted := shl(mul(8, offset), self)
-            // Mask to keep only the top 28 bytes (224 bits), clearing the bottom 4 bytes (32 bits)
-            // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
-            let mask := not(sub(shl(32, 1), 1))
-            result := and(shifted, mask)
+            let masked := and(shifted, not(shl(224, 0)))
+            result := masked
         }
     }

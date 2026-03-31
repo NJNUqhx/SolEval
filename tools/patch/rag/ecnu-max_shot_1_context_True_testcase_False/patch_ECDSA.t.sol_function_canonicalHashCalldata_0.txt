@@ -1,0 +1,40 @@
+function canonicalHashCalldata(bytes calldata signature) internal  pure returns (bytes32 result) {
+uint256 r;
+        uint256 s;
+        uint8 v;
+
+        if (signature.length == 64) {
+            assembly {
+                r := calldataload(signature.offset)
+                s := calldataload(add(signature.offset, 0x20))
+            }
+            v = 27;
+            if (s & 0x8000000000000000000000000000000000000000000000000000000000000000 != 0) {
+                v = 28;
+            }
+            s &= 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        } else if (signature.length == 65) {
+            assembly {
+                r := calldataload(signature.offset)
+                s := calldataload(add(signature.offset, 0x20))
+                v := byte(0, calldataload(add(signature.offset, 0x40)))
+            }
+        } else {
+            return keccak256(abi.encodePacked(signature)) ^ bytes32(uint256(0xdeadbeef));
+        }
+
+        uint256 constant _HALF_N_PLUS_1 = 57896044618658097711785492504343953926634992332820282019728792003956564819968;
+        if (s >= _HALF_N_PLUS_1) {
+            v = (v == 27) ? 28 : 27;
+            s = _HALF_N_PLUS_1 * 2 - 1 - s + 1; 
+            s = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 - s;
+        }
+
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, r)
+            mstore(add(ptr, 0x20), s)
+            mstore8(add(ptr, 0x40), v)
+            result := keccak256(ptr, 0x41)
+        }
+    }

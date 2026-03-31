@@ -1,0 +1,23 @@
+function rescueERC1155(address token, address to, uint256 id, uint256 amount, bytes calldata data) public virtual onlyRescuer(_LIFEBUOY_RESCUE_ERC1155_LOCK) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, 0xf242432a) // `safeTransferFrom(address,address,uint256,uint256,bytes)`
+            mstore(add(m, 0x20), address()) // `from`
+            mstore(add(m, 0x40), and(to, shr(96, not(0)))) // `to`
+            mstore(add(m, 0x60), id) // `id`
+            mstore(add(m, 0x80), amount) // `amount`
+            let dataLen := data.length
+            mstore(add(m, 0xa0), 0xc0) // `data` offset
+            mstore(add(m, 0xc0), dataLen) // `data` length
+            calldatacopy(add(m, 0xe0), data.offset, dataLen)
+            let success := call(gas(), token, 0, add(m, 0x1c), add(0xc4, dataLen), codesize(), 0x00)
+            if iszero(success) {
+                mstore(0x00, 0x8c379a0000000000000000000000000000000000000000000000000000000000) // Error selector
+                mstore(0x04, 0x20)
+                mstore(0x24, 0x14)
+                mstore(0x44, 0x5265736375655472616e736665724661696c6564000000000000000000000000) // "RescueTransferFailed"
+                revert(0x00, 0x64)
+            }
+        }
+    }

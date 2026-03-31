@@ -1,0 +1,9 @@
+function replace_12_2(bytes12 self, bytes2 value, uint8 offset) internal  pure returns (bytes12 result) {
+assembly {
+        let oldVal := extract_12_2(self, offset)
+        let mask := 0xffff
+        let shiftedOld := shl(mul(sub(12, add(offset, 2)), 8), and(oldVal, mask))
+        let shiftedNew := shl(mul(sub(12, add(offset, 2)), 8), and(value, mask))
+        result := xor(xor(self, shiftedOld), shiftedNew)
+    }
+}

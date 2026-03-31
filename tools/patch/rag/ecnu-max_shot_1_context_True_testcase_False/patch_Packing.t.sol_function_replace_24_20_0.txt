@@ -1,0 +1,10 @@
+function replace_24_20(bytes24 self, bytes20 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+            let v := and(shr(48, shl(48, value)), 0xffffffffffffffffffffffffffffffffffffffff)
+            let shift := shl(3, sub(24, add(offset, 20)))
+            let mask := not(shl(shift, sub(shl(160, 1), 1)))
+            let old := and(self, mask)
+            let new := and(shl(shift, v), not(mask))
+            result := or(old, new)
+        }
+}

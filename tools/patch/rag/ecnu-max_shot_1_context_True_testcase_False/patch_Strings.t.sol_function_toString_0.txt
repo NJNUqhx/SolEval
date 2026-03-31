@@ -1,0 +1,25 @@
+function toString(uint256 value) internal  pure returns (string memory) {
+    if (value == 0) {
+        return "0";
+    }
+    uint256 temp = value;
+    uint256 length;
+    unchecked {
+        length = Math.log10(value) + 1;
+    }
+    bytes memory buffer = new bytes(length);
+    uint256 ptr;
+    assembly {
+        ptr := add(add(buffer, 0x20), length)
+    }
+    unchecked {
+        while (temp != 0) {
+            assembly {
+                ptr := sub(ptr, 1)
+                mstore8(ptr, add(48, mod(temp, 10)))
+                temp := div(temp, 10)
+            }
+        }
+    }
+    return string(buffer);
+}

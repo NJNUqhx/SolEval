@@ -1,0 +1,9 @@
+function replace_16_8(bytes16 self, bytes8 value, uint8 offset) internal  pure returns (bytes16 result) {
+assembly {
+        let v := and(value, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+        let shift := shl(sub(128, shl(3, offset)), 1)
+        let old := and(self, shr(shift, not(0)))
+        let mask := not(shl(shift, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000))
+        result := or(and(self, mask), shl(shift, v))
+    }
+}

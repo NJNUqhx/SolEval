@@ -1,0 +1,4 @@
+function predictDeterministicAddressERC1967BeaconProxy(address beacon, bytes memory args, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+bytes32 hash = keccak256(abi.encodePacked(type(ERC1967BeaconProxy).creationCode, uint256(uint160(beacon)), args));
+        predicted = predictDeterministicAddress(hash, salt, deployer);
+    } 

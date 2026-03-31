@@ -1,0 +1,48 @@
+function argsOnERC1967BeaconProxy(address instance, uint256 start, uint256 end) internal  view returns (bytes memory args) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Ensure `end` does not exceed 0xffff to prevent overflow issues with `extcodecopy`.
+            if gt(end, 0xffff) {
+                end := 0xffff
+            }
+
+            // Calculate the length of the data to be copied.
+            let length := sub(end, start)
+
+            // Allocate memory for the result: 32 bytes for length + `length` bytes for data.
+            // We add 32 to `length` to account for the length prefix.
+            // We also add 32 extra bytes to zeroize the slot after the data as per requirement.
+            let memPtr := mload(0x40)
+            let dataStart := add(memPtr, 0x20)
+            
+            // Store the length in the first 32 bytes of the allocated memory.
+            mstore(memPtr, length)
+
+            // Copy the code from the contract instance into memory.
+            // extcodecopy(address, destOffset, offset, size)
+            extcodecopy(instance, dataStart, start, length)
+
+            // Zeroize the memory slot immediately after the arguments to ensure no residual data.
+            // The data ends at `dataStart + length`. The next 32-byte slot starts at `(dataStart + length) & ~0x1f`.
+            // However, simply clearing the word at `dataStart + length` (if aligned) or the next full word is safer.
+            // Standard practice for dynamic bytes: clear the word after the data.
+            let afterData := add(dataStart, length)
+            // Round up to the next 32-byte boundary if not already aligned, then clear.
+            // Actually, just clearing the 32-byte word starting at `afterData` is sufficient if we assume `length` 
+            // might not be 32-aligned, but `mstore` writes 32 bytes. 
+            // To be safe and strictly follow "zeroize the memory slot after the arguments":
+            // If length is 0, we clear dataStart. If length > 0, we clear the word containing the end or the next word.
+            // A common pattern is to clear the word at `add(dataStart, and(add(length, 0x1f), not(0x1f)))` but simpler:
+            // Just clear the 32-byte block starting at `afterData` (which may overwrite some padding if length isn't multiple of 32, 
+            // but `extcodecopy` doesn't guarantee zero-padding beyond `length`).
+            // Let's clear the 32-byte word that starts at the end of our data.
+            mstore(afterData, 0)
+
+            // Update the free memory pointer.
+            // New free pointer = current memPtr + 32 (length) + length (data) + 32 (safety buffer/cleared slot).
+            mstore(0x40, add(add(memPtr, 0x20), add(length, 0x20)))
+
+            // Return the pointer to the allocated memory.
+            args := memPtr
+        }
+    }

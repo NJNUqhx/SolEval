@@ -1,0 +1,15 @@
+function fullMulDivN(uint256 x, uint256 y, uint8 n) internal  pure returns (uint256 z) {
+    assembly {
+        let mm := mulmod(x, y, not(0))
+        z := mul(x, y)
+        if iszero(eq(mm, z)) {
+            let p1 := shr(255, mul(x, shr(128, y)))
+            p1 := add(p1, shr(255, mul(shr(128, x), y)))
+            p1 := add(p1, shr(127, mul(and(x, mask128), and(y, mask128))))
+            z := shr(n, or(shl(128, p1), shr(sub(256, n), z)))
+            if shr(sub(256, n), p1) { revert(0, 0) }
+        } else {
+            z := shr(n, z)
+        }
+    }
+}

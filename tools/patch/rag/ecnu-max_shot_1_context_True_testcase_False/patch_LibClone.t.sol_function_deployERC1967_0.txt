@@ -1,0 +1,25 @@
+function deployERC1967(uint256 value, address implementation, bytes memory args) internal   returns (address instance) {
+uint256 freeMemPtr;
+        uint256 argsLength;
+        assembly {
+            freeMemPtr := mload(0x40)
+            argsLength := mload(args)
+            if gt(argsLength, 0xffc2) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+            let dataPtr := add(args, 0x20)
+            let initCodePtr := freeMemPtr
+            mstore(initCodePtr, 0x602d5f8160095f39f35f5f365f5f37365f73)
+            mstore(add(initCodePtr, 0x09), implementation)
+            mstore(add(initCodePtr, 0x1d), 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            let initCodeLength := add(0x2d, argsLength)
+            memoryCopy(dataPtr, add(initCodePtr, 0x2d), argsLength)
+            instance := create(value, initCodePtr, initCodeLength)
+            if iszero(instance) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+            mstore(0x40, add(freeMemPtr, initCodeLength))
+        }
+    }

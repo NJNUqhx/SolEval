@@ -1,0 +1,95 @@
+function expWad(int256 x) internal  pure returns (int256 r) {
+assembly {
+            // Handle edge cases
+            if iszero(sgt(x, -41446531673892822314)) {
+                r := 0
+                leave
+            }
+            if sgt(x, 135305999368893231588) {
+                mstore(0x00, 0x1a15a928) // ExpOverflow()
+                revert(0x1c, 0x04)
+            }
+
+            // Scale x from 1e18 to 2**96
+            // x_scaled = x * 2**96 / 1e18
+            // 2**96 / 1e18 ≈ 79228162514264337593543950336
+            let x_scaled := sar(96, mul(x, 79228162514264337593543950336))
+
+            // Range reduction: k = round(x_scaled / log2_scaled)
+            // log2_scaled = log(2) * 2**96 ≈ 54910802204200519286952923264
+            // inv_log2_scaled = 2**128 / log2_scaled ≈ 3321928094887362347870319429427662327281
+            let k := sar(128, mul(x_scaled, 3321928094887362347870319429427662327281))
+            
+            // x_reduced = x_scaled - k * log2_scaled
+            let log2_scaled := 54910802204200519286952923264
+            let x_reduced := sub(x_scaled, mul(k, log2_scaled))
+
+            // Rational approximation (6, 7)-term
+            // y = x_reduced + 1346386616545796478920950773328
+            let y := add(x_reduced, 1346386616545796478920950773328)
+            
+            // p = x_reduced * (y + ... polynomial terms ...)
+            // q = y + ... polynomial terms ...
+            // Using precomputed coefficients for the rational approximation
+            let p := add(mul(x_reduced, 0x100000000000000000000000000000000000000000000000000000000), 0) // Simplified placeholder logic for p calculation
+            
+            // Actual implementation of the rational approximation polynomials
+            // p = x * (793235924385343820000000000000000000000000000000000000000 + x * (...))
+            // q = 793235924385343820000000000000000000000000000000000000000 + x * (...)
+            
+            // Coefficients for p (numerator) and q (denominator)
+            // p coefficients (scaled by 2**128)
+            let c1_p := 0x155555555555555555555555555555555555555555555555555555555555555
+            let c2_p := 0x2AAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            let c3_p := 0x33333333333333333333333333333333333333333333333333333333333333
+            let c4_p := 0x3FFFFF80000000000000000000000000000000000000000000000000000000
+            let c5_p := 0x55555555555555555555555555555555555555555555555555555555555555
+            let c6_p := 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+
+            // q coefficients (scaled by 2**128)
+            let c1_q := 0x200000000000000000000000000000000000000000000000000000000000000
+            let c2_q := 0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            let c3_q := 0x55555555555555555555555555555555555555555555555555555555555555
+            let c4_q := 0x6AAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            let c5_q := 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            let c6_q := 0x95555555555555555555555555555555555555555555555555555555555555
+
+            // Evaluate p = x_reduced * (c1_p + x_reduced * (c2_p + ...))
+            let term_p := c6_p
+            term_p := add(c5_p, sar(128, mul(x_reduced, term_p)))
+            term_p := add(c4_p, sar(128, mul(x_reduced, term_p)))
+            term_p := add(c3_p, sar(128, mul(x_reduced, term_p)))
+            term_p := add(c2_p, sar(128, mul(x_reduced, term_p)))
+            term_p := add(c1_p, sar(128, mul(x_reduced, term_p)))
+            p := sar(128, mul(x_reduced, term_p))
+
+            // Evaluate q = c1_q + x_reduced * (c2_q + ...)
+            let term_q := c6_q
+            term_q := add(c5_q, sar(128, mul(x_reduced, term_q)))
+            term_q := add(c4_q, sar(128, mul(x_reduced, term_q)))
+            term_q := add(c3_q, sar(128, mul(x_reduced, term_q)))
+            term_q := add(c2_q, sar(128, mul(x_reduced, term_q)))
+            term_q := add(c1_q, sar(128, mul(x_reduced, term_q)))
+            let q := term_q
+
+            // r = p / q
+            r := sdiv(p, q)
+
+            // Adjust for 2^k
+            // result = r * 2^k * scale_factor
+            // scale_factor = 2^96 / 1e18 * 6.031367120... (combined constant)
+            // Combined scaling: 2^96 / 1e18 * 2^k * (approximation adjustment)
+            // Final scaling factor precomputed: 2^128 / 1e18 * adjustment
+            
+            // Apply 2^k shift
+            if slt(k, 0) {
+                r := sar(sub(0, k), r)
+            } else {
+                r := shl(k, r)
+            }
+
+            // Convert back to 1e18 scale
+            // r = r * 1e18 / 2**96
+            r := sdiv(mul(r, 1000000000000000000), 79228162514264337593543950336)
+        }
+    }

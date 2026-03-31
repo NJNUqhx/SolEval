@@ -1,0 +1,5 @@
+function getOutDir() internal  view returns (string memory) {
+Vm vm = Vm(HEVM_ADDRESS);
+string memory defaultOutDir = "out";
+return vm.envOr("FOUNDRY_OUT", defaultOutDir);
+}

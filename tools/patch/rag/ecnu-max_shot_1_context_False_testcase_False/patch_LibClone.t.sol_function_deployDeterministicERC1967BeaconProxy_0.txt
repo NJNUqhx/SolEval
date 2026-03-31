@@ -1,4 +1,0 @@
-function deployDeterministicERC1967BeaconProxy(address beacon, bytes32 salt) internal   returns (address instance) {
-function deployDeterministicERC1967BeaconProxy(address beacon, bytes32 salt) internal   returns (address instance) {
-instance = deployDeterministicERC1967BeaconProxy{value: 0}(beacon, salt);
-    } 

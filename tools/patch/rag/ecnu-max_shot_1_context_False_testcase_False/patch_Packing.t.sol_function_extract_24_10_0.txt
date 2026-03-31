@@ -1,40 +1,6 @@
 function extract_24_10(bytes24 self, uint8 offset) internal  pure returns (bytes10 result) {
-function extract_24_10(bytes24 self, uint8 offset) internal  pure returns (bytes10 result) {
-if (offset > 14) {
-            revert OutOfRangeAccess();
-        }
-
-        assembly {
-            // Shift the input left by 8 * offset bits to align the desired segment to the most significant bytes.
-            // Since `self` is bytes24, it occupies the upper 24 bytes of a 32-byte slot.
-            // We need to shift it such that the 10-byte segment starting at `offset` moves to the top.
-            // The total shift required is (offset * 8).
-            let shifted := shl(mul(offset, 8), self)
-            
-            // Mask to keep only the top 10 bytes (80 bits).
-            // The mask for 10 bytes at the MSB position is: 0xFFFFFFFFFF000000000000000000000000000000000000000000000000
-            // However, since we are storing into `result` (bytes10), Solidity will automatically handle the truncation 
-            // if we place the data correctly in the 32-byte word returned.
-            // To be explicit and safe in assembly for a bytes10 return:
-            // We want the result in the highest 10 bytes of the 32-byte word assigned to `result`.
-            // The mask 0xFFFFFFFFFF followed by 22 zeros (in terms of bytes) shifted appropriately.
-            // Actually, simpler approach:
-            // 1. `self` is in the upper 24 bytes.
-            // 2. Shift left by `offset * 8`. Now the desired 10 bytes start at bit (192 - offset*8).
-            // 3. We want them at the very top (bits 255 down to 176).
-            // Wait, `bytes24` in assembly loaded as a uint256 has data in bits 255..(256-24*8) = 255..64.
-            // If offset is 0, we want bits 255..176 (10 bytes).
-            // If offset is 1, we want bits 247..168.
-            // So we shift left by `offset * 8`.
-            // Then we mask out everything except the top 10 bytes.
-            // Mask: 0xFFFFFFFFFF00000000000000000000000000000000000000000000000000000000 (This is wrong size)
-            // Correct Mask for top 10 bytes of a 32-byte word:
-            // 0xFFFFFFFFFF << 22*8 = 0xFFFFFFFFFF00000000000000000000000000000000000000000000000000
-            let mask := 0xFFFFFFFFFF00000000000000000000000000000000000000000000000000
-            let extracted := and(shifted, mask)
-            
-            // Store the result. Since `result` is a bytes10, assigning the upper 10 bytes of the 32-byte word
-            // is the standard representation.
-            result := extracted
-        }
+if (offset > 14) revert("OutOfRangeAccess");
+    assembly {
+        result := and(shl(mul(8, offset), self), 0xFFFFFFFFFF0000000000000000000000)
     }
+}

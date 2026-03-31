@@ -1,0 +1,6 @@
+function toInt224(uint256 x) internal  pure returns (int224) {
+if (x >= (1 << 223)) {
+            revert Overflow();
+        }
+        return int224(int256(x));
+    }

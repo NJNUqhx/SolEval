@@ -1,26 +1,9 @@
 function replace_20_10(bytes20 self, bytes10 value, uint8 offset) internal  pure returns (bytes20 result) {
-function replace_20_10(bytes20 self, bytes10 value, uint8 offset) internal  pure returns (bytes20 result) {
-function replace_20_10(bytes20 self, bytes10 value, uint8 offset) internal  pure returns (bytes20 result) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            // Convert inputs to uint256 for bitwise operations
-            let selfVal := and(self, 0xffffffffffffffffffffffffffffffffffffffff)
-            let valueVal := and(value, 0xffffffffffffffffffffffffff) // Mask to 10 bytes (80 bits)
-            let offsetBits := mul(offset, 8)
-
-            // Calculate the mask for the 10-byte segment at the given offset
-            // 10 bytes = 80 bits. Mask is (2^80 - 1) shifted left by offsetBits.
-            // 2^80 - 1 = 0xffffffffffffffffffffffffff
-            let segmentMask := shl(offsetBits, 0xffffffffffffffffffffffffff)
-
-            // Extract the old segment from self
-            let oldSegment := and(selfVal, segmentMask)
-
-            // Shift the new value to the correct position
-            let newSegment := shl(offsetBits, valueVal)
-
-            // Perform replacement: (self XOR oldSegment) XOR newSegment
-            // This clears the old bits and sets the new bits
-            result := xor(xor(selfVal, oldSegment), newSegment)
-        }
+assembly {
+        let mask := sub(shl(mul(offset, 8), 1), 1)
+        mask := xor(mask, shl(80, mask))
+        let oldSegment := and(self, mask)
+        let newSegment := and(shl(mul(sub(10, offset), 8), value), mask)
+        result := xor(xor(self, oldSegment), newSegment)
     }
+}

@@ -1,0 +1,19 @@
+function toEthSignedMessageHash(bytes memory s) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let sLength := mload(s)
+            let prefix := "\x19Ethereum Signed Message:\n"
+            let prefixLength := 26
+            let lengthStr := sLength
+            let headerLength := add(prefixLength, add(lengthStr, 1))
+            if gt(headerLength, 32) {
+                revert(0, 0)
+            }
+            let m := mload(0x40)
+            mstore(m, prefix)
+            mstore(add(m, prefixLength), lengthStr)
+            let hash := keccak256(add(m, sub(32, prefixLength)), add(headerLength, sLength))
+            mstore(s, sLength)
+            result := hash
+        }
+    }

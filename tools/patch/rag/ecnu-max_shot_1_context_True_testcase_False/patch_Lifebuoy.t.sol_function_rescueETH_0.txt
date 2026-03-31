@@ -1,0 +1,9 @@
+function rescueETH(address to, uint256 amount) public virtual onlyRescuer(_LIFEBUOY_RESCUE_ETH_LOCK) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if iszero(call(gas(), to, amount, 0, 0, 0, 0)) {
+                mstore(0x00, 0xd92e233d00000000000000000000000000000000000000000000000000000000)
+                revert(0x00, 0x04)
+            }
+        }
+    }

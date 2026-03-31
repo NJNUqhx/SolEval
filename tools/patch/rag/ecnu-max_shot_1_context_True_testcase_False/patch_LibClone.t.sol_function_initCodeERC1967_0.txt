@@ -1,0 +1,22 @@
+function initCodeERC1967(address implementation, bytes memory args) internal  pure returns (bytes memory c) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let n := mload(args)
+            if gt(n, 0xffc2) {
+                mstore(0x00, 0x9a9a9a9a00000000000000000000000000000000000000000000000000000000)
+                revert(0x1c, 0x04)
+            }
+            let cPtr := add(c, 0x20)
+            let argsPtr := add(args, 0x20)
+            for { let i := 0 } lt(i, n) { i := add(i, 0x20) } {
+                mstore(add(cPtr, i), mload(add(argsPtr, i)))
+            }
+            mstore(add(cPtr, n), 0x363d3d373d3d3d363d73000000000000000000000000)
+            mstore(add(cPtr, add(n, 0x14)), implementation)
+            mstore(add(cPtr, add(n, 0x28)), 0x5af43d82803e903d91602b57fd5bf300000000000000)
+            let codeSize := add(n, 0x37)
+            mstore(c, codeSize)
+            mstore(add(cPtr, codeSize), 0)
+            c := cPtr
+        }
+    }

@@ -1,0 +1,12 @@
+constructor () {
+constructor () payable {
+        address deployer = _lifebuoyDefaultDeployer();
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, address())
+            mstore(0x20, deployer)
+            let hash := keccak256(0x00, 0x40)
+            sstore(_lifebuoyDeployerHash.slot, hash)
+        }
+    }
+}

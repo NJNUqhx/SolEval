@@ -1,73 +1,8 @@
 function replace_20_12(bytes20 self, bytes12 value, uint8 offset) internal  pure returns (bytes20 result) {
-function replace_20_12(bytes20 self, bytes12 value, uint8 offset) internal  pure returns (bytes20 result) {
-/// @solidity memory-safe-assembly
-        assembly {
-            // Convert inputs to uint256 for easier bitwise manipulation
-            let selfVal := shl(96, self) // Align bytes20 to the left of a uint256 (20 bytes * 8 = 160 bits, 256-160=96)
-            let valueVal := shl(112, value) // Align bytes12 to the left of a uint256 (12 bytes * 8 = 96 bits, 256-96=160? No.)
-            
-            // Let's re-evaluate alignment based on byte offsets from the LEFT (most significant byte)
-            // bytes20 is 20 bytes. bytes12 is 12 bytes.
-            // Offset is 0-based index from the start of the 20-byte array.
-            
-            // To make bitwise ops easier, let's treat the 20 bytes as occupying the MOST significant 20 bytes of a 32-byte word.
-            // Self: [0..19] are data, [20..31] are zero.
-            // Value: We want to insert 12 bytes at `offset`.
-            
-            // Shift self to occupy the top 20 bytes (shift left by 12 bytes = 96 bits)
-            selfVal := shl(96, self)
-            
-            // Shift value to occupy the top 12 bytes (shift left by 20 bytes = 160 bits) initially, 
-            // then we will shift it right by (offset * 8) bits to align with the target position.
-            // Actually, simpler: Place value at the very top (left-aligned), then shift right by (offset * 8).
-            valueVal := shl(160, value)
-            
-            // Calculate shift amount for the offset (offset * 8 bits)
-            let shiftAmt := mul(offset, 8)
-            
-            // Shift the value right to align with the offset
-            valueVal := shr(shiftAmt, valueVal)
-            
-            // Create a mask for the 12-byte segment at the specific offset.
-            // 12 bytes = 96 bits. Mask is 2^96 - 1, shifted to the correct position.
-            // Full 12-byte mask at the top: 0xFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000 (approx)
-            // Let's construct the mask dynamically or use a constant shifted.
-            // Constant mask for 12 bytes at the TOP (left-aligned):
-            // 2^96 - 1 = 0xFFFFFFFFFFFFFFFFFFFF (12 f's)
-            // Shifted left by 160 bits (to sit at the top of 256 bits):
-            let mask := shl(160, sub(shl(96, 1), 1)) // 12 ones at the top
-            
-            // Shift the mask right by the offset to align with the target segment
-            mask := shr(shiftAmt, mask)
-            
-            // Clear the target segment in self: self & (~mask)
-            let clearedSelf := and(selfVal, not(mask))
-            
-            // Isolate the new value within the mask (though we already shifted it, extra safety)
-            let alignedValue := and(valueVal, mask)
-            
-            // Combine: clearedSelf | alignedValue
-            result := or(clearedSelf, alignedValue)
-            
-            // The result variable in assembly is a uint256, but the function returns bytes20.
-            // Solidity automatically truncates the upper 256 bits to the lower 160 bits (20 bytes) 
-            // when returning, provided the data is left-aligned in the 32-byte word?
-            // Wait, `bytes20` in memory/stack is usually right-aligned or left-aligned?
-            // In Solidity assembly, fixed-size bytes types like `bytes20` are stored in the lower 20 bytes (right-aligned) 
-            // OR upper 20 bytes?
-            // Actually, standard Solidity ABI and internal representation for `bytesN` puts the data in the 
-            // MOST significant bytes (left-aligned) when loaded into a 32-byte word via `mload` or arguments?
-            // Let's check the input `self`. If passed as `bytes20`, it is left-aligned in the 32-byte slot.
-            // My logic above assumed left-alignment (shl 96).
-            // So `result` holds the left-aligned 20 bytes in the 32-byte word.
-            // When returning `bytes20`, Solidity expects the value in the lower 20 bytes? 
-            // NO. In inline assembly, if you assign to a `bytes20` variable, it expects the value 
-            // to be in the lowest 20 bytes? Or does it handle the alignment?
-            // Actually, for `bytesN`, Solidity stores them left-aligned in the 32-byte word (upper N bytes).
-            // So if `result` is a `bytes20` variable, assigning a uint256 that is left-aligned should work directly.
-            // However, to be safe and explicit, let's ensure we return the correct alignment.
-            // If `self` came in left-aligned, my math preserved left-alignment.
-            // The return type `bytes20` expects the data in the top 20 bytes of the 32-byte word.
-            // So `result` is already correct.
+assembly {
+            let mask := shl(mul(sub(20, offset), 8), not(shl(mul(12, 8), 0)))
+            let oldSegment := and(self, mask)
+            let newSegment := shl(mul(sub(20, offset), 8), and(value, shr(mul(sub(32, 12), 8), not(0))))
+            result := xor(xor(self, oldSegment), newSegment)
         }
     }

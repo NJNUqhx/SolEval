@@ -1,0 +1,45 @@
+function _string(address target, bytes32 ptr, uint256 limit, uint256 gasStipend) private  view returns (string memory result) {
+assembly {
+            let success := staticcall(gasStipend, target, ptr, 0x20, 0x00, 0x00)
+            if iszero(success) {
+                revert(0, 0)
+            }
+
+            let size := returndatasize()
+            if gt(size, 0x40) {
+                let offset := mload(0x00)
+                if lt(add(offset, 0x20), size) {
+                    let len := mload(add(0x20, offset))
+                    if gt(add(add(offset, 0x20), len), size) {
+                        len := sub(size, add(offset, 0x20))
+                    }
+                    if gt(len, limit) {
+                        len := limit
+                    }
+                    result := mload(0x40)
+                    mstore(result, len)
+                    mstore(add(result, 0x20), 0)
+                    returndatacopy(add(result, 0x20), add(offset, 0x20), len)
+                    mstore(0x40, add(add(result, 0x20), add(len, 0x20)))
+                    return
+                }
+            }
+
+            let len := 0
+            for { let i := 0 } lt(i, size) { i := add(i, 1) } {
+                let byte := mload(add(0x00, i))
+                if iszero(byte) {
+                    break
+                }
+                len := add(len, 1)
+            }
+            if gt(len, limit) {
+                len := limit
+            }
+            result := mload(0x40)
+            mstore(result, len)
+            mstore(add(result, 0x20), 0)
+            returndatacopy(add(result, 0x20), 0, len)
+            mstore(0x40, add(add(result, 0x20), add(len, 0x20)))
+        }
+    }

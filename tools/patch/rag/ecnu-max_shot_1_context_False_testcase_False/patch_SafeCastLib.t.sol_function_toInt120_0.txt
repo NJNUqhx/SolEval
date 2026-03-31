@@ -1,8 +1,0 @@
-function toInt120(int256 x) internal  pure returns (int120) {
-function toInt120(int256 x) internal  pure returns (int120) {
-    unchecked {
-        if (x < type(int120).min || x > type(int120).max) {
-            _revertOverflow();
-        }
-        return int120(x);
-    }

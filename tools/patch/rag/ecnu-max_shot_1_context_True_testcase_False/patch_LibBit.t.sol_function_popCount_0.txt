@@ -1,0 +1,14 @@
+function popCount(uint256 x) internal  pure returns (uint256 c) {
+uint256 max = type(uint256).max;
+    uint256 isMax = eq(x, max) ? 1 : 0;
+    x = x - ((x >> 1) & 0x5555555555555555555555555555555555555555555555555555555555555555);
+    x = (x & 0x3333333333333333333333333333333333333333333333333333333333333333) + ((x >> 2) & 0x3333333333333333333333333333333333333333333333333333333333333333);
+    x = (x + (x >> 4)) & 0x0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f;
+    assembly {
+        x := add(x, shr(64, x))
+        x := add(x, shr(128, x))
+        x := add(x, shr(192, x))
+        c := and(x, 0xff)
+    }
+    c += isMax * 8;
+}

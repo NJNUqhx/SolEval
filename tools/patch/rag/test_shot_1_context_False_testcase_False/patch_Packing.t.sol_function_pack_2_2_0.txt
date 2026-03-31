@@ -1,4 +1,0 @@
-function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
-assembly {
-    result := or(and(left, 0xffff0000), shr(16, and(right, 0xffff0000)))
-}

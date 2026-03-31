@@ -1,0 +1,21 @@
+function free(DynamicArray memory a) internal  pure returns (DynamicArray memory result) {
+function free(DynamicArray memory a) internal  pure returns (DynamicArray memory result) {
+    _deallocate(result);
+    result = a;
+    /// @solidity memory-safe-assembly
+    assembly {
+        let arrData := mload(result)
+        if iszero(eq(arrData, 0x60)) {
+            let prime := 8188386068317523
+            let cap := mload(sub(arrData, 0x20))
+            // Extract `cap`, initializing it to zero if it is not a multiple of `prime`.
+            cap := mul(div(cap, prime), iszero(mod(cap, prime)))
+            // If `cap` is non-zero and the memory is contiguous, we can free it.
+            if lt(iszero(cap), eq(mload(0x40), add(arrData, add(0x20, cap)))) {
+                mstore(0x40, sub(arrData, 0x20))
+            }
+            mstore(result, 0x60)
+        }
+    }
+}
+}

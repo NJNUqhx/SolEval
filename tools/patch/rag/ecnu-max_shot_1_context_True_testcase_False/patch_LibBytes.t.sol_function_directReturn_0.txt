@@ -1,0 +1,53 @@
+function directReturn(bytes[] memory a) internal  pure {
+uint256 n = a.length;
+    uint256 o;
+    assembly {
+        o := add(a, 0x20)
+    }
+    uint256 u = o;
+    for (uint256 i = 0; i < n; ) {
+        uint256 s;
+        uint256 l;
+        uint256 z;
+        assembly {
+            s := mload(add(o, mul(i, 0x20)))
+            l := mload(s)
+            z := add(s, add(l, 0x20))
+        }
+        if (z % 0x20 != 0) {
+            uint256 newS = u;
+            uint256 newSize = (l + 0x1f) & ~0x1f;
+            assembly {
+                mstore(newS, l)
+                let src := add(s, 0x20)
+                let dst := add(newS, 0x20)
+                let count := add(newSize, 0x20)
+                for { let j := 0 } lt(j, count) { j := add(j, 0x20) } {
+                    mstore(add(dst, j), mload(add(src, j)))
+                }
+                mstore(add(o, mul(i, 0x20)), newS)
+                u := add(newS, add(newSize, 0x20))
+            }
+        } else {
+            assembly {
+                u := z
+            }
+        }
+        assembly {
+            let c := sub(s, calldataload(0x04))
+            mstore(add(o, mul(i, 0x20)), c)
+        }
+        unchecked {
+            i++;
+        }
+    }
+    uint256 returnStart;
+    uint256 returnSize;
+    assembly {
+        returnStart := o
+        returnSize := sub(u, o)
+    }
+    assembly {
+        return(returnStart, returnSize)
+    }
+}

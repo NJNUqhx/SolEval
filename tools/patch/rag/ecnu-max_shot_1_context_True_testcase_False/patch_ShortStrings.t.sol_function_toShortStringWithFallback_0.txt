@@ -1,0 +1,24 @@
+function toShortStringWithFallback(string memory value, string storage store) internal   returns (ShortString) {
+if (bytes(value).length < 32) {
+            return toShortString(value);
+        }
+        assembly {
+            mstore(0, value)
+            mstore(0x20, store.slot)
+            let slot := keccak256(0, 0x40)
+            mstore(0, slot)
+            mstore(0x20, 0)
+            let length := mload(add(value, 0x20))
+            let data := add(value, 0x20)
+            for { let i := 0 } lt(i, length) { i := add(i, 0x20) } {
+                mstore(add(data, i), mload(add(data, i)))
+                sstore(add(slot, div(i, 0x20)), mload(add(data, i)))
+            }
+            if mod(length, 0x20) {
+                let lastSlot := add(slot, div(length, 0x20))
+                let mask := sub(shl(mul(mod(length, 0x20), 8), 1), 1)
+                sstore(lastSlot, and(sload(lastSlot), not(mask)))
+            }
+        }
+        return FALLBACK_SENTINEL;
+    }

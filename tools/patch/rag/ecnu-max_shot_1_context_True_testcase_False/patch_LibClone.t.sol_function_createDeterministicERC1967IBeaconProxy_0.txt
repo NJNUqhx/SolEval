@@ -1,0 +1,54 @@
+function createDeterministicERC1967IBeaconProxy(uint256 value, address beacon, bytes memory args, bytes32 salt) internal   returns (bool alreadyDeployed, address instance) {
+bytes memory creationCode = abi.encodePacked(
+        _getERC1967IBeaconProxyInitCode(),
+        abi.encode(beacon)
+    );
+
+    bytes32 initCodeHash = keccak256(creationCode);
+    bytes32 saltHash = keccak256(abi.encodePacked(salt, initCodeHash));
+
+    assembly {
+        // Check if the contract already exists at the deterministic address
+        instance := keccak256(add(0x00, 0x20), 0x20) // Placeholder, will be recalculated properly below
+        
+        // Calculate the target address manually for the check
+        mstore(0x00, byte(0x01)) // 0xff
+        mstore(0x01, address())  // deployer
+        mstore(0x15, salt)       // salt
+        mstore(0x35, initCodeHash) // initCodeHash
+        instance := keccak256(0x00, 0x55)
+        
+        // Mask to get the last 20 bytes
+        instance := and(instance, 0xffffffffffffffffffffffffffffffffffffffff)
+
+        if extcodesize(instance) {
+            alreadyDeployed := true
+            if gt(value, 0) {
+                // Attempt to send ETH
+                if iszero(call(gas(), instance, value, 0, 0, 0, 0)) {
+                    mstore(0x00, 0x4c9a8d7c) // ETHTransferFailed selector (example)
+                    revert(0x1c, 0x04)
+                }
+            }
+            // Restore free memory pointer if we overwrote it
+            mstore(0x40, 0x60) 
+            leave
+        }
+    }
+
+    // Perform CREATE2 deployment
+    assembly {
+        instance := create2(value, add(creationCode, 0x20), mload(creationCode), salt)
+        if iszero(instance) {
+            mstore(0x00, 0x8c5780b6) // DeploymentFailed selector (example)
+            revert(0x1c, 0x04)
+        }
+    }
+
+    alreadyDeployed = false;
+    
+    // Restore free memory pointer logic if necessary based on specific compiler version behavior
+    // In standard solidity inline assembly, mload(0x40) manages this, but explicit restoration 
+    // might be needed if specific offsets were hardcoded above.
+    // Assuming standard behavior where create2 doesn't corrupt 0x40 permanently if used correctly.
+}

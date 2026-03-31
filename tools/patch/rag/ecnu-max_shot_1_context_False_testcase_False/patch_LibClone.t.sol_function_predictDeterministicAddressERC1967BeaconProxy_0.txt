@@ -1,5 +1,0 @@
-function predictDeterministicAddressERC1967BeaconProxy(address beacon, bytes32 salt, address deployer) internal  pure returns (address predicted) {
-function predictDeterministicAddressERC1967BeaconProxy(address beacon, bytes32 salt, address deployer) internal  pure returns (address predicted) {
-    bytes32 initCodeHash = initCodeHashERC1967BeaconProxy(beacon);
-        predicted = predictDeterministicAddress(initCodeHash, salt, deployer);
-    }

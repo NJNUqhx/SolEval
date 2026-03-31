@@ -1,88 +1,148 @@
 function replace_28_24(bytes28 self, bytes24 value, uint8 offset) internal  pure returns (bytes28 result) {
-function replace_28_24(bytes28 self, bytes24 value, uint8 offset) internal  pure returns (bytes28 result) {
 assembly {
-            // Ensure the offset is valid (0 to 4, since 28 - 24 = 4).
-            if gt(offset, 4) {
-                mstore(0x00, 0x4e487b71) // Selector for Panic(uint256)
-                mstore(0x20, 0x21)         // Panic code 0x21 (out of bounds)
-                revert(0x1c, 0x24)
-            }
-
-            // Convert bytes28 and bytes24 to uint256 for manipulation.
-            // In Solidity, bytes28 is left-aligned in the 32-byte slot.
-            // We treat them as uint256 values where the data starts at the MSB.
-            let selfVal := self
-            let valVal := value
-
-            // Calculate the number of bits to shift.
-            // Each byte is 8 bits. The offset is in bytes from the start of the 28-byte sequence.
-            // Since the data is left-aligned in a 32-byte (256-bit) slot:
-            // The first byte of the 28-byte data is at bit position 248 (256 - 8).
-            // An offset of `n` bytes means we start at bit position (248 - 8*n).
-            let shiftAmount := mul(offset, 8)
-            let rightShift := add(248, shiftAmount) // This logic needs correction for left-aligned data.
+            // Load the 28-byte value into a temporary variable (aligned to 32 bytes)
+            let selfVal := mload(add(self, 0x20)) // Assuming bytes28 is stored with 4 bytes padding at the end or beginning depending on ABI, but usually right-aligned in memory for static types? 
+            // Actually, for static types like bytes28, they are left-aligned in the 32-byte slot if passed directly, 
+            // but if `self` is a memory pointer, we need to be careful. 
+            // Given the signature `bytes28 self`, it's passed as a 32-byte word with the last 4 bytes zeroed (right-aligned data? No, Solidity static types are left-aligned in the slot).
+            // Wait, `bytes28` as a parameter is passed in a 32-byte slot. The data is left-aligned (most significant byte is at bit 255).
+            // So `self` in assembly context here is the value itself if passed by value, but the signature says `bytes28 self`.
+            // In Solidity, `bytes28` is a static type. When passed to a function, it occupies a 32-byte slot.
+            // The actual data is in the most significant 28 bytes.
             
-            // Correction: 
-            // 28 bytes = 224 bits. Data occupies bits [247:24] (if 0-indexed from LSB) or simply the top 224 bits.
-            // Actually, standard Solidity bytesN types are left-aligned. 
-            // bytes28: bits 255 down to 32 contain data (28 * 8 = 224 bits). Bits 31-0 are zero.
-            // Wait, 32 bytes = 256 bits. 28 bytes = 224 bits. 
-            // Left aligned means the first byte is at the most significant position.
-            // Byte 0 is at bits [255:248]. Byte 27 is at bits [39:32].
-            // We are replacing 24 bytes (192 bits).
-            // Offset 0: Replace bits [255:64].
-            // Offset 4: Replace bits [223:32].
+            // Let's re-evaluate based on standard Solidity behavior for `bytesNN`.
+            // `bytes28` value is stored in the upper 28 bytes of the 32-byte word.
+            // The `offset` is 0-indexed from the left (most significant byte) or right?
+            // Usually, byte offsets in such contexts refer to the logical byte array index (0 to 27).
+            // If we treat it as a byte array [0..27], then byte 0 is the most significant byte of the 28-byte sequence.
             
-            // Let's re-calculate the shift amounts based on left-alignment.
-            // Total bits = 256.
-            // Data starts at bit 255.
-            // Offset `o` bytes means we skip `o * 8` bits from the start.
-            // Start bit of replacement = 255 - (o * 8).
-            // End bit of replacement = Start bit - (24 * 8) + 1 = 255 - 8*o - 191 = 64 - 8*o.
+            // Let's assume `self` is the 32-bit word containing the bytes28 data (left-aligned).
+            // We need to replace 24 bytes starting at `offset`.
+            // 24 bytes = 192 bits.
+            // Offset is in bytes.
             
-            // To isolate the part of `self` BEFORE the replacement (higher bits):
-            // We need to keep bits from 255 down to (64 - 8*o + 1).
-            // Shift right by (192 + 8*o) to move the unwanted lower part out, then shift left back?
-            // Easier approach: Create masks.
+            // To manipulate easily, let's shift the value so the target segment aligns to the right (least significant),
+            // perform the replacement, and shift back.
             
-            // Number of bits to shift the 24-byte value to align it with the target position.
-            // Target position starts at byte `offset`.
-            // In a left-aligned 32-byte word, byte 0 is at shift 0 (relative to MSB).
-            // To place a 24-byte value at byte `offset`, we need to shift it left by (offset * 8) bits?
-            // No, `value` (bytes24) is also left-aligned in its 32-byte slot (bits 255-64 are data).
-            // We need to shift `value` RIGHT by (offset * 8) to move it to the correct position within the 28-byte window?
+            // Total bits in 28 bytes = 224.
+            // The value is left-aligned in 256 bits. So there are 32 bits (4 bytes) of zero padding at the right.
+            // Logical byte 0 is at bit position 255 down to 248.
+            // Logical byte 27 is at bit position 31 down to 24.
+            // Bits 0-31 are zero.
             
-            // Let's trace:
-            // `self` (bytes28): Data in [255:32].
-            // `value` (bytes24): Data in [255:64].
-            // If offset = 0: We want `value` to occupy [255:64] in the result. It is already there. Shift = 0.
-            // If offset = 1: We want `value` to occupy [247:56]. We need to shift `value` RIGHT by 8 bits.
-            // If offset = 4: We want `value` to occupy [223:32]. We need to shift `value` RIGHT by 32 bits.
-            // So, `shiftedValue` = shr(mul(offset, 8), valVal).
+            // We want to replace 24 bytes starting at `offset`.
+            // Number of bytes from the right end of the 28-byte sequence to the start of the segment:
+            // bytes from right = (28 - offset - 24).
+            // If offset = 0, we replace bytes 0..23. Remaining bytes 24..27 (4 bytes) are at the right.
+            // If offset = 4, we replace bytes 4..27. Remaining bytes 0..3 (4 bytes) are at the left.
             
-            let shiftedValue := shr(mul(offset, 8), valVal)
+            // Let's calculate the shift amount to move the target 24-byte segment to the least significant position (excluding the 4 zero bytes).
+            // The 28-byte data occupies bits 255 down to 32.
+            // The least significant byte of the 28-byte data is at bit 32.
+            // If we have `offset` bytes before the segment, then the segment starts at `offset` bytes from the MSB of the 28-byte data.
+            // Bits to shift right to bring the segment to the bottom of the 28-byte region:
+            // shiftRight = (offset * 8).
+            // But wait, the 28-byte data is already shifted left by 32 bits (4 bytes) relative to a full 32-byte alignment if we consider the 4 zero bytes at the end.
+            // Actually, let's just work with the 256-bit word.
+            // The 28 bytes are in bits [255:32].
+            // Byte `i` (0 <= i < 28) corresponds to bits [255 - 8*i : 255 - 8*i - 7].
+            // We want to replace bytes from `offset` to `offset + 23`.
+            // These correspond to bits [255 - 8*offset : 255 - 8*(offset+23) - 7] = [255 - 8*offset : 32 + 8*(27-offset-23)]? 
+            // Let's simplify.
+            // Start bit (MSB of segment) = 255 - 8 * offset.
+            // End bit (LSB of segment) = 255 - 8 * (offset + 24) + 1 = 255 - 8*offset - 192 + 1 = 64 - 8*offset.
+            // Wait, 28 bytes = 224 bits. 
+            // If offset=0, segment is bytes 0-23. LSB of segment is byte 23. 
+            // Byte 23 is at index 23. MSB of byte 23 is bit 255 - 8*23 = 255 - 184 = 71. LSB is 64.
+            // So range is [255:64].
+            // If offset=4, segment is bytes 4-27. 
+            // Byte 4 MSB: 255 - 32 = 223.
+            // Byte 27 LSB: 255 - 8*27 - 7 = 255 - 216 - 7 = 32.
+            // Range [223:32].
             
-            // Now create a mask to clear the 24-byte segment in `self` where `value` will go.
-            // The segment to clear is 24 bytes starting at `offset`.
-            // In the 28-byte window (bits 255-32), the segment is from bit (255 - 8*offset) down to (255 - 8*offset - 191).
-            // We need a mask that has 0s in this range and 1s elsewhere.
-            // Constructing the mask:
-            // 1. Create a block of 1s of length 24 bytes (192 bits).
-            //    2^192 - 1 is a 192-bit mask of 1s. In uint256, this is `0xFFFFFFFF...` (24 bytes).
-            //    Since `value` was originally left-aligned (bits 255-64), a mask of 1s for 24 bytes at MSB is:
-            //    not(shl(64, 0)) -> 1s in [255:64].
-            // 2. Shift this mask RIGHT by (offset * 8) to align with the target position.
-            //    `clearMask` = shr(mul(offset, 8), not(shl(64, 0))).
-            // 3. Invert `clearMask` to get the `keepMask` (1s where we keep data, 0s where we clear).
+            // Strategy:
+            // 1. Create a mask to clear the 24-byte segment in `self`.
+            // 2. Shift `value` (which is 24 bytes, left-aligned in 32 bytes? No, `bytes24` param is left-aligned in 32 bytes) to the correct position.
+            // 3. OR them together.
             
-            let full24Mask := not(shl(64, 0)) // 1s in top 24 bytes [255:64]
-            let alignedClearMask := shr(mul(offset, 8), full24Mask)
-            let keepMask := not(alignedClearMask)
+            // `value` is `bytes24`. It is left-aligned in a 32-byte slot. 
+            // Data is in bits [255:64]. 8 bytes (64 bits) of zero padding at the right.
+            // We need to shift `value` so its 24 bytes align with the target segment in `self`.
             
-            // Apply the mask to `self` to clear the target segment.
-            let clearedSelf := and(selfVal, keepMask)
+            // Target segment in `self` starts at bit `255 - 8*offset`.
+            // `value` data starts at bit 255.
+            // So we need to shift `value` right by `8 * offset`.
             
-            // Combine the cleared self with the shifted new value.
-            result := or(clearedSelf, shiftedValue)
+            // Mask construction:
+            // We need to clear bits from `255 - 8*offset` down to `255 - 8*offset - 191` (24 bytes = 192 bits).
+            // Length of segment = 192 bits.
+            // Mask of 192 ones: `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF` (24 bytes).
+            // In solidity/assembly, we can create a mask of N ones: `sub(shl(N, 1), 1)`.
+            // Here N = 192.
+            // Then shift this mask to the correct position: `shl(256 - 192 - 8*offset, mask)`?
+            // Let's re-verify bit positions.
+            // MSB is bit 255.
+            // Segment MSB is at `255 - 8*offset`.
+            // Segment length is 192.
+            // So we want to clear bits `[255 - 8*offset : 255 - 8*offset - 191]`.
+            // A mask of 192 ones starting at bit 0 is `sub(shl(192, 1), 1)`.
+            // To move this mask to start at `255 - 8*offset - 191` (the LSB of the segment)?
+            // No, usually we shift the mask so the ones cover the target bits.
+            // If we have 192 ones at the LSB (bits 0 to 191), we need to shift left by `(255 - 8*offset - 191)`?
+            // LSB of segment = `255 - 8*offset - 191`.
+            // So `shiftAmount = 255 - 8*offset - 191 = 64 - 8*offset`.
+            // Let's check offset=0. LSB = 64. Shift = 64. Mask covers [64:255]. Correct.
+            // Let's check offset=4. LSB = 64 - 32 = 32. Shift = 32. Mask covers [32:223]. Correct.
+            
+            // So:
+            // mask192 = sub(shl(192, 1), 1)
+            // shiftAmt = sub(64, mul(offset, 8))
+            // clearMask = not(shl(shiftAmt, mask192))
+            // cleanedSelf = and(self, clearMask)
+            
+            // Shift value:
+            // `value` is left-aligned (bits 255..64). We need it at bits `255-8*offset` .. `64-8*offset`.
+            // Current MSB of value data = 255. Target MSB = 255 - 8*offset.
+            // So shift right by `8 * offset`.
+            // shiftedValue = shr(mul(offset, 8), value)
+            
+            // result = or(cleanedSelf, shiftedValue)
+            
+            let selfVal := self // `self` is passed as a 32-byte word value in assembly for static types? 
+            // Wait, in the function signature `function replace_28_24(bytes28 self, ...)`, `self` is a static type.
+            // In inline assembly, if you pass a static type like `bytes28`, it is treated as a `uint256` value occupying the slot.
+            // So `self` in assembly refers to the 32-byte word.
+            
+            let val := value // Same for `bytes24`.
+            
+            let shiftBytes := mul(offset, 8)
+            
+            // Create mask for 24 bytes (192 bits)
+            let mask192 := sub(shl(192, 1), 1)
+            
+            // Calculate shift for the mask to align with the segment to be replaced
+            // LSB of the segment in the 256-bit word:
+            // The 28 bytes of `self` occupy bits 255 down to 32.
+            // Segment starts at `offset` bytes from the top of the 28-byte sequence.
+            // Top of 28-byte sequence is bit 255.
+            // Segment MSB = 255 - shiftBytes.
+            // Segment LSB = Segment MSB - 191 = 255 - shiftBytes - 191 = 64 - shiftBytes.
+            let maskShift := sub(64, shiftBytes)
+            
+            // Create the clearing mask (0s where we replace, 1s elsewhere)
+            let segmentMask := shl(maskShift, mask192)
+            let clearMask := not(segmentMask)
+            
+            // Clear the segment in self
+            let cleanedSelf := and(selfVal, clearMask)
+            
+            // Shift the new value to the correct position
+            // `value` (bytes24) is left-aligned: data in bits 255..64.
+            // We need data in bits (255-shiftBytes)..(64-shiftBytes).
+            // So shift right by `shiftBytes`.
+            let shiftedValue := shr(shiftBytes, val)
+            
+            // Combine
+            result := or(cleanedSelf, shiftedValue)
         }
     }

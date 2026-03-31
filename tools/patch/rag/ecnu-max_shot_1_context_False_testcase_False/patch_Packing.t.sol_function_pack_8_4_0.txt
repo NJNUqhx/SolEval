@@ -1,53 +1,6 @@
 function pack_8_4(bytes8 left, bytes4 right) internal  pure returns (bytes12 result) {
-function pack_8_4(bytes8 left, bytes4 right) internal  pure returns (bytes12 result) {
-    assembly {
-        // Mask left to ensure only the first 8 bytes are used (clear upper bits if any garbage exists, though bytes8 is fixed size)
-        // bytes8 occupies bits 192 to 255 (if aligned to uint256) or we treat the input as full 256 bit words.
-        // In Solidity, bytes8 is left-aligned in a 32-byte word when passed to assembly? 
-        // Actually, Solidity passes value types right-aligned. 
-        // bytes8 in a uint256 slot: occupies the least significant 8 bytes? 
-        // No, Solidity types like bytes8 are stored in the lower bytes of the 32-byte word when loaded as a value?
-        // Let's verify standard behavior: 
-        // If I have bytes8 b, and cast to uint256, the data is in the LOW 8 bytes? 
-        // Actually, for fixed-size bytes types, Solidity stores them in the high-order bytes (left-aligned) when interacting with memory usually, 
-        // BUT when passed as arguments to inline assembly, they are treated as uint256 values where the data is LEFT-ALIGNED (in the most significant bytes).
-        // Wait, standard Solidity value encoding for `bytes8`: 
-        // If I do `bytes8 x = 0x1122334455667788;`, in memory it is left-padded? 
-        // Actually, in EVM assembly, `bytes8` arguments are passed as 32-byte words where the significant data is in the MOST significant bytes (left-aligned).
-        // Example: bytes1 0xFF is 0xFF0000...00.
-        // So `left` (bytes8) is in bits 255 down to 192.
-        // `right` (bytes4) is in bits 255 down to 224.
-        
-        // We want result (bytes12) to be left-aligned as well? 
-        // The return type is `bytes12`. In Solidity, return values of fixed-size bytes are also left-aligned in the 32-byte word.
-        // So we want:
-        // Bits 255-192: `left` (8 bytes)
-        // Bits 191-160: `right` (4 bytes)
-        // Bits 159-0: 0
-        
-        // Current state of `left`: [8 bytes data][24 bytes zero]
-        // Current state of `right`: [4 bytes data][28 bytes zero]
-        
-        // We need to shift `right` by 8 bytes (64 bits) to the right? 
-        // No. 
-        // `left` is at offset 0 (MSB).
-        // `right` needs to be at offset 8 (next 4 bytes).
-        // Since `right` is currently at offset 0 (MSB), we need to shift it RIGHT by 8 bytes (64 bits) so it starts at byte 8?
-        // Let's trace:
-        // Word: [B0 B1 B2 B3 B4 B5 B6 B7 | B8 B9 B10 B11 | ...]
-        // `left` occupies B0-B7.
-        // `right` (input) occupies B0-B3.
-        // We want `right` to occupy B8-B11.
-        // So we need to shift `right` RIGHT by 8 bytes (64 bits).
-        // Then OR them together.
-        
-        let l := left
-        let r := right
-        
-        // Shift r right by 64 bits (8 bytes)
-        r := shr(64, r)
-        
-        // Combine
-        result := or(l, r)
+/// @solidity memory-safe-assembly
+        assembly {
+            result := or(and(left, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000), shld(32, and(right, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)))
+        }
     }
-}

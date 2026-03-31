@@ -1,0 +1,8 @@
+function enqueue(MemHeap memory heap, uint256 value, uint256 maxLength) internal  pure returns (bool success, bool hasPopped, uint256 popped) {
+    uint256 status;
+    (status, popped) = _setMem(heap, value, maxLength, 0);
+    assembly {
+        hasPopped := eq(status, 3)
+        success := iszero(iszero(status))
+    }
+}

@@ -1,6 +1,0 @@
-function emptyFlags() internal  pure returns (bool[] calldata flags) {
-function emptyFlags() internal  pure returns (bool[] calldata flags) {
-assembly {
-            flags.length := 0
-        }
-    }

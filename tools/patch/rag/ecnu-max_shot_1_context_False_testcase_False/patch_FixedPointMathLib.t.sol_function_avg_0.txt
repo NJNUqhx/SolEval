@@ -1,6 +1,0 @@
-function avg(uint256 x, uint256 y) internal  pure returns (uint256 z) {
-function avg(uint256 x, uint256 y) internal  pure returns (uint256 z) {
-    unchecked {
-        z = (x & y) + ((x ^ y) >> 1);
-    }
-}

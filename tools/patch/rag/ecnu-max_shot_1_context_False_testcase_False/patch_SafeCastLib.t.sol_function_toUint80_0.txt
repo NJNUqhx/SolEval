@@ -1,5 +1,0 @@
-function toUint80(uint256 x) internal  pure returns (uint80) {
-function toUint80(uint256 x) internal  pure returns (uint80) {
-require(x <= type(uint80).max, "Uint256 to Uint80 overflow");
-        return uint80(x);
-    }

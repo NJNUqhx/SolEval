@@ -1,0 +1,18 @@
+function pack_24_8(bytes24 left, bytes8 right) internal  pure returns (bytes32 result) {
+assembly {
+        // Clear the lower 64 bits of `left` to ensure it only occupies the higher 24 bytes.
+        // bytes24 is 192 bits. We want it in the top 192 bits of the 256-bit result.
+        // The input `left` is already in the top 192 bits of a 256-bit word if loaded directly,
+        // but we must ensure the bottom 64 bits are zero.
+        left := and(left, not(sub(0, shlp(0, 192)))) // Mask to keep top 192 bits, clear bottom 64
+        
+        // Clear the higher 192 bits of `right` to ensure it only occupies the lower 8 bytes.
+        // bytes8 is 64 bits. We want it in the bottom 64 bits.
+        right := and(right, sub(0, shlp(0, 192))) // Mask to keep bottom 64 bits (0xFFFFFFFFFFFFFFFF)
+
+        // Combine `left` and `right` using bitwise OR.
+        // `left` is already shifted to the top 192 bits (bits 64-255).
+        // `right` is in the bottom 64 bits (bits 0-63).
+        result := or(left, right)
+    }
+}

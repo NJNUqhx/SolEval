@@ -1,0 +1,4 @@
+function toUint80(uint256 x) internal  pure returns (uint80) {
+require(x <= type(uint80).max, "Value exceeds uint80 max");
+        return uint80(x);
+    }

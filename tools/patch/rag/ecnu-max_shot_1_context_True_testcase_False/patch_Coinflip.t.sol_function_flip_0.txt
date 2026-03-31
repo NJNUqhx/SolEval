@@ -1,0 +1,14 @@
+function flip(bool _guess) public   returns (bool) {
+bytes32 _blockhash = blockhash(block.number - 1);
+        require(_blockhash != lastHash, "GuessAgain");
+        lastHash = _blockhash;
+        uint256 rand = uint256(_blockhash) / FACTOR;
+        bool side = rand % 2 == 0;
+        if (side == _guess) {
+            consecutiveWins++;
+            return true;
+        } else {
+            consecutiveWins = 0;
+            return false;
+        }
+}

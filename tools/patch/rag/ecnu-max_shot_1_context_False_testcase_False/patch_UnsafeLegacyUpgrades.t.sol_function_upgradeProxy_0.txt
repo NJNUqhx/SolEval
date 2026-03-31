@@ -1,5 +1,0 @@
-function upgradeProxy(address proxy, string memory contractName, bytes memory data) internal {
-function upgradeProxy(address proxy, string memory contractName, bytes memory data) internal {
-Options memory opts;
-    Core.upgradeProxy(proxy, contractName, data, opts);
-} 

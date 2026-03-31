@@ -1,0 +1,22 @@
+function recover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) internal  view returns (address result) {
+bytes32 ptr;
+        /// @solidity memory-safe-assembly
+        assembly {
+            ptr := mload(0x40)
+            mstore(ptr, hash)
+            mstore(add(ptr, 0x20), v)
+            mstore(add(ptr, 0x40), r)
+            mstore(add(ptr, 0x60), s)
+            if iszero(staticcall(gas(), 1, ptr, 0x80, ptr, 0x20)) {
+                revert(ptr, 0)
+            }
+            if lt(returndatasize(), 0x20) {
+                let errorPtr := mload(0x40)
+                mstore(errorPtr, 0xc665aeec00000000000000000000000000000000000000000000000000000000)
+                revert(errorPtr, 0x04)
+            }
+            result := mload(ptr)
+            mstore(0x00, 0)
+            mstore(0x40, add(ptr, 0x80))
+        }
+}

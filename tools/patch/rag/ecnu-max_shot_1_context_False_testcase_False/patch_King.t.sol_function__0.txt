@@ -1,7 +1,0 @@
-constructor () {
-constructor () {
-constructor () {
-        _owner = msg.sender;
-        _king = msg.sender;
-        _prizeAmount = msg.value;
-    }

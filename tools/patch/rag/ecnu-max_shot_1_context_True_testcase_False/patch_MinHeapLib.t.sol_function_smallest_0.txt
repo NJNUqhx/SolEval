@@ -1,0 +1,76 @@
+function smallest(MemHeap memory heap, uint256 k) internal  pure returns (uint256[] memory a) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let n := mload(heap)
+            let offset := add(heap, 0x20)
+            let end := add(offset, shl(5, n))
+            let minK := k
+            if gt(minK, n) { minK := n }
+            a := mload(0x40)
+            mstore(a, minK)
+            let r := add(a, 0x20)
+            mstore(0x40, add(r, shl(5, minK)))
+            if iszero(minK) { leave }
+            let p := mload(0x40)
+            let pEnd := add(p, shl(6, n))
+            mstore(0x40, pEnd)
+            let i := offset
+            for {} lt(i, end) { i := add(i, 0x20) } {
+                mstore(p, i)
+                mstore(add(p, 0x20), mload(i))
+                let pos := sub(p, add(offset, 0x20))
+                for {} gt(pos, 0) {} {
+                    let parentPos := shr(1, sub(pos, 1))
+                    let parentPtr := add(offset, shl(6, parentPos))
+                    let parentVal := mload(add(parentPtr, 0x20))
+                    let currentVal := mload(add(p, 0x20))
+                    if iszero(lt(currentVal, parentVal)) { break }
+                    mstore(add(parentPtr, 0x20), currentVal)
+                    mstore(parentPtr, mload(p))
+                    mstore(add(p, 0x20), parentVal)
+                    mstore(p, add(offset, shl(6, parentPos)))
+                    pos := parentPos
+                    p := add(offset, shl(6, pos))
+                }
+                p := add(p, 0x40)
+            }
+            p := add(offset, 0x20)
+            let j := 0
+            for {} lt(j, minK) { j := add(j, 1) } {
+                let rootVal := mload(add(p, 0x20))
+                mstore(add(r, shl(5, j)), rootVal)
+                let lastPtr := sub(end, 0x20)
+                let lastVal := mload(lastPtr)
+                end := lastPtr
+                if eq(p, lastPtr) { break }
+                mstore(add(p, 0x20), lastVal)
+                mstore(p, lastPtr)
+                let pos := sub(p, add(offset, 0x20))
+                for {} 1 {} {
+                    let childPos := add(shl(1, pos), 1)
+                    if ge(childPos, sub(end, add(offset, 0x20))) { break }
+                    let childPtr := add(offset, shl(6, childPos))
+                    let childVal := mload(add(childPtr, 0x20))
+                    let rightPos := add(childPos, 1)
+                    if lt(rightPos, sub(end, add(offset, 0x20))) {
+                        let rightPtr := add(offset, shl(6, rightPos))
+                        let rightVal := mload(add(rightPtr, 0x20))
+                        if lt(rightVal, childVal) {
+                            childVal := rightVal
+                            childPos := rightPos
+                            childPtr := rightPtr
+                        }
+                    }
+                    if iszero(lt(childVal, lastVal)) { break }
+                    mstore(add(p, 0x20), childVal)
+                    mstore(p, childPtr)
+                    mstore(add(childPtr, 0x20), lastVal)
+                    mstore(childPtr, add(p, shl(5, sub(childPos, pos))))
+                    pos := childPos
+                    p := childPtr
+                }
+                p := add(offset, 0x20)
+            }
+            mstore(0x40, pEnd)
+        }
+    }

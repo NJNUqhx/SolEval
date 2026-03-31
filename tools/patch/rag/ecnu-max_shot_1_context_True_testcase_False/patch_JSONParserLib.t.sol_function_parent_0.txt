@@ -1,0 +1,7 @@
+function parent(Item memory item) internal  pure returns (Item memory result) {
+assembly {
+            mstore(0x40, result)
+            result := shr(96, shl(96, mload(add(item, 0x20))))
+            if iszero(result) { result := 0x60 }
+        }
+    }

@@ -1,0 +1,17 @@
+function tryModExp(bytes memory b, bytes memory e, bytes memory m) internal  view returns (bool success, bytes memory result) {
+if (m.length == 0) {
+            return (false, new bytes(0));
+        }
+        uint256 mLen = m.length;
+        result = abi.encodePacked(b.length, e.length, mLen, b, e, m);
+        assembly {
+            let len := mload(result)
+            if iszero(staticcall(gas(), 0x05, add(result, 0x20), len, add(result, 0x20), mLen)) {
+                mstore(result, 0)
+                return (false, result)
+            }
+            mstore(result, mLen)
+            mstore(0x40, add(add(result, 0x20), mLen))
+            success := true
+        }
+    }

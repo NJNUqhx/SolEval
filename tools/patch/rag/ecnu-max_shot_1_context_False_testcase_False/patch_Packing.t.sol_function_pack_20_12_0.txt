@@ -1,17 +1,5 @@
 function pack_20_12(bytes20 left, bytes12 right) internal  pure returns (bytes32 result) {
-function pack_20_12(bytes20 left, bytes12 right) internal  pure returns (bytes32 result) {
 assembly {
-        // Clear the lower 96 bits of `left` to ensure it fits into the higher-order 20 bytes.
-        // Since `left` is already bytes20, we shift it left by 96 bits to move it to the top,
-        // effectively clearing the bottom 12 bytes (96 bits).
-        let l := shl(96, left)
-
-        // Clear the higher-order 160 bits of `right` to ensure it fits into the lower-order 12 bytes.
-        // Since `right` is already bytes12, we shift it right by 160 bits to move it to the bottom,
-        // effectively clearing the top 20 bytes (160 bits).
-        let r := shr(160, right)
-
-        // Combine `left` and `right` using bitwise OR.
-        // `l` is in the upper 20 bytes, `r` is in the lower 12 bytes.
-        result := or(l, r)
+            result := or(shl(96, and(left, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000)), and(right, 0x0000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF))
+        }
     }

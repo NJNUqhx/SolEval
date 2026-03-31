@@ -1,0 +1,6 @@
+function toInt72(uint256 x) internal  pure returns (int72) {
+if (x >= 2**71) {
+            revert();
+        }
+        return int72(int256(x));
+    }

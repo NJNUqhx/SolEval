@@ -1,0 +1,6 @@
+function tBytes32(uint256 tSlot) internal  pure returns (TBytes32 storage ptr) {
+/// @solidity memory-safe-assembly
+        assembly {
+            ptr.slot := tSlot
+        }
+    }

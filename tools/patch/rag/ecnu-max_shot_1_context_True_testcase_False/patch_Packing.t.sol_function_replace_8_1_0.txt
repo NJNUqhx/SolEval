@@ -1,0 +1,9 @@
+function replace_8_1(bytes8 self, bytes1 value, uint8 offset) internal  pure returns (bytes8 result) {
+assembly {
+        let oldByte := shr(sub(248, mul(8, offset)), shl(248, self))
+        let newByte := and(value, 0xff)
+        let shiftedOld := shl(sub(248, mul(8, offset)), oldByte)
+        let shiftedNew := shl(sub(248, mul(8, offset)), newByte)
+        result := xor(xor(self, shiftedOld), shiftedNew)
+    }
+}

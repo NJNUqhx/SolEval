@@ -1,0 +1,34 @@
+function upgradeToAndCall(address newImplementation, bytes calldata data) public virtual onlyProxy {
+function upgradeToAndCall(address newImplementation, bytes calldata data) public virtual onlyProxy {
+        _authorizeUpgrade(newImplementation);
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Clear the upper 96 bits of the newImplementation address.
+            newImplementation := shr(96, shl(96, newImplementation))
+
+            // Check if the newImplementation correctly implements the proxiableUUID function.
+            // We expect it to return the PROXIABLE_UUID slot (keccak256("eip1967.proxy.implementation") - 1).
+            // The slot value is 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc.
+            mstore(0x00, 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc)
+            if iszero(eq(mload(0x00), call(gas(), newImplementation, 0, 0x00, 0x20, 0x00, 0x20))) {
+                mstore(0x00, 0x5524798f) // `UpgradeFailed()`.
+                revert(0x1c, 0x04)
+            }
+
+            // Emit the Upgraded event.
+            log1(0x00, 0x00, newImplementation)
+
+            // Update the implementation slot in storage.
+            sstore(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc, newImplementation)
+        }
+
+        if (data.length > 0) {
+            (bool success, bytes memory returnData) = newImplementation.delegatecall(data);
+            if (!success) {
+                assembly {
+                    revert(add(returnData, 0x20), mload(returnData))
+                }
+            }
+        }
+    }
+}

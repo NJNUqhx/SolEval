@@ -1,0 +1,18 @@
+function _countVote(uint256 proposalId, address account, uint8 support, uint256 totalWeight, bytes memory params) internal virtual  returns (uint256) {
+require(proposalId < _proposalSnapshot.length(), "Governor: unknown proposal id");
+    require(support <= 2, "Governor: invalid vote type");
+
+    uint256 weight = totalWeight;
+
+    if (support == 0) {
+        _proposalVotes[proposalId].againstVotes += weight;
+    } else if (support == 1) {
+        _proposalVotes[proposalId].forVotes += weight;
+    } else if (support == 2) {
+        _proposalVotes[proposalId].abstainVotes += weight;
+    }
+
+    emit VoteCast(account, proposalId, support, weight, "");
+
+    return weight;
+}

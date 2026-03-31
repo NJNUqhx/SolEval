@@ -1,0 +1,4 @@
+function toInt48(uint256 x) internal  pure returns (int48) {
+if (x >= 0x8000000000000) revert();
+        return int48(int256(x));
+    }

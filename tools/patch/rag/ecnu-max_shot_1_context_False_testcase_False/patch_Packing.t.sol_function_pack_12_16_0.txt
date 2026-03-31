@@ -1,5 +1,4 @@
 function pack_12_16(bytes12 left, bytes16 right) internal  pure returns (bytes28 result) {
-function pack_12_16(bytes12 left, bytes16 right) internal  pure returns (bytes28 result) {
 /// @solidity memory-safe-assembly
         assembly {
             result := or(shl(128, and(left, 0xffffffffffffffffffffffff)), and(right, 0xffffffffffffffffffffffffffffffff))

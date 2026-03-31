@@ -1,0 +1,4 @@
+function toUint216(uint256 x) internal  pure returns (uint216) {
+if (x >= 2 ** 216) revert();
+        return uint216(x);
+    } 

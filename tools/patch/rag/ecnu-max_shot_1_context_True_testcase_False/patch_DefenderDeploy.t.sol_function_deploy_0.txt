@@ -1,0 +1,23 @@
+function deploy(string memory contractName, bytes memory constructorData, DefenderOptions memory defenderOpts) internal   returns (address) {
+string memory outDir = getOutDir();
+        ContractInfo memory info = getContractInfo(contractName, outDir);
+        string memory buildInfoFile = getBuildInfoFile(info.sourceCodeHash, info.shortName, outDir);
+
+        string[] memory inputs = new string[](8);
+        inputs[0] = "forge";
+        inputs[1] = "create";
+        inputs[2] = "--build-info-path";
+        inputs[3] = buildInfoFile;
+        inputs[4] = "--constructor-args";
+        inputs[5] = vm.toString(constructorData);
+        inputs[6] = "--defender";
+        inputs[7] = contractName;
+
+        Vm.FfiResult memory result = runAsBashCommand(inputs);
+
+        if (result.exitCode != 0) {
+            revert(string(abi.encodePacked("Deployment failed: ", string(result.stderr))));
+        }
+
+        return vm.parseAddress(string(result.stdout));
+    }

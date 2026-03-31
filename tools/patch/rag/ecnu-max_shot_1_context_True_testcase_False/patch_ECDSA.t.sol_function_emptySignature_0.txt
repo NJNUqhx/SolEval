@@ -1,0 +1,5 @@
+function emptySignature() internal  pure returns (bytes calldata signature) {
+assembly {
+            signature.length := 0
+        }
+    } 

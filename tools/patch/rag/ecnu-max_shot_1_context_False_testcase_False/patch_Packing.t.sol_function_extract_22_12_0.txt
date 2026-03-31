@@ -1,81 +1,29 @@
 function extract_22_12(bytes22 self, uint8 offset) internal  pure returns (bytes12 result) {
-function extract_22_12(bytes22 self, uint8 offset) internal  pure returns (bytes12 result) {
 if (offset > 10) {
             revert OutOfRangeAccess();
         }
 
+        /// @solidity memory-safe-assembly
         assembly {
-            // Load the 22-byte value into a temporary variable (it occupies the lower 22 bytes of a bytes32 slot conceptually,
-            // but since `self` is a value type here, it's already in a register/stack slot as a uint256-compatible value).
-            // We treat `self` as a large integer.
-            let val := self
-            
-            // Shift left by `offset * 8` bits to move the desired 12-byte segment to the most significant position of the 22-byte range.
-            // The 22-byte value starts at bit 0. We want 12 bytes starting at `offset`.
-            // Total bits in 22 bytes = 176.
-            // We want to isolate bits [offset*8 + 96, offset*8 + 176) effectively if we consider the result as 12 bytes.
-            // However, simpler logic:
-            // 1. Shift left by `offset * 8`. This moves the target 12 bytes to the "top" of the 22-byte window relative to the start.
-            //    Actually, if we have 22 bytes: [B0 ... B21].
-            //    We want [B_offset ... B_offset+11].
-            //    If we shift left by `offset * 8`, B_offset becomes the most significant byte of the original 22-byte sequence? No.
-            //    Let's visualize:
-            //    Value: 0x00...00 [B0 ... B21] (padded to 32 bytes for calculation ease, though self is 22 bytes).
-            //    Actually, `self` is passed as a value. In assembly, `self` is just a number.
-            //    If `self` represents bytes b0..b21 where b0 is MSB? No, Solidity bytesN are left-aligned in the 32-byte word when loaded from storage, 
-            //    but as function arguments (value types), they are right-aligned (b21 is LSB).
-            //    Wait, for `bytes22`, the value is stored right-aligned in the 256-bit slot.
-            //    So, byte 21 is at bits 0-7, byte 20 at 8-15, ..., byte 0 at 168-175.
-            //    We want 12 bytes starting at `offset` (0-indexed from left, i.e., byte 0 is index 0).
-            //    Target bytes: `offset` to `offset + 11`.
-            //    In right-aligned representation:
-            //    Byte `k` is at bit position `(21 - k) * 8`.
-            //    We want bytes from `offset` to `offset + 11`.
-            //    The highest byte needed is `offset`. Its bit start is `(21 - offset) * 8`.
-            //    The lowest byte needed is `offset + 11`. Its bit end is `(21 - (offset + 11) + 1) * 8` = `(11 - offset) * 8`.
-            //    We need to shift so that the byte `offset` ends up at the position of the 12th byte from the right (bit 96 to 103)? 
-            //    No, the result `bytes12` will be right-aligned. So the result should have the extracted 12 bytes in bits 0 to 95? 
-            //    No, `bytes12` result is also right-aligned. So the first byte of the result (which corresponds to input `offset`) should be at bit 88? 
-            //    Let's re-evaluate standard Solidity behavior for `bytesN`.
-            //    `bytes12` value: Byte 0 of result is at bits 88-95? No.
-            //    In a `bytes12` variable, the data is right-aligned. 
-            //    So if the result is `0x AABBCC...`, `AA` is the most significant byte of the 12-byte sequence.
-            //    In the 256-bit slot, `AA` will be at bits 88-95 (since 12 bytes = 96 bits, 256-96=160? No. 32-12=20 bytes padding. 20*8=160. So data is at 0-95? 
-            //    Let's check: `bytes1` is at bit 0-7? No. `bytes1` 0xff is stored as 0x00...00ff. So LSB is bit 0-7.
-            //    So `bytes12` data occupies bits 0 to 95. The most significant byte of the 12 is at bits 88-95.
-            //    
-            //    Back to input `self` (bytes22). Data occupies bits 0 to 175. 
-            //    Byte 0 (MSB of the 22) is at bits 168-175.
-            //    Byte 21 (LSB of the 22) is at bits 0-7.
-            //    We want 12 bytes starting at `offset`.
-            //    Start byte index: `offset`. End byte index: `offset + 11`.
-            //    Bit range for Start Byte (`offset`): `(21 - offset) * 8` to `(21 - offset) * 8 + 7`.
-            //    Bit range for End Byte (`offset + 11`): `(21 - (offset + 11)) * 8` = `(10 - offset) * 8` to ...
-            //    We want to move the Start Byte to become the MSB of the 12-byte result.
-            //    The MSB of the 12-byte result (in a 256-bit slot) should be at bits 88-95.
-            //    Current position of Start Byte: `(21 - offset) * 8`.
-            //    Target position: 88.
-            //    Shift amount = Current - Target = `(21 - offset) * 8 - 88` = `168 - 8*offset - 88` = `80 - 8*offset`.
-            //    So we need to shift RIGHT by `80 - 8*offset`? Or LEFT?
-            //    If Current > Target, we shift RIGHT.
-            //    Let's test offset=0. Start Byte is Byte 0 (bits 168-175). Target is 88. Shift right by 80.
-            //    Bits 168-175 move to 88-95. Correct.
-            //    What about the lower bound? We need exactly 12 bytes.
-            //    After shifting right by `80 - 8*offset`, the 12 bytes will be aligned at bits 0-95?
-            //    Let's check the LSB of the 12 bytes (Byte `offset+11`).
-            //    Original pos: `(10 - offset) * 8`.
-            //    New pos: `(10 - offset) * 8 - (80 - 8*offset)` = `80 - 8*offset - 80 + 8*offset` = 0.
-            //    Perfect. The 12 bytes will land exactly in bits 0 to 95.
-            //    So the operation is: `shr(80 - 8*offset, self)`.
-            //    Wait, `shr` in assembly is logical shift right.
-            //    Formula: `shift := sub(80, mul(8, offset))`.
-            //    `result := shr(shift, self)`.
-            //    Is there any masking needed? Since `self` is `bytes22`, bits 176-255 are zero. 
-            //    After shifting right, bits 96-255 will be zero (because original max bit was 175, 175-80=95). 
-            //    So the result is automatically clean in the lower 96 bits, and upper bits are zero.
-            //    This matches the layout of `bytes12`.
-
-            let shift := sub(80, shl(3, offset)) // 80 - 8 * offset
-            result := shr(shift, val)
+            // Shift left by 8 * offset to align the desired segment to the most significant bits
+            let shifted := shl(mul(8, offset), self)
+            // Mask to keep only the first 12 bytes (96 bits)
+            // The mask is 0xFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000 (in 32 bytes)
+            // But since we are returning bytes12, we just need the top 12 bytes of the 32-byte word
+            // Actually, bytes12 occupies the most significant 12 bytes of the 32-byte slot in Solidity assembly
+            // So we mask with 0xFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000?
+            // No, in assembly, bytes12 is stored in the high-order bytes.
+            // A bytes12 value `v` is stored as `v * 2^(20*8)`.
+            // To extract 12 bytes from the top of `shifted`, we don't need a mask if we just assign,
+            // because `shifted` might have garbage in the lower 20 bytes if `self` was not cleaned?
+            // `self` is bytes22, so it occupies the top 22 bytes.
+            // After shifting left by `offset*8`, the desired 12 bytes are at the very top (bits 255 down to 160).
+            // The lower bits (159 down to 0) might contain data from the original `self` that shifted down.
+            // We need to clear the lower 20 bytes (160 bits).
+            // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+            // In hex: 12 bytes of FF, then 20 bytes of 00.
+            // Wait, 32 bytes total. 12 bytes FF = 96 bits. 20 bytes 00 = 160 bits.
+            // Mask = 0xFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+            result := and(shifted, 0xFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000)
         }
     }

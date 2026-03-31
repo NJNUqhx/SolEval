@@ -1,0 +1,14 @@
+function divWadUp(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+if y == 0 { revert(0x00, 0x00); }
+    unchecked {
+        uint256 wad = 1e18;
+        uint256 max = type(uint256).max;
+        if x > max / wad { revert(0x00, 0x00); }
+        uint256 numerator = x * wad;
+        uint256 remainder = numerator % y;
+        z = numerator / y;
+        if (remainder > 0) {
+            z += 1;
+        }
+    }
+}

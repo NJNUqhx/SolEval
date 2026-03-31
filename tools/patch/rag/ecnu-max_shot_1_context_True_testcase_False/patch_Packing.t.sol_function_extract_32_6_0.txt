@@ -1,0 +1,6 @@
+function extract_32_6(bytes32 self, uint8 offset) internal  pure returns (bytes6 result) {
+require(offset <= 26, "Offset exceeds valid range");
+        assembly {
+            result := shr(mul(8, sub(32, add(6, offset))), self)
+        }
+    }

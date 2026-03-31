@@ -1,34 +1,9 @@
 function replace_24_1(bytes24 self, bytes1 value, uint8 offset) internal  pure returns (bytes24 result) {
-function replace_24_1(bytes24 self, bytes1 value, uint8 offset) internal  pure returns (bytes24 result) {
+bytes1 oldByte = extract_24_1(self, offset);
     assembly {
-        // Step 1: Extract the existing byte at the specified offset.
-        // We assume extract_24_1 is available in the context or inline the logic if needed.
-        // Since the prompt implies using `extract_24_1`, we call it. However, in pure assembly within this function,
-        // we can directly compute the old byte to avoid external dependency if it's not provided.
-        // Logic to extract byte at offset from self (bytes24):
-        // bytes24 is stored in the first 32 bytes of memory or stack? In Solidity inline assembly, 
-        // small fixed-size bytes types like bytes24 are passed on the stack.
-        // self is on the stack. We need to extract the byte at 'offset'.
-        // A bytes24 occupies 24 bytes. In a 32-byte word, it's left-aligned (most significant bytes first).
-        // So byte 0 is at bit 248 (31*8), byte 23 is at bit 8.
-        // Shift right by (23 - offset) * 8 to bring the target byte to the least significant position.
-        
-        let shift := mul(sub(23, offset), 8)
-        let oldByte := shr(shift, self)
-        oldByte := and(oldByte, 0xFF) // Mask to ensure it's just the byte
-
-        // Step 2a: Mask the new byte value to ensure it is a single byte.
-        let newByte := and(value, 0xFF)
-
-        // Step 2b: Calculate the result.
-        // To replace a byte, we can XOR the original value with the old byte (to clear it) 
-        // and then XOR with the new byte shifted to the correct position.
-        // Or simply: result = (self & ~(0xFF << shift)) | (newByte << shift)
-        // Using XOR method as suggested: (self ^ (oldByte << shift)) ^ (newByte << shift)
-        // This works because self ^ (oldByte << shift) clears the bits of the old byte.
-        
-        let shiftedOld := shl(shift, oldByte)
-        let shiftedNew := shl(shift, newByte)
-        
-        result := xor(xor(self, shiftedOld), shiftedNew)
+        let mask := shl(mul(8, sub(23, offset)), 0xff)
+        let oldVal := and(shl(mul(8, sub(23, offset)), byte(0, oldByte)), mask)
+        let newVal := and(shl(mul(8, sub(23, offset)), byte(0, value)), mask)
+        result := xor(xor(self, oldVal), newVal)
     }
+}

@@ -1,0 +1,4 @@
+function toUint144(uint256 x) internal  pure returns (uint144) {
+if (x >= 2**144) revert();
+        return uint144(x);
+    }

@@ -1,6 +1,0 @@
-function multicall(bytes[] calldata data) public virtual payable returns (bytes[] memory) {
-function multicall(bytes[] calldata data) public virtual payable returns (bytes[] memory) {
-require(msg.value == 0, "Multicall: value must be zero");
-        bytes[] memory results = _multicall(data);
-        return _multicallDirectReturn(results);
-    }

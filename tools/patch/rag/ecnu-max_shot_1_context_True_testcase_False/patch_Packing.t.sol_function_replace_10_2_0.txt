@@ -1,0 +1,9 @@
+function replace_10_2(bytes10 self, bytes2 value, uint8 offset) internal  pure returns (bytes10 result) {
+assembly {
+            let v := and(shr(240, value), 0xFFFF)
+            let old := and(shr(mul(sub(9, offset), 8), self), 0xFFFF)
+            let shiftedNew := shl(mul(sub(9, offset), 8), v)
+            let shiftedOld := shl(mul(sub(9, offset), 8), old)
+            result := xor(xor(self, shiftedOld), shiftedNew)
+        }
+    }

@@ -1,7 +1,0 @@
-function toUint152(uint256 x) internal  pure returns (uint152) {
-function toUint152(uint256 x) internal  pure returns (uint152) {
-if (x > type(uint152).max) {
-            revert();
-        }
-        return uint152(x);
-    }

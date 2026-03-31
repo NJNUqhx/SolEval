@@ -1,0 +1,7 @@
+function extract_32_24(bytes32 self, uint8 offset) internal  pure returns (bytes24 result) {
+if (offset > 8) revert();
+        assembly {
+            let shifted := shl(mul(8, offset), self)
+            result := and(shifted, not(shl(192, 0)))
+        }
+    }

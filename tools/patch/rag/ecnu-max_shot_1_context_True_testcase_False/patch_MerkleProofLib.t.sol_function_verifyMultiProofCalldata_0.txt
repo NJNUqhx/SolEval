@@ -1,0 +1,56 @@
+function verifyMultiProofCalldata(bytes32[] calldata proof, bytes32 root, bytes32[] calldata leaves, bool[] calldata flags) internal  pure returns (bool isValid) {
+    assembly {
+        let proofLength := proof.length
+        let leavesLength := leaves.length
+        let flagsLength := flags.length
+
+        if iszero(eq(add(proofLength, leavesLength), add(flagsLength, 1))) {
+            leave
+        }
+
+        let queuePtr := mload(0x40)
+        let queueEnd := add(queuePtr, shl(5, leavesLength))
+        let proofPtr := proof.offset
+        let flagsPtr := flags.offset
+        let i := 0
+
+        for { let j := 0 } lt(j, leavesLength) { j := add(j, 1) } {
+            mstore(queuePtr, calldataload(add(leaves.offset, shl(5, j))))
+            queuePtr := add(queuePtr, 32)
+        }
+
+        queuePtr := add(queuePtr, 0x20)
+
+        for { } lt(i, flagsLength) { i := add(i, 1) } {
+            let flag := and(calldataload(add(flagsPtr, shl(5, i))), 1)
+            let a := mload(sub(queuePtr, 0x40))
+            let b := mload(sub(queuePtr, 0x20))
+
+            let c
+            if flag {
+                c := mload(sub(queuePtr, 0x20))
+                queuePtr := sub(queuePtr, 0x20)
+            } else {
+                c := calldataload(add(proofPtr, shl(5, sub(i, flag))))
+                proofPtr := add(proofPtr, 0x20)
+            }
+
+            let hash := keccak256(add(queuePtr, 0x20), 0x40)
+            if gt(a, b) {
+                mstore(add(queuePtr, 0x20), b)
+                mstore(queuePtr, a)
+                hash := keccak256(queuePtr, 0x40)
+            } else {
+                mstore(queuePtr, a)
+                mstore(add(queuePtr, 0x20), b)
+                hash := keccak256(queuePtr, 0x40)
+            }
+            mstore(sub(queuePtr, 0x20), hash)
+            queuePtr := sub(queuePtr, 0x20)
+        }
+
+        isValid := and(eq(mload(sub(queuePtr, 0x20)), root), eq(proofPtr, add(proof.offset, shl(5, proofLength))))
+        if isValid { leave }
+        isValid := 0
+    }
+}

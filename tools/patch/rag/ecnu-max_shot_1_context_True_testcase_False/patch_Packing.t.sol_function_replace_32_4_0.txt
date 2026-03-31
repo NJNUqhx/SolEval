@@ -1,0 +1,14 @@
+function replace_32_4(bytes32 self, bytes4 value, uint8 offset) internal  pure returns (bytes32 result) {
+assembly {
+        // Extract the existing 4-byte value from the original 32-byte word at the specified offset.
+        let shift := shl(3, sub(32, add(offset, 4)))
+        let mask := shr(shift, 0xFFFFFFFF000000000000000000000000000000000000000000000000)
+        let oldValue := and(self, mask)
+        
+        // Mask the new 4-byte value to ensure it is properly aligned.
+        let newValue := and(shl(shift, value), mask)
+        
+        // Calculate the new 32-byte word by XORing the original word with the old and new 4-byte values.
+        result := xor(xor(self, oldValue), newValue)
+    }
+}

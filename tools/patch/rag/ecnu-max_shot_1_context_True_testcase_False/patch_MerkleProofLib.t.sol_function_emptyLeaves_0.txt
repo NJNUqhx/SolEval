@@ -1,0 +1,5 @@
+function emptyLeaves() internal  pure returns (bytes32[] calldata leaves) {
+assembly {
+            mstore(leaves, 0)
+        }
+    }

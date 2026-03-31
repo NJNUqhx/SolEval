@@ -1,53 +1,11 @@
 function replace_28_8(bytes28 self, bytes8 value, uint8 offset) internal  pure returns (bytes28 result) {
-function replace_28_8(bytes28 self, bytes8 value, uint8 offset) internal  pure returns (bytes28 result) {
-    assembly {
-        // Load the original 28-byte value and the new 8-byte value into registers.
-        // Since bytes28 and bytes8 are value types, they are passed directly on the stack.
-        let original := self
-        let newValue := value
-        
-        // Calculate the shift amount in bits. 
-        // The offset is in bytes, and we need to align the 8-byte segment within the 32-byte word.
-        // bytes28 occupies the most significant 28 bytes of a 32-byte slot (bytes 0-27).
-        // However, in Solidity assembly, value types are right-aligned (LSB at bit 0).
-        // A bytes28 value is stored in the lower 28 bytes of the 32-byte slot? 
-        // Actually, Solidity stores fixed-size bytes types right-aligned in 32 bytes.
-        // So bytes28 occupies bits 0 to 223 (28 * 8). Bits 224-255 are zero.
-        // Wait, let's re-verify Solidity encoding for fixed bytes.
-        // `bytes28` is right-aligned. The first byte of the logical array is at the most significant byte of the used range?
-        // No, for `bytesN`, the value is right-aligned in the 32-byte word. 
-        // Example: bytes1 0x12 is stored as ...000012.
-        // But logically, `self[0]` corresponds to the most significant byte of the N bytes.
-        // If `self` is 0x00...00 AABBCC... (28 bytes), then `self[0]` is AA.
-        // In the 32-bit word representation (right aligned):
-        // Bits 255..224 are 0. Bits 223..0 hold the 28 bytes.
-        // Byte 0 of the logical array is at bit position (28-1)*8 = 216 down to 223?
-        // Let's assume standard right-aligned storage where index 0 is the most significant byte of the active part.
-        // Active part is 28 bytes. Index 0 is at bit (28 - 1 - offset) * 8?
-        // Let's trace:
-        // Total 32 bytes. bytes28 uses the lower 28 bytes (bits 0 to 223).
-        // Logical index 0 is the most significant byte of these 28, i.e., bits 216-223.
-        // Logical index `offset` is at bits: (27 - offset) * 8 to (27 - offset) * 8 + 7.
-        // Shift amount to move this segment to the least significant position (bits 0-63) is: (27 - offset) * 8.
-        
-        let shift := mul(sub(27, offset), 8)
-        
-        // Extract the old 8-byte segment at the given offset.
-        // Shift right to bring the target segment to the LSB, then mask with 0xFFFFFFFFFFFFFFFF (though shifting handles it if we shift back correctly, but let's be precise).
-        // Actually, to isolate: (original >> shift) & 0xFF...FF (8 bytes)
-        let oldSegment := and(shr(shift, original), 0xFFFFFFFFFFFFFFFF)
-        
-        // Mask the new value to ensure it is exactly 8 bytes (though input is bytes8, safety first).
-        let maskedNew := and(newValue, 0xFFFFFFFFFFFFFFFF)
-        
-        // Calculate the difference to XOR out the old and XOR in the new.
-        // We need to shift the old segment and new segment back to their original position.
-        // XOR original with (oldSegment << shift) to clear the old bits.
-        // Then XOR with (maskedNew << shift) to set the new bits.
-        // Or simply: result = original ^ (oldSegment << shift) ^ (maskedNew << shift)
-        // Which simplifies to: original ^ ((oldSegment ^ maskedNew) << shift)
-        
-        let diff := shl(shift, xor(oldSegment, maskedNew))
-        result := xor(original, diff)
+assembly {
+            let selfVal := shr(96, shl(96, self))
+            let val := shr(192, shl(192, value))
+            let shift := mul(8, sub(27, offset))
+            let mask := shl(shift, 0xffffffffffffffff)
+            let oldSegment := and(selfVal, mask)
+            let newSegment := and(shl(shift, val), mask)
+            result := xor(xor(selfVal, oldSegment), newSegment)
+        }
     }
-}

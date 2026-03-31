@@ -1,32 +1,7 @@
 function extract_24_1(bytes24 self, uint8 offset) internal  pure returns (bytes1 result) {
-function extract_24_1(bytes24 self, uint8 offset) internal  pure returns (bytes1 result) {
-if (offset > 23) {
-            revert OutOfRangeAccess();
-        }
-
+if (offset > 23) revert OutOfRangeAccess();
         /// @solidity memory-safe-assembly
         assembly {
-            // Shift the 24-byte value left by (8 * offset) bits to bring the target byte to the most significant position of the 32-byte word.
-            // Since `self` is 24 bytes, it occupies the upper 24 bytes of a 32-byte slot when loaded.
-            // However, standard Solidity loading of `bytes24` into a stack variable places it in the lower bytes.
-            // To extract the byte at `offset` (0-indexed from left/MSB of the 24-byte sequence):
-            // We need to shift left by (8 * (23 - offset)) if we consider the 24 bytes aligned to MSB, 
-            // OR shift left by (8 * (31 - offset)) if we consider the standard 32-byte word layout where data is left-aligned?
-            // Actually, for `bytes24`, Solidity stores it left-aligned in a 32-byte word (padding zeros on the right).
-            // Byte 0 is at bit 248 (32*8 - 8). Byte `offset` is at bit (248 - 8*offset).
-            // To isolate it, we shift left by (8 * offset) to move it to the top, then shift right by 248?
-            // Simpler approach: Shift left by (8 * offset) moves the byte at `offset` to the position of the last byte of the 24-byte segment?
-            // Let's re-evaluate standard left-aligned `bytesN`:
-            // Value: [B0][B1]...[B23][00]...[00] (32 bytes total)
-            // B0 is at bits 248-255. B_offset is at bits (248 - 8*offset) to (255 - 8*offset).
-            // We want to move B_offset to the highest byte (bits 248-255) so we can just shift right by 248 or mask.
-            // Shift amount needed: 8 * offset.
-            // Example: offset=0. Shift 0. B0 is already at top.
-            // Example: offset=1. Shift 8. B1 moves to top.
-            // So: `shl(mul(offset, 8), self)` moves the target byte to the most significant byte position.
-            // Then `shr(248, ...)` moves it to the least significant byte position for return.
-            
-            let shifted := shl(mul(offset, 8), self)
-            result := shr(248, shifted)
+            result := shr(sub(248, shl(3, offset)), self)
         }
     }

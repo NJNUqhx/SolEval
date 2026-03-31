@@ -1,0 +1,7 @@
+function pack_6_6(bytes6 left, bytes6 right) internal  pure returns (bytes12 result) {
+assembly {
+            let l := and(left, 0xffffffffffff)
+            let r := and(right, 0xffffffffffff)
+            result := or(l, shl(48, r))
+        }
+    }

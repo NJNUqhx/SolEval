@@ -1,0 +1,12 @@
+function replace_6_1(bytes6 self, bytes1 value, uint8 offset) internal  pure returns (bytes6 result) {
+require(offset < 6, "Offset out of bounds");
+    assembly {
+        let oldByte := byte(offset, self)
+        let newVal := and(value, 0xff)
+        let shift := shl(mul(sub(5, offset), 8), 0xff)
+        let mask := not(shift)
+        let cleared := and(self, mask)
+        let shiftedNew := shl(mul(sub(5, offset), 8), newVal)
+        result := or(cleared, shiftedNew)
+    }
+}

@@ -1,0 +1,15 @@
+function sha2Calldata(bytes calldata b) internal  view returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let ptr := mload(0x40)
+            calldatacopy(ptr, b.offset, b.length)
+            let success := staticcall(gas(), 0x02, ptr, b.length, ptr, 0x20)
+            if iszero(success) {
+                revert(0, 0)
+            }
+            if iszero(returndatasize()) {
+                revert(0, 0)
+            }
+            result := mload(ptr)
+        }
+    }

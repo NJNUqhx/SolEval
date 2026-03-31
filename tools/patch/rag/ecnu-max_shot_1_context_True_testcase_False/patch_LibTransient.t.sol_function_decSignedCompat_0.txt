@@ -1,0 +1,18 @@
+function decSignedCompat(TUint256 storage ptr, int256 delta) internal   returns (uint256 newValue) {
+if (block.chainid == 1) {
+            return decSigned(ptr, delta);
+        }
+        _compat(ptr);
+        assembly {
+            let current := sload(ptr.slot)
+            let newval := sub(current, delta)
+            if xor(gt(newval, current), slt(delta, 0)) {
+                mstore(0x00, 0x4e487b71)
+                mstore(0x20, 0x11)
+                revert(0x1c, 0x24)
+            }
+            sstore(ptr.slot, newval)
+            mstore(0x20, newval)
+            return(0x20, 0x20)
+        }
+    }

@@ -1,0 +1,26 @@
+function replace_20_6(bytes20 self, bytes6 value, uint8 offset) internal  pure returns (bytes20 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Extract the existing 6-byte segment from the 20-byte value at the specified offset.
+            // Shift self right by (256 - (offset + 6) * 8) to align the segment to the least significant bits.
+            // Then mask with 0xFFFFFFFFFFFF (48 bits) to isolate the 6 bytes.
+            let shift := shl(mul(sub(20, add(offset, 6)), 8), 1)
+            let oldSegment := and(shr(shl(3, add(offset, 6)), self), 0xFFFFFFFFFFFF)
+            
+            // Mask the new 6-byte value to ensure it fits within the 6-byte segment.
+            let newSegment := and(value, 0xFFFFFFFFFFFF)
+            
+            // Calculate the result:
+            // 1. Create a mask for the 6-byte segment at the given offset: (0xFFFFFFFFFFFF << ((20 - offset - 6) * 8))
+            // 2. Invert the mask to clear the old segment in 'self': self & ~mask
+            // 3. Shift the newSegment to the correct position: newSegment << ((20 - offset - 6) * 8)
+            // 4. Combine: (self & ~mask) | (newSegment << shift_amount)
+            // Optimized using XOR: result = self ^ oldSegment ^ (newSegment << shift_amount)
+            
+            let shiftAmount := mul(sub(20, add(offset, 6)), 8)
+            let shiftedNew := shl(shiftAmount, newSegment)
+            let shiftedOld := shl(shiftAmount, oldSegment)
+            
+            result := xor(xor(self, shiftedOld), shiftedNew)
+        }
+    }

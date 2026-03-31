@@ -1,0 +1,8 @@
+function pack_8_4(bytes8 left, bytes4 right) internal  pure returns (bytes12 result) {
+assembly {
+            let l := and(left, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+            let r := and(right, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+            r := shr(96, r)
+            result := or(l, r)
+        }
+    }

@@ -1,6 +1,0 @@
-function Item() {
-function Item() {
-struct Item {
-    uint256 _data;
-    // WARNING: Do not modify _data directly. Use dedicated methods to ensure data integrity.
-}

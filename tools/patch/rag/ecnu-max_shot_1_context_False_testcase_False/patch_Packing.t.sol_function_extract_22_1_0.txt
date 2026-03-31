@@ -1,36 +1,8 @@
 function extract_22_1(bytes22 self, uint8 offset) internal  pure returns (bytes1 result) {
-function extract_22_1(bytes22 self, uint8 offset) internal  pure returns (bytes1 result) {
-    if (offset > 21) {
-            revert OutOfRangeAccess();
-        }
-
+require(offset < 22, "OutOfRangeAccess");
         /// @solidity memory-safe-assembly
         assembly {
-            // Shift left to move the target byte to the most significant position,
-            // then shift right to isolate it.
-            // bytes22 is 176 bits. To get byte at `offset` (0-indexed from left):
-            // We want to shift left by (offset * 8) so the byte moves to the front?
-            // Actually, standard extraction:
-            // Value: [b0, b1, ..., b21]
-            // We want b_offset.
-            // Shift left by (offset * 8) moves b_offset to the position of b0? No.
-            // Let's think in terms of 256-bit word.
-            // self is stored in the lower 176 bits.
-            // To extract byte at `offset`:
-            // Shift left by (offset * 8) moves the byte to the higher end relative to the start?
-            // Correct logic for big-endian style extraction from a fixed bytes type:
-            // Shift left by (offset * 8) brings the desired byte to the most significant byte of the 22-byte sequence?
-            // No, simpler:
-            // Shift left by (offset * 8) moves the byte at `offset` to the position of the first byte?
-            // Let's use the standard pattern: (self << (offset * 8)) >> (21 * 8) ? No.
-            
-            // Standard pattern for extracting byte `i` from bytesN:
-            // byte = (self >> (8 * (N - 1 - i))) & 0xFF
-            // Here N = 22.
-            // Shift amount = 8 * (21 - offset)
-            
-            let shift := mul(sub(21, offset), 8)
-            result := shr(shift, shl(0, self)) // shl(0, self) ensures clean loading if needed, though self is already value
-            result := and(result, 0xFF)
+            let shifted := shl(mul(8, offset), self)
+            result := shr(216, shifted)
         }
-    }
+    } 

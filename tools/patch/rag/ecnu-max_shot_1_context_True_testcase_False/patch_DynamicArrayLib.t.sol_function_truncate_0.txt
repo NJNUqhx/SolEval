@@ -1,0 +1,23 @@
+function truncate(DynamicArray memory a, uint256 n) internal  pure returns (DynamicArray memory result) {
+// Deallocate any existing memory for the result array
+assembly {
+    if mload(result) {
+        let len := mload(add(result, 0x20))
+        let dataPtr := add(result, 0x40)
+        mstore(0x40, dataPtr) // Reset free memory pointer if needed, though typically we just free the specific allocation
+        // Standard Solidity deallocation isn't direct, but since we are returning a new struct, 
+        // we will overwrite result's pointer below.
+    }
+}
+
+// Assign the input array `a` to the result array
+result = a;
+
+// Use inline assembly to safely truncate the array
+assembly {
+    let currentLen := mload(add(result, 0x20))
+    if lt(n, currentLen) {
+        mstore(add(result, 0x20), n)
+    }
+}
+}

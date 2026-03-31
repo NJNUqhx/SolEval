@@ -1,0 +1,4 @@
+function _hasOwner(address addr) private  view returns (bool) {
+(bool success, bytes memory data) = addr.staticcall(abi.encodeWithSignature("owner()"));
+        return success && data.length == 32;
+    }

@@ -1,0 +1,2 @@
+function toUint96(uint256 x) internal  pure returns (uint96) {
+if (x >= 2**96) revert(); return uint96(x); } 

@@ -1,0 +1,16 @@
+function nthWeekdayInMonthOfYearTimestamp(uint256 year, uint256 month, uint256 n, uint256 wd) internal  pure returns (uint256 result) {
+uint256 epochDay = _yearMonthToEpochDay(year, month);
+    uint256 daysInMonth = _daysInMonth(year, month);
+    uint256 firstDayWeekday = (epochDay + 1) % 7;
+    uint256 offset;
+    if (wd >= firstDayWeekday) {
+        offset = wd - firstDayWeekday;
+    } else {
+        offset = 7 - (firstDayWeekday - wd);
+    }
+    uint256 targetDay = offset + 1 + (n - 1) * 7;
+    if (targetDay > daysInMonth) {
+        return 0;
+    }
+    result = (epochDay + targetDay - 1) * 86400;
+} 

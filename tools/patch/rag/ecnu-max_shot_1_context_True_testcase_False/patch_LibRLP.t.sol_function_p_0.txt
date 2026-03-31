@@ -1,0 +1,7 @@
+function p(List memory list, List memory x) internal  pure returns (List memory result) {
+assembly {
+    let modifiedX := or(shl(1, x), 1)
+    mstore(result, modifiedX)
+    mstore(add(list, 0x20), modifiedX)
+}
+}

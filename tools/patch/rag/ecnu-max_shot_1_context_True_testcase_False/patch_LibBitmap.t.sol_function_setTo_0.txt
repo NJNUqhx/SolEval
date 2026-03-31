@@ -1,0 +1,24 @@
+function setTo(Bitmap storage bitmap, uint256 index, bool shouldSet) internal {
+uint256 slot;
+        uint256 offset;
+        assembly {
+            slot := bitmap.slot
+            offset := and(index, 0xFF)
+            slot := add(slot, shr(8, index))
+        }
+
+        uint256 mask = ~(1 << offset);
+        uint256 value;
+        assembly {
+            value := sload(slot)
+        }
+        
+        value = value & mask;
+        if (shouldSet) {
+            value = value | (1 << offset);
+        }
+
+        assembly {
+            sstore(slot, value)
+        }
+    } 

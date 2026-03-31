@@ -1,0 +1,8 @@
+function replace_8_4(bytes8 self, bytes4 value, uint8 offset) internal  pure returns (bytes8 result) {
+assembly {
+            let old := shr(mul(sub(4, offset), 8), shl(32, self))
+            let mask := not(shl(mul(sub(4, offset), 8), 0xffffffff00000000000000000000000000000000000000000000000000000000))
+            let shiftedValue := shl(mul(sub(4, offset), 8), and(0xffffffff, value))
+            result := xor(xor(and(self, mask), old), shiftedValue)
+        }
+    }

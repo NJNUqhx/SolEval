@@ -1,0 +1,12 @@
+function getBytes32(DynamicArray memory a, uint256 i) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+assembly {
+    let dataStart := add(a, 0x20)
+    let length := mload(dataStart)
+    if gt(i, sub(length, 1)) {
+        revert(0, 0)
+    }
+    let offset := add(dataStart, add(0x20, mul(i, 0x20)))
+    result := mload(offset)
+}
+}

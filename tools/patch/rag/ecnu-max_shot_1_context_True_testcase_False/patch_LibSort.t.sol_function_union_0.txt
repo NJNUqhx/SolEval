@@ -1,0 +1,6 @@
+function union(bytes32[] memory a, bytes32[] memory b) internal  pure returns (bytes32[] memory c) {
+uint256[] memory aUints = _toUints(a);
+        uint256[] memory bUints = _toUints(b);
+        uint256[] memory cUints = _union(aUints, bUints);
+        c = _toBytes32s(cUints);
+    } 

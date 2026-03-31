@@ -1,0 +1,5 @@
+function offset(bytes32 slot, uint256 pos) internal  pure returns (bytes32 result) {
+assembly {
+            result := add(slot, pos)
+        }
+    }

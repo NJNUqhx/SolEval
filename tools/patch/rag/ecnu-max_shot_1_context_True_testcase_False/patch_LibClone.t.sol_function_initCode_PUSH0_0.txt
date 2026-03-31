@@ -1,0 +1,11 @@
+function initCode_PUSH0(address implementation) internal  pure returns (bytes memory c) {
+/// @solidity memory-safe-assembly
+        assembly {
+            c := mload(0x40)
+            mstore(add(c, 0x40), 0x5f3d5f3d91602c5f39363d3d373d3d3d363d73)
+            mstore(add(c, 0x26), shl(96, implementation))
+            mstore(add(c, 0x12), 0x5af43d82803e903d91602b57fd5bf3)
+            mstore(c, 0x36)
+            mstore(0x40, add(c, 0x56))
+        }
+    }

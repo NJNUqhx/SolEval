@@ -1,0 +1,7 @@
+function unpackSci(uint256 packed) internal  pure returns (uint256 unpacked) {
+uint256 coefficient = packed >> 7;
+        uint256 exponent = packed & 0x7f;
+        unchecked {
+            unpacked = coefficient * (10 ** exponent);
+        }
+    }

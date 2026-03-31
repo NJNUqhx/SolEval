@@ -1,0 +1,46 @@
+function buildValidateCommand(string memory contractName, Options memory opts, bool requireReference) internal  view returns (string[] memory) {
+string memory outDir = getOutDir();
+        string[] memory inputBuilder = new string[](20);
+        uint256 inputBuilderIndex = 0;
+
+        inputBuilder[inputBuilderIndex++] = "npx";
+        inputBuilder[inputBuilderIndex++] = "@openzeppelin/upgrades-core@1.29.0";
+        inputBuilder[inputBuilderIndex++] = "validate";
+        inputBuilder[inputBuilderIndex++] = outDir;
+        inputBuilder[inputBuilderIndex++] = getFullyQualifiedName(contractName, outDir);
+
+        if (bytes(opts.referenceContract).length > 0) {
+            inputBuilder[inputBuilderIndex++] = "--reference";
+            inputBuilder[inputBuilderIndex++] = opts.referenceContract;
+        }
+        if (bytes(opts.referenceBuildInfoDir).length > 0) {
+            inputBuilder[inputBuilderIndex++] = "--referenceBuildInfoDirs";
+            inputBuilder[inputBuilderIndex++] = opts.referenceBuildInfoDir;
+        }
+
+        for (uint256 i = 0; i < opts.exclude.length; i++) {
+            inputBuilder[inputBuilderIndex++] = "--exclude";
+            inputBuilder[inputBuilderIndex++] = opts.exclude[i];
+        }
+
+        if (opts.unsafeSkipStorageCheck) {
+            inputBuilder[inputBuilderIndex++] = "--unsafeSkipStorageCheck";
+        }
+        if (requireReference) {
+            inputBuilder[inputBuilderIndex++] = "--requireReference";
+        }
+        if (bytes(opts.unsafeAllow).length > 0) {
+            inputBuilder[inputBuilderIndex++] = "--unsafeAllow";
+            inputBuilder[inputBuilderIndex++] = opts.unsafeAllow;
+        }
+        if (opts.unsafeAllowRenames) {
+            inputBuilder[inputBuilderIndex++] = "--unsafeAllowRenames";
+        }
+
+        string[] memory inputs = new string[](inputBuilderIndex);
+        for (uint256 i = 0; i < inputBuilderIndex; i++) {
+            inputs[i] = inputBuilder[i];
+        }
+
+        return inputs;
+    }

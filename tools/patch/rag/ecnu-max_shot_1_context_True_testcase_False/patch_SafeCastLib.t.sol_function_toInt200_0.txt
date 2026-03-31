@@ -1,0 +1,4 @@
+function toInt200(uint256 x) internal  pure returns (int200) {
+if (x >= 2**199) revert Overflow();
+    return int200(int256(x));
+}

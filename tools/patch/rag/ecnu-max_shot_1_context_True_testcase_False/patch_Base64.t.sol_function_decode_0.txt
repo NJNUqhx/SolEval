@@ -1,0 +1,166 @@
+function decode(string memory data) internal  pure returns (bytes memory result) {
+uint256 len = bytes(data).length;
+    if (len == 0) return new bytes(0);
+
+    uint256 decodedLen;
+    bool hasPadding = false;
+
+    // Check for padding and calculate decoded length
+    if (len % 4 != 0) {
+        // Invalid base64 length if not divisible by 4 (unless we handle non-padded strictly, but spec says handle both)
+        // Standard base64 is always multiple of 4. If non-padded, we treat it as if padded for calculation then trim.
+        // However, strictly speaking, valid base64 with padding is always len % 4 == 0.
+        // If the input is non-padded, we simulate padding for calculation.
+        hasPadding = false; 
+        // Calculate based on raw length for non-padded or malformed
+        decodedLen = (len * 3) / 4;
+    } else {
+        // Check last chars for '='
+        bytes memory bData = bytes(data);
+        if (bData[len - 1] == '=') {
+            hasPadding = true;
+            if (bData[len - 2] == '=') {
+                decodedLen = (len - 4) * 3 / 4 + 1;
+            } else {
+                decodedLen = (len - 4) * 3 / 4 + 2;
+            }
+        } else {
+            decodedLen = (len * 3) / 4;
+        }
+    }
+
+    result = new bytes(decodedLen);
+
+    assembly ("memory-safe") {
+        let tablePtr := add(result, 0x20) // Reusing result memory slot temporarily for lookup table? No, need a table.
+        // We need a decoding table. Since we can't easily define const memory in pure assembly without data copy,
+        // we will construct a small lookup logic or assume a standard table layout if passed. 
+        // But the requirement says "uses a custom lookup table stored in memory".
+        // Since no table is passed in arguments, we must generate it or use a mathematical approach.
+        // Generating a 256-byte table in memory for decoding is expensive in gas if done every call.
+        // Alternative: Use a switch/case logic or a compacted table.
+        // However, the prompt implies using a lookup table. Let's create one in memory.
+        // Standard Base64: A-Z (0-25), a-z (26-51), 0-9 (52-61), + (62), / (63).
+        
+        // Allocate 256 bytes for the decoding map right after the result data in memory to avoid collision?
+        // Better: Use a known free memory pointer area, but that's risky.
+        // Let's allocate a new memory block for the table.
+        let decodeTable := mload(0x40)
+        mstore(0x40, add(decodeTable, 0x100)) // Allocate 256 bytes
+
+        // Initialize table with 0xFF (invalid) or 0. We'll use 0 and validate range.
+        // Actually, filling 256 bytes is costly. Let's try to optimize by only filling relevant ranges.
+        // But for correctness and simplicity in assembly as requested:
+        // Fill with 0 first
+        for { let i := 0 } lt(i, 0x100) { i := add(i, 0x20) } {
+            mstore(add(decodeTable, i), 0)
+        }
+
+        // Fill A-Z (0x41 - 0x5A) -> 0 to 25
+        for { let i := 0x41 } lt(i, 0x5B) { i := add(i, 1) } {
+            mstore8(add(decodeTable, i), sub(i, 0x41))
+        }
+        // Fill a-z (0x61 - 0x7A) -> 26 to 51
+        for { let i := 0x61 } lt(i, 0x7B) { i := add(i, 1) } {
+            mstore8(add(decodeTable, i), add(sub(i, 0x61), 26))
+        }
+        // Fill 0-9 (0x30 - 0x39) -> 52 to 61
+        for { let i := 0x30 } lt(i, 0x3A) { i := add(i, 1) } {
+            mstore8(add(decodeTable, i), add(sub(i, 0x30), 52))
+        }
+        // Fill + (0x2B) -> 62
+        mstore8(add(decodeTable, 0x2B), 62)
+        // Fill / (0x2F) -> 63
+        mstore8(add(decodeTable, 0x2F), 63)
+        // Fill = (0x3D) -> 0 (handled by logic)
+        mstore8(add(decodeTable, 0x3D), 0)
+
+        let dataPtr := add(data, 0x20)
+        let endPtr := add(dataPtr, mload(data))
+        let outPtr := add(result, 0x20)
+        
+        // Process 4 bytes at a time
+        for { } lt(dataPtr, endPtr) { } {
+            // Load 4 bytes
+            let chunk := mload(dataPtr)
+            
+            // Extract 4 characters (handling big-endian load vs char order)
+            // mload loads 32 bytes. We need the first 4.
+            // Shift right to align the first char to the bottom? 
+            // No, mload(dataPtr) gives [c1][c2][c3][c4]... at the high end of the 32-byte word if we consider standard representation?
+            // Actually, in EVM memory, byte 0 is the most significant of the word loaded if we treat it as a number?
+            // Let's be precise: mload(ptr) returns a 32-byte value. 
+            // The byte at `ptr` is the most significant byte (bit 248-255).
+            // So c1 is at bits 248-255, c2 at 240-247, etc.
+            
+            let c1 := shr(248, chunk)
+            let c2 := shr(240, and(chunk, 0xFF000000000000000000000000000000000000000000000000000000000000FF)) // This is messy.
+            
+            // Easier way: load single bytes or shift correctly.
+            // c1 = byte at offset 0
+            // c2 = byte at offset 1
+            // c3 = byte at offset 2
+            // c4 = byte at offset 3
+            
+            c1 := shr(248, chunk)
+            c2 := shr(240, shl(8, chunk)) // Shift left 8 to move c2 to top, then right 248? No.
+            // Correct extraction from 32-byte word where c1 is MSB:
+            // c1: shr(248, chunk)
+            // c2: shr(240, and(chunk, 0x00FF...)) -> simpler: shr(240, shl(8, chunk)) ?
+            // Let's just use byte access or specific shifts.
+            // chunk = c1 * 2^248 + c2 * 2^240 + c3 * 2^232 + c4 * 2^224 + ...
+            // c1 = shr(248, chunk)
+            // c2 = shr(240, and(chunk, not(shl(248, 0xFF)))) -> too complex.
+            // Alternative: c2 = byte(1) of the loaded data.
+            // In assembly: byte(x, y) is not valid syntax in yul.
+            // Use: shr(240, and(chunk, 0x00FF000000000000000000000000000000000000000000000000000000000000)) -> No.
+            
+            // Let's reload as separate bytes to be safe and clear, or use the pattern:
+            // val = shr(248, chunk) -> c1
+            // val = shr(248, shl(8, chunk)) -> c2
+            // val = shr(248, shl(16, chunk)) -> c3
+            // val = shr(248, shl(24, chunk)) -> c4
+            
+            let v1 := mload(add(decodeTable, shr(248, chunk)))
+            let v2 := mload(add(decodeTable, shr(248, shl(8, chunk))))
+            let v3 := mload(add(decodeTable, shr(248, shl(16, chunk))))
+            let v4 := mload(add(decodeTable, shr(248, shl(24, chunk))))
+
+            // Decode
+            let decoded := or(shl(18, v1), shl(12, v2))
+            decoded := or(decoded, shl(6, v3))
+            decoded := or(decoded, v4)
+
+            // Write 3 bytes
+            // We need to write 3 bytes to outPtr.
+            // The 24-bit value `decoded` needs to be split.
+            // Byte 1: shr(16, decoded)
+            // Byte 2: shr(8, decoded)
+            // Byte 3: decoded
+            
+            // But we must handle padding cases where c3 or c4 are '='.
+            // If c3 is '=', then we only write 1 byte.
+            // If c4 is '=', then we write 2 bytes.
+            // The '=' char maps to 0 in our table, so the math works out if we mask, but we must not write extra bytes.
+            
+            // Check original chars for '='
+            let isPad3 := eq(shr(248, shl(16, chunk)), 0x3D)
+            let isPad4 := eq(shr(248, shl(24, chunk)), 0x3D)
+
+            mstore8(outPtr, shr(16, decoded))
+            outPtr := add(outPtr, 1)
+
+            if isZero(isPad3) {
+                mstore8(outPtr, shr(8, decoded))
+                outPtr := add(outPtr, 1)
+            }
+            
+            if isZero(isPad4) {
+                mstore8(outPtr, decoded)
+                outPtr := add(outPtr, 1)
+            }
+
+            dataPtr := add(dataPtr, 4)
+        }
+    }
+}

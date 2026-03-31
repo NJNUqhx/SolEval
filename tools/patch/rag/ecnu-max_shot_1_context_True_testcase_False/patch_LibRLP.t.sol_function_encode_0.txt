@@ -1,0 +1,100 @@
+function encode(bytes memory x) internal  pure returns (bytes memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let xLen := mload(x)
+            let xData := add(x, 0x20)
+
+            // Step 1: Check if single byte and less than 0x80
+            if eq(xLen, 1) {
+                let firstByte := mload(xData)
+                if lt(firstByte, 0x80) {
+                    result := x
+                    leave
+                }
+            }
+
+            let prefixLen
+            let totalLen
+
+            // Step 2: Short format (<= 55 bytes)
+            if le(xLen, 55) {
+                prefixLen := 1
+                totalLen := add(xLen, prefixLen)
+                
+                result := mload(0x40)
+                
+                // Store length of the new bytes array
+                mstore(result, totalLen)
+                
+                // Store prefix: 0x80 + length
+                mstore8(add(result, 0x20), add(0x80, xLen))
+                
+                // Copy data
+                let dest := add(result, 0x21)
+                let src := xData
+                let end := add(dest, xLen)
+                
+                for { } lt(dest, end) { } {
+                    mstore(dest, mload(src))
+                    dest := add(dest, 0x20)
+                    src := add(src, 0x20)
+                }
+                
+                // Zeroize next slot
+                mstore(end, 0)
+                
+                // Update free memory pointer
+                mstore(0x40, add(end, 0x20))
+            } 
+            // Step 3: Long format (> 55 bytes)
+            else {
+                // Calculate length of length (number of bytes needed to represent xLen)
+                let lenLen := 1
+                let temp := xLen
+                for { } gt(temp, 0xFF) { lenLen := add(lenLen, 1) } {
+                    temp := shr(8, temp)
+                }
+                
+                prefixLen := add(1, lenLen)
+                totalLen := add(xLen, prefixLen)
+                
+                result := mload(0x40)
+                
+                // Store length of the new bytes array
+                mstore(result, totalLen)
+                
+                // Store prefix start: 0xB7 + lenLen
+                mstore8(add(result, 0x20), add(0xB7, lenLen))
+                
+                // Store the length of x in big-endian format
+                let lenStart := add(result, 0x21)
+                let lenEnd := add(lenStart, lenLen)
+                
+                // We write the length backwards to handle big-endian correctly
+                let val := xLen
+                let pos := lenEnd
+                for { } gt(pos, lenStart) { } {
+                    pos := sub(pos, 1)
+                    mstore8(pos, mod(val, 256))
+                    val := div(val, 256)
+                }
+                
+                // Copy data
+                let dest := add(result, add(0x20, prefixLen))
+                let src := xData
+                let dataEnd := add(dest, xLen)
+                
+                for { } lt(dest, dataEnd) { } {
+                    mstore(dest, mload(src))
+                    dest := add(dest, 0x20)
+                    src := add(src, 0x20)
+                }
+                
+                // Zeroize next slot
+                mstore(dataEnd, 0)
+                
+                // Update free memory pointer
+                mstore(0x40, add(dataEnd, 0x20))
+            }
+        }
+    }

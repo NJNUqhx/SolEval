@@ -1,0 +1,11 @@
+function eq(bytes memory a, bytes32 b) internal  pure returns (bool result) {
+assembly {
+            let len := mload(a)
+            if eq(len, 0x20) {
+                let data := mload(add(a, 0x20))
+                if eq(data, b) {
+                    result := 1
+                }
+            }
+        }
+    }

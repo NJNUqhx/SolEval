@@ -1,0 +1,110 @@
+function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+        // Ensure offset is within valid range (0 to 2)
+        if gt(offset, 2) {
+            mstore(0x00, 0x4e487b71) // Panic code for out-of-bounds
+            mstore(0x20, 0x32)
+            revert(0x1c, 0x24)
+        }
+
+        // Calculate shift amount: (2 - offset) * 8 bytes = (2 - offset) * 8 * 8 bits
+        // Since we are working with bytes24 (24 bytes) and replacing 22 bytes,
+        // the 22-byte segment can start at byte 0, 1, or 2.
+        // Total bits in 24 bytes = 192. 22 bytes = 176 bits.
+        // We align the 22-byte value to the correct position within the 24-byte word.
+        
+        let shiftBits := mul(sub(2, offset), 8)
+        let shiftBytes := mul(sub(2, offset), 8) // Bits to shift left to align MSB of 22-byte to MSB of 24-byte? 
+        // Actually, let's think in terms of byte positions.
+        // bytes24 layout: [0..23]
+        // If offset=0, replace [0..21]. Keep [22..23].
+        // If offset=1, replace [1..22]. Keep [0] and [23].
+        // If offset=2, replace [2..23]. Keep [0..1].
+        
+        // Convert bytes22 to uint256 (it occupies the lower 22 bytes of the 32-byte slot)
+        let val := shr(mul(8, 10), value) // Shift left by 10 bytes (80 bits) to align 22 bytes to the top of 32 bytes? No.
+        // bytes22 is stored in the lower 22 bytes of the 32-byte slot in memory when loaded as uint256?
+        // In Solidity, bytes22 is right-aligned in a 32-byte slot. So it occupies bits 0 to 175.
+        // We need to shift it left so that it aligns with the target segment in the 24-byte value.
+        // 24-byte value is also right-aligned in a 32-byte slot (bits 0 to 191).
+        
+        // Target segment starts at byte `offset` from the left of the 24-byte effective data?
+        // No, `offset` is usually 0-indexed from the start (MSB side in human reading, but LSB side in storage?).
+        // Let's assume standard Solidity bytes indexing: index 0 is the most significant byte of the effective length.
+        // But in uint256 representation (which assembly uses), index 0 of bytesN is the MOST significant byte of the N bytes.
+        // However, in a 32-byte slot, bytes24 is stored in the MOST significant 24 bytes? 
+        // NO. Solidity stores bytesN in the LEAST significant N bytes of the 32-byte word? 
+        // Correction: Solidity stores fixed-size bytes arrays (bytes1 to bytes32) in the 32-byte word such that 
+        // the data is left-aligned? No, it's actually stored in the high-order bytes? 
+        // Let's verify: `bytes1 x = 0x12;` -> uint(x) == 0x1200...00? Or 0x...0012?
+        // Solidity docs: "For bytes1 to bytes32, the data is stored in the high-order bytes." 
+        // Wait, no. "bytes1 to bytes32 are value types and are stored in the 32-byte slot. 
+        // The data is stored in the most significant bytes." -> This means 0x12 for bytes1 is 0x120000...
+        // Let's re-read carefully. 
+        // Actually, in Solidity assembly, `mload` loads 32 bytes. If you have `bytes24`, it is typically 
+        // stored in the 32-byte slot with the data in the MOST significant 24 bytes? 
+        // NO. The standard is: `bytes1` = 0x01 is stored as 0x010000... (big-endian in the slot)? 
+        // Let's assume the common convention used in low-level libs: 
+        // bytesN are stored in the MOST significant N bytes of the 32-byte word. 
+        // i.e., bytes1 0xab -> 0xab0000...00. bytes24 -> top 24 bytes.
+        // If that's the case:
+        // Total bits = 192 used. 
+        // Offset 0: Replace top 22 bytes (bits 8 to 183? No).
+        // Let's assume the standard: bytes24 `self` has its first byte at bit 248 (32*8 - 8) ? No.
+        // Let's assume the data is in the HIGH order bytes. 
+        // bytes24: bits 256-24 = 32 to 255? No. 32 bytes = 256 bits. 24 bytes = 192 bits.
+        // If stored in high order: bits (256-192)=64 to 255.
+        // Then offset 0 means the first byte of the 24 (bit 248? No, bit 64+0*8?).
+        // This is confusing. Let's rely on the behavior of `bytes24` type conversion.
+        // When casting `bytes24` to `uint256`, the first byte of the bytes24 becomes the most significant byte of the 24-byte part.
+        // If `self` is `0x0102...18` (24 bytes), then `uint(self)` is `0x0102...1800000000000000` (8 zeros).
+        // So the data occupies bits 255 down to 64. (192 bits).
+        // We want to replace 22 bytes (176 bits).
+        // If offset=0: replace bits 255 down to 80 (22 bytes). Keep bits 79-64 (2 bytes) and 63-0 (padding).
+        // If offset=1: replace bits 247 down to 72. Keep bits 255-248 (1 byte) and 71-64 (1 byte).
+        // If offset=2: replace bits 239 down to 64. Keep bits 255-240 (2 bytes).
+        
+        // Strategy:
+        // 1. Create a mask for the 22-byte segment at the given offset.
+        // 2. Clear that segment in `self`.
+        // 3. Shift `value` (which is 22 bytes) to the correct position.
+        // 4. OR them together.
+        
+        // `value` is bytes22. As uint256, it is left-aligned in the 32-byte slot? 
+        // No, `bytes22` as uint256 is `value` << (8 * (32-22)) = `value` << 80.
+        // So `value` in uint256 form already has its data in bits 255 down to 80.
+        // This matches offset=0 position for a 22-byte segment in a 24-byte word (which starts at bit 255).
+        // Wait, if `self` is bytes24, its data is in bits 255 down to 64.
+        // A 22-byte segment at offset 0 within `self` corresponds to bits 255 down to 80.
+        // A 22-byte segment at offset 1 corresponds to bits 247 down to 72.
+        // A 22-byte segment at offset 2 corresponds to bits 239 down to 64.
+        
+        // The input `value` (bytes22) when cast to uint256 is aligned to bits 255-80.
+        // So for offset=0, we don't shift `value`.
+        // For offset=1, we shift `value` right by 8 bits.
+        // For offset=2, we shift `value` right by 16 bits.
+        
+        let shiftedValue := shr(mul(offset, 8), value)
+        
+        // Create mask for 22 bytes: 0xFFFFFFFF... (22 times) ... 0000 (10 bytes zeros)
+        // 22 bytes = 176 bits. Mask = (1 << 176) - 1, then shifted to top?
+        // Easier: Mask for 22 bytes at top is `type(uint256).max << (8*10)`.
+        // 10 bytes = 80 bits.
+        let fullMask := shl(80, sub(shl(176, 1), 1)) // This creates 176 ones at the top? 
+        // (1<<176)-1 gives 176 ones at LSB. Shl(80) moves them to 255-80. Correct.
+        // Now shift this mask right by `offset * 8` to align with the target segment.
+        let segmentMask := shr(mul(offset, 8), fullMask)
+        
+        // Invert mask to clear the segment in `self`
+        let invertedMask := not(segmentMask)
+        
+        // Clear the segment in self
+        let clearedSelf := and(self, invertedMask)
+        
+        // Prepare the new value (already shifted) and ensure it's masked (though input should be clean)
+        let alignedValue := and(shiftedValue, segmentMask)
+        
+        // Combine
+        result := or(clearedSelf, alignedValue)
+    }
+}

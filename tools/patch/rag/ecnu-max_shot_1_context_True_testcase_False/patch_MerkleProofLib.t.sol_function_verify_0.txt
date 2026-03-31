@@ -1,0 +1,18 @@
+function verify(bytes32[] memory proof, bytes32 root, bytes32 leaf) internal  pure returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let end := add(proof, shl(5, mload(proof)))
+            for { proof := add(proof, 0x20) } lt(proof, end) { proof := add(proof, 0x20) } {
+                let element := mload(proof)
+                if gt(leaf, element) {
+                    mstore(0, leaf)
+                    mstore(0x20, element)
+                } else {
+                    mstore(0, element)
+                    mstore(0x20, leaf)
+                }
+                leaf := keccak256(0, 0x40)
+            }
+            isValid := eq(leaf, root)
+        }
+    }

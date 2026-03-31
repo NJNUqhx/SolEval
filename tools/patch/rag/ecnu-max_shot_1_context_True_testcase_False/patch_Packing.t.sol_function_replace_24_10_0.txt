@@ -1,0 +1,7 @@
+function replace_24_10(bytes24 self, bytes10 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+        let val := and(shr(sub(80, mul(8, offset))), shl(80, value))
+        let old := and(shl(sub(80, mul(8, offset))), shr(80, self))
+        result := xor(xor(self, old), val)
+    }
+}

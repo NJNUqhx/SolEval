@@ -1,0 +1,8 @@
+function malloc(uint256 n) internal  pure returns (bytes32[] memory buffer) {
+assembly {
+        buffer := mload(0x40)
+        mstore(buffer, n)
+        let size := shl(5, add(1, n))
+        mstore(0x40, add(buffer, size))
+    }
+}

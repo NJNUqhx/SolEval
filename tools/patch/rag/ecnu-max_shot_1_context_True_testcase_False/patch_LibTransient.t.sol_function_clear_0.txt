@@ -1,0 +1,6 @@
+function clear(TBytes storage ptr) internal {
+/// @solidity memory-safe-assembly
+        assembly {
+            sstore(ptr.slot, 0)
+        }
+    }

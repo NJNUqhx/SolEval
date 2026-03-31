@@ -1,12 +1,8 @@
 function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
-function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
 /// @solidity memory-safe-assembly
         assembly {
-            // Clear higher bits of left (ensure only lower 8 bits are used)
-            left := and(left, 0xFF)
-            // Clear higher bits of right (ensure only lower 8 bits are used)
-            right := and(right, 0xFF)
-            // Combine: shift left by 8 bits and OR with right
+            left := and(left, 0xff)
+            right := and(right, 0xff)
             result := or(shl(8, left), right)
         }
     }

@@ -1,57 +1,10 @@
 function replace_32_22(bytes32 self, bytes22 value, uint8 offset) internal  pure returns (bytes32 result) {
-function replace_32_22(bytes32 self, bytes22 value, uint8 offset) internal  pure returns (bytes32 result) {
 assembly {
-            // Calculate the number of bits to shift based on the byte offset.
-            // Each byte is 8 bits, so shift = offset * 8.
-            let shift := mul(offset, 8)
-            
-            // Create a mask for 22 bytes (22 * 8 = 176 bits).
-            // 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
-            // We can create this by taking NOT(0) and shifting right by (256 - 176) = 80 bits.
-            // 256 - (22 * 8) = 256 - 176 = 80.
-            let mask := shr(80, not(0))
-            
-            // Align the mask to the specific offset position.
-            // If offset is 0, mask stays at the top (left-aligned in 32 bytes).
-            // If offset > 0, we shift the mask to the right by 'shift' bits.
-            let alignedMask := shr(shift, mask)
-            
-            // Extract the old 22-byte segment from 'self' using the aligned mask.
-            let oldSegment := and(self, alignedMask)
-            
-            // Prepare the new value:
-            // 1. Load the 22-byte value. Since it's passed as bytes22, it's right-aligned in the 32-byte slot.
-            // 2. Shift it left to align with the target offset position.
-            // The value needs to move from the right side to the 'offset' position.
-            // Current position of MSB of value: bit 175 (0-indexed from right, since 22 bytes = 176 bits).
-            // Target position of MSB: bit (255 - shift).
-            // Actually, simpler logic: The value is in the lower 176 bits. We need to shift it left by (256 - 176 - shift)?
-            // No, let's look at alignment.
-            // 'value' occupies bits [0, 175]. We want it to occupy bits corresponding to the mask.
-            // The mask starts at bit (255 - shift) and goes down 176 bits.
-            // So we need to shift 'value' left by (256 - 176 - shift) = (80 - shift)? 
-            // Wait, if offset=0, shift=0. Mask is top 176 bits. Value is bottom 176 bits.
-            // We need to shift value LEFT by 80 bits to match the mask at offset 0.
-            // If offset=10 (80 bits), shift=80. Mask is shifted right by 80.
-            // Value needs to be shifted left by (80 - 80) = 0? No.
-            
-            // Let's re-calculate shift amount for the value.
-            // Total bits = 256. Segment size = 176.
-            // Value is right-aligned (occupies 0..175).
-            // Target slot starts at bit (256 - 176 - shift_from_left)? 
-            // Let's use the mask logic which is robust.
-            // alignedMask has 1s where the new data should go.
-            // We need to shift 'value' so that its 176 bits align with the 1s in 'alignedMask'.
-            // The highest bit of 'value' is at position 175 (0-indexed).
-            // The highest bit of 'alignedMask' is at position (255 - shift).
-            // Required left shift = (255 - shift) - 175 = 80 - shift.
-            let valueShift := sub(80, shift)
-            let alignedValue := shl(valueShift, value)
-            
-            // Perform the replacement:
-            // 1. Clear the old segment from self: and(self, not(alignedMask))
-            // 2. Add the new segment: or(..., alignedValue)
-            // Alternatively using XOR as suggested: self ^ oldSegment ^ alignedValue
-            result := xor(xor(self, oldSegment), alignedValue)
+            let shift := shl(3, sub(32, offset))
+            let mask := not(shl(176, sub(0xffffffffffffffffffffffffffffffffffff, 0)))
+            let shiftedMask := shr(shift, mask)
+            let oldSegment := and(self, shiftedMask)
+            let shiftedValue := shr(shift, and(value, mask))
+            result := xor(xor(self, oldSegment), shiftedValue)
         }
     }

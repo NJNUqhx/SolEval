@@ -1,0 +1,28 @@
+function tryDecodeAuthCompactCalldata(bytes calldata encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+if (encodedAuth.length < 0x46) {
+            return decoded;
+        }
+        assembly {
+            let authLen := shr(240, calldataload(calldata.offset))
+            let authStart := add(calldata.offset, 0x02)
+            let clientStart := add(authStart, authLen)
+            let challengeIndex := shr(240, calldataload(clientStart))
+            let typeIndex := shr(240, calldataload(add(clientStart, 0x02)))
+            let r := calldataload(add(clientStart, 0x04))
+            let s := calldataload(add(clientStart, 0x24))
+            let clientLen := sub(sub(sub(calldataload(add(calldata.offset, 0x44)), challengeIndex), 0x04), 0x02)
+            
+            if lt(clientStart, add(clientStart, clientLen)) {
+                if lt(add(clientStart, clientLen), add(clientStart, 0x44)) {
+                    mstore(decoded, authStart)
+                    mstore(add(decoded, 0x20), authLen)
+                    mstore(add(decoded, 0x40), clientStart)
+                    mstore(add(decoded, 0x60), clientLen)
+                    mstore(add(decoded, 0x80), challengeIndex)
+                    mstore(add(decoded, 0xa0), typeIndex)
+                    mstore(add(decoded, 0xc0), r)
+                    mstore(add(decoded, 0xe0), s)
+                }
+            }
+        }
+    }

@@ -1,74 +1,7 @@
 function pack_6_22(bytes6 left, bytes22 right) internal  pure returns (bytes28 result) {
-function pack_6_22(bytes6 left, bytes22 right) internal  pure returns (bytes28 result) {
-    assembly {
-        // Clear the lower 208 bits of `left` (which is stored in the upper 48 bits of a 256-bit word).
-        // bytes6 = 48 bits. We want to keep the top 48 bits of the 256-bit slot if interpreted as big-endian,
-        // but in assembly, `left` is left-aligned in the 32-byte word (i.e., occupies the most significant 6 bytes).
-        // Actually, Solidity stores fixed-size bytes types left-aligned in the 32-byte word.
-        // So `left` (bytes6) occupies bits 208 to 255 (0-indexed from right, or the first 6 bytes).
-        // We don't need to clear anything for `left` if it's already left-aligned, but let's ensure we shift it correctly.
-        
-        // To pack into bytes28 (224 bits):
-        // The result should have `left` (6 bytes) in the most significant 6 bytes,
-        // and `right` (22 bytes) in the next 22 bytes.
-        // Total = 28 bytes = 224 bits.
-        
-        // `left` is bytes6: stored in the top 6 bytes of a 32-byte word (bits 208-255).
-        // `right` is bytes22: stored in the top 22 bytes of a 32-byte word (bits 32-255).
-        
-        // We want the result (bytes28) to be:
-        // [left (6 bytes)][right (22 bytes)][0 (4 bytes)]
-        // But bytes28 is 28 bytes, so it fits exactly: 6 + 22 = 28.
-        // In a 32-byte word, bytes28 will be left-aligned, occupying the first 28 bytes (bits 32 to 255).
-        
-        // Step 1: `left` is already in the top 6 bytes (bits 208-255). 
-        // We need to shift it right by 32 bits (4 bytes) so it occupies bits 176-223 (the first 6 bytes of the 28-byte result).
-        // Wait, let's re-evaluate the layout for bytes28.
-        // bytes28 in Solidity is left-aligned in a 32-byte word. 
-        // It occupies bytes 0 to 27 (bits 255 down to 32).
-        // `left` (bytes6) should occupy bytes 0-5 (bits 255 down to 208).
-        // `right` (bytes22) should occupy bytes 6-27 (bits 207 down to 32).
-        
-        // Current state in 32-byte words:
-        // `left`: bytes 0-5 are valid, bytes 6-31 are 0. (Bits 255-208 valid).
-        // `right`: bytes 0-21 are valid, bytes 22-31 are 0. (Bits 255-32 valid).
-        
-        // We need to shift `right` so its valid data moves to bytes 6-27.
-        // Currently `right` valid data is at bytes 0-21. We need it at bytes 6-27.
-        // This means shifting `right` RIGHT by 6 bytes (48 bits)? No.
-        // If `right` is left-aligned, its data is in the MOST significant 22 bytes.
-        // We want it to follow `left`. `left` takes the first 6 bytes.
-        // So `right` needs to start at byte index 6.
-        // In a 32-byte word, byte index 0 is the most significant.
-        // So `right` needs to be shifted such that its most significant byte lands at byte index 6.
-        // Currently, its most significant byte is at byte index 0.
-        // So we shift `right` RIGHT by 6 bytes (48 bits).
-        
-        // `left` is already at byte index 0. It stays there.
-        
-        // Let's verify the bitwise operations described in the requirement:
-        // 1. Clears the lower 208 bits of the `left` bytes6 value. 
-        //    bytes6 is 48 bits. 256 - 48 = 208. If `left` is left-aligned, the lower 208 bits are already 0.
-        //    Maybe the requirement implies ensuring cleanliness or working with raw values.
-        //    If we assume `left` might have garbage in lower bits (unlikely for Solidity types but possible in assembly if manipulated),
-        //    we can mask it. Mask = type(uint256).max << 208.
-        // 2. Clears the lower 80 bits of the `right` bytes22 value.
-        //    bytes22 is 176 bits. 256 - 176 = 80. Lower 80 bits should be 0 for left-aligned.
-        //    Mask = type(uint256).max << 80.
-        // 3. Combine: (left_masked) | (right_masked >> 48). 
-        //    Why 48? 6 bytes * 8 = 48 bits. 
-        //    If `right` is left-aligned (occupying top 176 bits), shifting right by 48 bits moves it to occupy bits 207 down to 32.
-        //    Bits 255-208 are occupied by `left`.
-        //    Bits 207-32 are occupied by shifted `right`.
-        //    Bits 31-0 are 0.
-        //    This forms a 224-bit value (28 bytes) in the top 28 bytes of the word.
-        
-        let left_clean := and(left, shl(208, not(0))) // Mask to keep top 48 bits
-        let right_clean := and(right, shl(80, not(0))) // Mask to keep top 176 bits
-        
-        // Shift right_clean right by 48 bits to make space for left
-        let right_shifted := shr(48, right_clean)
-        
-        result := or(left_clean, right_shifted)
-    }
+assembly {
+    let l := and(shl(208, shr(208, left)), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000)
+    let r := and(shl(80, shr(80, right)), 0x0000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+    result := or(l, r)
+}
 }

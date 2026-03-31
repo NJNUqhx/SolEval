@@ -1,0 +1,63 @@
+function replace_10_1(bytes10 self, bytes1 value, uint8 offset) internal  pure returns (bytes10 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Ensure offset is within bounds (0-9), though caller responsibility usually.
+            // Mask value to ensure it's a single byte.
+            let v := and(value, 0xff)
+            
+            // Calculate shift amount: (9 - offset) * 8
+            // bytes10 is 10 bytes. Index 0 is the most significant byte in the left-aligned representation within bytes32?
+            // Actually, bytes10 stored in a slot:
+            // If self = 0x0102030405060708090a0000...
+            // Byte at offset 0 is 0x01 (most significant of the 10).
+            // Shift needed to bring byte at `offset` to the least significant position of the 10-byte block?
+            // StandardSolidity storage/layout: bytes10 is left-aligned in the 32-byte word.
+            // Byte 0 is at bit 248 (32*8 - 8). Byte 9 is at bit 168.
+            // Shift right by (9 - offset) * 8 to get the target byte to the lowest byte of the 10-byte segment?
+            // Let's verify:
+            // Offset 0: shift (9-0)*8 = 72. 248 - 72 = 176? No.
+            // In a bytes10 variable loaded into a stack slot (which is 32 bytes):
+            // The value is left-aligned.
+            // Byte 0 is bits 248-255.
+            // Byte 9 is bits 168-175.
+            // To isolate byte at `offset`:
+            // We need to shift right by (9 - offset) * 8 to move it to the position of byte 9 (bits 168-175)?
+            // No, usually we want to move it to the least significant byte (bits 0-7) to compare/mask easily.
+            // Total bits in bytes10 = 80.
+            // Byte `offset` starts at bit (80 - 8 - offset*8) from the right of the 10-byte sequence?
+            // Let's use the property: bytes10 is left aligned in 32 bytes.
+            // Value occupies bits 255 down to 176 (80 bits).
+            // Byte 0: bits 255-248.
+            // Byte `offset`: bits (255 - offset*8) down to (248 - offset*8).
+            // To move this byte to the least significant position (bits 7-0), we shift right by (248 - offset*8).
+            // Wait, 248 = 31*8.
+            // Shift amount = (31 - offset) * 8.
+            // Let's re-evaluate the "XOR" strategy.
+            // result = self ^ (old_byte << shift) ^ (new_byte << shift)
+            // Where shift aligns the byte to its position.
+            // Position of byte `offset` in the 32-bit word (left aligned):
+            // Start bit = 255 - offset * 8.
+            // So we need to shift the single byte value left by (255 - offset * 8).
+            // But `shl` takes shift amount.
+            // shift = (31 - offset) * 8.
+            
+            let shift := mul(sub(31, offset), 8)
+            
+            // Extract old byte at position (move to LSB, mask, then move back? Or just mask in place)
+            // Mask for a single byte at that position: 0xff << shift
+            let mask := shl(shift, 0xff)
+            
+            // Isolate old byte value (optional for logic, but good for clarity if needed, here we just flip bits)
+            // We want: result = (self & ~mask) | (v << shift)
+            // Using XOR: result = self ^ ((self & mask) ^ (v << shift))
+            // Or simpler: result = self ^ mask & self ^ (v << shift)? No.
+            // result = (self & (~mask)) | (v << shift)
+            // In assembly without complex boolean logic:
+            // clear bits: and(self, not(mask))
+            // set bits: or(..., shl(shift, v))
+            
+            let cleared := and(self, not(mask))
+            let shifted_val := shl(shift, v)
+            result := or(cleared, shifted_val)
+        }
+    }

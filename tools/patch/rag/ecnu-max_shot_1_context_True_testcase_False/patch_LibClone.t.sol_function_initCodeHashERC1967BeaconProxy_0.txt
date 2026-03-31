@@ -1,0 +1,15 @@
+function initCodeHashERC1967BeaconProxy(address beacon, bytes memory args) internal  pure returns (bytes32 hash) {
+bytes32 hash) internal pure returns (bytes32 hash) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        let m := mload(0x40)
+        let n := mload(args)
+        if gt(n, 0x7d00) { revert(0, 0) }
+        calldatacopy(add(m, 0x138), add(args, 0x20), n)
+        mstore(m, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+        mstore(add(m, 0x14), shr(96, shl(96, beacon)))
+        mstore(add(m, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+        hash := keccak256(m, add(0x158, n))
+    }
+}
+}

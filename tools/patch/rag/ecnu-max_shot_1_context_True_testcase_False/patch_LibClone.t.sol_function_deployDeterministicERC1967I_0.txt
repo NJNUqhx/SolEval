@@ -1,0 +1,19 @@
+function deployDeterministicERC1967I(uint256 value, address implementation, bytes memory args, bytes32 salt) internal   returns (address instance) {
+assembly {
+            let freeMem := mload(0x40)
+            let argsLength := mload(args)
+            let argsData := add(args, 0x20)
+            mcopy(freeMem, argsData, argsLength)
+
+            let initCodeStart := add(freeMem, argsLength)
+            mstore(initCodeStart, 0x606738038060675f395ff3fe602d5f8160095f39f35f5f365f5f37365f73)
+            mstore(add(initCodeStart, 0x09), shr(0x60, implementation))
+            mstore(add(initCodeStart, 0x1d), shl(0xd8, argsLength))
+
+            let instance := create2(value, add(initCodeStart, 0x21), add(0x2a, argsLength), salt)
+            if iszero(instance) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+        }
+}

@@ -1,42 +1,10 @@
 function extract_32_8(bytes32 self, uint8 offset) internal  pure returns (bytes8 result) {
-function extract_32_8(bytes32 self, uint8 offset) internal  pure returns (bytes8 result) {
 if (offset > 24) {
             revert("OutOfRangeAccess");
         }
 
         assembly {
-            // Shift left by (8 * offset) bits to align the desired 8 bytes to the most significant position.
-            // Since 8 bytes = 64 bits, and we want to extract starting at `offset`,
-            // we shift left by (offset * 8).
-            let shifted := shl(mul(offset, 8), self)
-            
-            // Mask to keep only the top 8 bytes (64 bits).
-            // 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
-            // However, since we will return a bytes8, Solidity handles the truncation if we just move it to the top.
-            // To be explicit and safe for the `bytes8` return variable which expects data in the high-order bits 
-            // when viewed as a full word, or simply relies on the upper 8 bytes:
-            // We shift left so the target bytes are at the very top (bits 255-192).
-            // Then we can just assign.
-            
-            // Actually, `bytes8` occupies the highest 8 bytes of the 32-byte slot in memory/stack representation for return.
-            // By shifting left by (offset * 8), the byte at `offset` moves to position 0 (MSB).
-            // The subsequent 7 bytes follow.
-            // Any bytes after the 8th byte of our segment will be shifted out or need masking if they interfere?
-            // No, if we shift left by (offset * 8), the byte at `offset` becomes the MSB.
-            // The byte at `offset + 7` becomes the 8th byte.
-            // Bytes from `offset + 8` onwards are now in lower positions.
-            // We need to clear everything below the 8th byte.
-            // Mask: 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
-            // But wait, `bytes8` return type in Solidity expects the value to be left-aligned in the 32-byte word?
-            // Yes, value types are right-aligned usually, but `bytesN` are left-aligned in the 32-byte word.
-            // So if we have the data at the top 8 bytes, that is correct.
-            
-            // Let's refine:
-            // Input: 0x112233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00
-            // Offset: 1 (want 0x2233445566778899)
-            // Shift left by 8: 0x2233445566778899AABBCCDDEEFF00112233445566778899AABBCCDDEEFF0000
-            // Now we need to zero out the lower 24 bytes.
-            // Mask with 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
-            result := and(shifted, 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+            result := and(shl(mul(offset, 8), self), 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+            result := shr(192, result)
         }
     }

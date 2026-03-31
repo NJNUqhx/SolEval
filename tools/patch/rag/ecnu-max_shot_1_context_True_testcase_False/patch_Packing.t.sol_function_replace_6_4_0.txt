@@ -1,0 +1,9 @@
+function replace_6_4(bytes6 self, bytes4 value, uint8 offset) internal  pure returns (bytes6 result) {
+assembly {
+            let oldVal := shr(sub(192, mul(8, offset)), shl(64, self))
+            let maskedVal := and(value, 0xFFFFFFFF)
+            let shiftedNew := shl(sub(192, mul(8, offset)), maskedVal)
+            let shiftedOld := shl(sub(192, mul(8, offset)), oldVal)
+            result := xor(xor(shl(64, self), shiftedOld), shiftedNew)
+        }
+}

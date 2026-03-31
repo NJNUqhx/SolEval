@@ -1,0 +1,25 @@
+function bootstrapERC1967AndCall(address instance, address implementation, bytes memory data) internal {
+/// @solidity memory-safe-assembly
+        assembly {
+            let dataPtr := add(data, 0x20)
+            let dataLen := mload(data)
+
+            mstore(dataPtr, implementation)
+
+            let success := call(gas(), instance, 0, dataPtr, add(dataLen, 0x20), 0, 0)
+
+            if iszero(success) {
+                if iszero(returndatasize()) {
+                    let errorPtr := mload(0x40)
+                    mstore(errorPtr, shl(224, 0x104f422c))
+                    revert(errorPtr, 0x04)
+                } else {
+                    let errorPtr := mload(0x40)
+                    returndatacopy(errorPtr, 0, returndatasize())
+                    revert(errorPtr, returndatasize())
+                }
+            }
+
+            mstore(dataPtr, dataLen)
+        }
+    }

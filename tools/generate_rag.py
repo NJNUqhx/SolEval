@@ -18,6 +18,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from utils.logger import MyLogger
 from utils.retrieve import init_bert_model, query
 from llm_call import call
+from utils.custom_tools import fix_missing_brackets
 
 # 保存测试prompt
 prompt_idx = 0
@@ -32,9 +33,9 @@ def few_shot_generation(args, prompt, tokenizer, model, sample):
                      "content": "You are a professional Solidity engineer. Please continue to generate a function based on the provided requirement and function signature, NO need to repeat the signature. End your function with // END_OF_FUNCTION. Never add any additional explanation or comments."},
                     {"role": "user", "content": prompt},
                 ]
-        logger.info_blue("--------------prompt(start)-----------------")
-        logger.info(prompt)
-        logger.info_blue("--------------prompt(end)-----------------")
+        # logger.info_blue("--------------prompt(start)-----------------")
+        # logger.info(prompt)
+        # logger.info_blue("--------------prompt(end)-----------------")
         
         for idx in range(sample):
             response = call(messages)
@@ -44,6 +45,8 @@ def few_shot_generation(args, prompt, tokenizer, model, sample):
             output = function_full_sig.strip('\n') + '\n' + output.strip('\n')
             
             logger.info_blue("--------------function(start)-----------------")
+            # 修复缺失的右括号
+            output = fix_missing_brackets(output)
             logger.info_blue(output)
             logger.info_blue("--------------function(end)-----------------")
             with open(
@@ -133,6 +136,14 @@ if __name__ == '__main__':
             logger.info_blue(f"平均每个文件的方法数: {total_methods / total_files:.2f}")
             logger.info_blue(f"单文件最多方法数: {max(methods_per_file)}")
         
+        # 构建映射关系
+        pattern_to_path = {}
+        for file_path, file_content in tqdm(data.items(), colour='green'):
+            for method in tqdm(file_content, colour="red"):
+                identifier = method['identifier']
+                pattern = f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_*"
+                
+                
         sys.exit(0)
     
     file_count = 0
@@ -228,7 +239,15 @@ if __name__ == '__main__':
                         # slow = True
             output_list = [function_full_sig.strip('\n') + '\n' + output.strip('\n') for output in output_list]
             
+            for idx, out in enumerate(output_list):
+                with open(
+                        f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{idx + have_sample}.txt",
+                        'w') as f:
+                    f.write(out)
+            
     
     if args.model == "debug":
         with open('/root/contract2solidity/SolEval/dataset/prompt.json', 'w', encoding='utf-8') as f:
             json.dump(prompt_list, f, ensure_ascii=False, indent=4) 
+            
+    logger.info_blue(f"Total files processed")

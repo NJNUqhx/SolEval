@@ -1,0 +1,60 @@
+function replace_16_6(bytes16 self, bytes6 value, uint8 offset) internal  pure returns (bytes16 result) {
+assembly {
+            // Load the original 16-byte value
+            let original := mload(self)
+            
+            // Load the 6-byte value and shift it to the correct position within a 32-byte word
+            // The value is stored in the highest 6 bytes of the 32-byte slot when loaded directly if we assume standard padding,
+            // but here we load the `value` (which is 6 bytes). 
+            // In Solidity, `bytes6` is left-aligned in a 32-byte slot.
+            let val := mload(value)
+            
+            // Calculate the number of bits to shift to align the 6-byte value to the target offset.
+            // Total bits in 16 bytes = 128.
+            // Offset is in bytes. We want to place the 6 bytes starting at `offset`.
+            // The `val` is left-aligned (bits 256-200). We need to shift it right so it lands at `offset`.
+            // Position of first byte of `val` in 32-byte word: 0 (if we consider the 32 byte word as 0..31)
+            // Actually, `mload(value)` loads the 6 bytes into the first 6 bytes of a 32-byte word? 
+            // No, Solidity types like `bytes6` are left-aligned in their 32-byte storage slot.
+            // So `val` has data in bits 255 down to 200 (6 bytes * 8 = 48 bits).
+            // We want the data to be at `offset` within the 16-byte result.
+            // The 16-byte result is stored in the lower 128 bits of a 32-byte word? 
+            // When we return `bytes16`, it's usually just the value.
+            // Let's work with the 32-bit word representation where the 16 bytes are the most significant or least significant?
+            // Standard practice for fixed bytes in assembly: they are left-aligned in the 32-byte slot.
+            // `self` is `bytes16`, so `mload(self)` gives 16 bytes in the high order (bits 255..128).
+            // `value` is `bytes6`, so `mload(value)` gives 6 bytes in the high order (bits 255..208).
+            
+            // We need to construct a mask and shifted value to XOR into the original.
+            // Target position in the 32-byte word for the 6-byte segment:
+            // If `offset` is 0, the 6 bytes should be at bits 255..208.
+            // If `offset` is 10, the 6 bytes should be at bits (255 - 8*10) .. (208 - 8*10).
+            // Shift amount = offset * 8.
+            let shift := mul(offset, 8)
+            
+            // Shift the `val` right by `shift` bits to align it with the target position in the 16-byte block
+            // Since `val` is already left-aligned (starting at bit 255), shifting right by `offset*8` moves it to start at `255 - offset*8`.
+            let shiftedVal := shr(shift, val)
+            
+            // Create a mask for 6 bytes (48 bits) at the target position.
+            // 6 bytes of 1s: 0xFFFFFFFFFFFF (48 ones).
+            // This mask needs to be shifted right by `shift` as well to align with the target.
+            let mask := shr(shift, 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000) -- Wait, constant literal size.
+            // Better approach: Create 48 ones at the top, then shift.
+            // 48 ones at the top: NOT(0) >> (256-48) = NOT(0) >> 208.
+            // Then shift right by `shift`.
+            // Or: (1 << 48) - 1 gives 48 ones at the bottom. Then shift left to top, then right by shift?
+            // Let's use: 0xFFFFFFFFFFFF << (256 - 48) = 0xFFFFFFFFFFFF << 208.
+            // Then `shr(shift, ...)`
+            // Actually, simpler: `mask = not(0)` then `shr(208, mask)` gives 48 ones at top.
+            // Then `shr(shift, mask)` moves it down.
+            let fullMask := shr(208, not(0)) // 48 ones at the most significant positions
+            let targetMask := shr(shift, fullMask)
+            
+            // Clear the 6-byte segment in the original value
+            let cleared := and(original, not(targetMask))
+            
+            // Apply the new value
+            result := or(cleared, shiftedVal)
+        }
+    }

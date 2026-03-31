@@ -1,5 +1,0 @@
-function approve(address spender, uint256 amount) public {
-function approve(address spender, uint256 amount) public {
-        ISwappableToken(token1).approve(spender, amount);
-        ISwappableToken(token2).approve(spender, amount);
-    }

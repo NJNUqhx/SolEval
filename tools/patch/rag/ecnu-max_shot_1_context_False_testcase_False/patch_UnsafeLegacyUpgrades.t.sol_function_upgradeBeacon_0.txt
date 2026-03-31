@@ -1,5 +1,0 @@
-function upgradeBeacon(address beacon, string memory contractName) internal {
-function upgradeBeacon(address beacon, string memory contractName) internal {
-    Options memory opts;
-    Core.upgradeBeacon(beacon, contractName, opts);
-} 

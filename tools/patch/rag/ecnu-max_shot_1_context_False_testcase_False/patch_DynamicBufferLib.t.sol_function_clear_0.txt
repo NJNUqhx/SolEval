@@ -1,7 +1,0 @@
-function clear(DynamicBuffer memory buffer) internal  pure returns (DynamicBuffer memory result) {
-function clear(DynamicBuffer memory buffer) internal  pure returns (DynamicBuffer memory result) {
-    _deallocate(result);
-    assembly {
-        mstore(add(result, 0x20), 0)
-    }
-} 

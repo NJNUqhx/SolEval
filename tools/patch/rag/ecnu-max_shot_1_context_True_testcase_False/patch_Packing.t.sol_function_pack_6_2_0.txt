@@ -1,0 +1,5 @@
+function pack_6_2(bytes6 left, bytes2 right) internal  pure returns (bytes8 result) {
+assembly {
+            result := or(shl(16, and(left, 0xFFFFFFFFFFFF)), and(right, 0xFFFF))
+        }
+    }

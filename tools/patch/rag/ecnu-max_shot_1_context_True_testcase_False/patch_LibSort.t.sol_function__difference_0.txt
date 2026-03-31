@@ -1,0 +1,53 @@
+function _difference(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+assembly {
+            let aPtr := add(a, 0x20)
+            let bPtr := add(b, 0x20)
+            let aEnd := add(aPtr, mul(mload(a), 0x20))
+            let bEnd := add(bPtr, mul(mload(b), 0x20))
+            let cPtr := add(c, 0x20)
+            let cLen := 0
+
+            for {} and lt(aPtr, aEnd) { } {
+                let valA := mload(aPtr)
+                let valB := mload(bPtr)
+                let skipB := 0
+                let skipA := 0
+
+                if eq(valA, valB) {
+                    skipA := 1
+                    skipB := 1
+                } else {
+                    let cmp := 0
+                    if iszero(signed) {
+                        if gt(valA, valB) { cmp := 1 }
+                    } else {
+                        if sgt(valA, valB) { cmp := 1 }
+                    }
+
+                    if cmp {
+                        skipB := 1
+                    } else {
+                        mstore(cPtr, valA)
+                        cPtr := add(cPtr, 0x20)
+                        cLen := add(cLen, 1)
+                        skipA := 1
+                    }
+                }
+
+                if skipA { aPtr := add(aPtr, 0x20) }
+                if skipB {
+                    bPtr := add(bPtr, 0x20)
+                    if iszero(lt(bPtr, bEnd)) { break }
+                }
+            }
+
+            for {} lt(aPtr, aEnd) { aPtr := add(aPtr, 0x20) } {
+                mstore(cPtr, mload(aPtr))
+                cPtr := add(cPtr, 0x20)
+                cLen := add(cLen, 1)
+            }
+
+            mstore(c, cLen)
+            mstore(0x40, add(cPtr, 0x20))
+        }
+    }

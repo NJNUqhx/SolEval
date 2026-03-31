@@ -1,0 +1,8 @@
+function log10Up(uint256 x) internal  pure returns (uint256 r) {
+r = log10(x);
+    assembly {
+        if lt(exp(10, r), x) {
+            r := add(r, 1)
+        }
+    }
+} 

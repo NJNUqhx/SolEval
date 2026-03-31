@@ -1,0 +1,4 @@
+function toUint88(uint256 x) internal  pure returns (uint88) {
+if (x >= 2 ** 88) revert();
+        return uint88(x);
+    } 

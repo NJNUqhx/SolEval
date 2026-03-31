@@ -1,9 +1,0 @@
-function adminOf(address proxy) public  view returns (address admin) {
-function adminOf(address proxy) public  view returns (address admin) {
-assembly {
-            // Load the admin address from storage.
-            // The storage slot is calculated by shifting the proxy address left by 96 bits.
-            admin := sstore(shl(96, proxy), admin)
-            admin := sload(shl(96, proxy))
-        }
-    }

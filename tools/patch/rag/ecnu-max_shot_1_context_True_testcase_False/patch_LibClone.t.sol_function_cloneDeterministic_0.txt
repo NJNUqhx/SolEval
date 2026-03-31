@@ -1,0 +1,40 @@
+function cloneDeterministic(uint256 value, address implementation, bytes memory args, bytes32 salt) internal   returns (address instance) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let argsLength := mload(args)
+            let argsOffset := add(args, 0x20)
+            let freeMem := mload(0x40)
+            
+            // Copy args to free memory
+            if argsLength {
+                pop(staticcall(gas(), argsOffset, argsLength, freeMem, argsLength))
+            }
+            
+            let codeOffset := add(freeMem, argsLength)
+            
+            // Store initialization code prefix
+            // 0x602d5f8160095f39f35f5f365f5f37365f73 (push1 0x2d, push0, dup2, push1 0x09, push0, codecopy, return, push0, push0, calldatacopy, push0, push0, calldatasize, push0, push20)
+            mstore(codeOffset, 0x602d5f8160095f39f35f5f365f5f37365f730000000000000000000000000000)
+            
+            // Store implementation address
+            mstore(add(codeOffset, 0x14), implementation)
+            
+            // Store initialization code suffix
+            // 0x5af43d5f5f3e6029573d5ffd5b3d5ff3 (push0, create2, returndatasize, push0, push0, returndatacopy, push0, msize, push1 0x29, push0, sstore, returndatasize, push0, revert, jumpdest, returndatasize, push0, return)
+            // Actually the provided snippet uses: 0x5af43d5f5f3e6029573d5ffd5b3d5ff3
+            mstore(add(codeOffset, 0x28), 0x5af43d5f5f3e6029573d5ffd5b3d5ff300000000000000000000000000000000)
+            
+            let codeSize := add(0x36, argsLength)
+            
+            instance := create2(value, codeOffset, codeSize, salt)
+            
+            if iszero(instance) {
+                mstore(0x00, 0x30116425) // `DeploymentFailed()`.
+                revert(0x1c, 0x04)
+            }
+            
+            // Restore free memory pointer if needed (optional depending on strictness, but good practice)
+            // The requirement mentions restoring overwritten part, but here we appended.
+            // We don't overwrite 0x40, so no restore needed for that specific pointer.
+        }
+    }

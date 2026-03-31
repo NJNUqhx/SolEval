@@ -1,0 +1,13 @@
+function incSigned(TUint256 storage ptr, int256 delta) internal   returns (uint256 newValue) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let current := sload(ptr.slot)
+            newValue := add(current, delta)
+            if xor(gt(newValue, current), slt(delta, 0)) {
+                if xor(lt(newValue, current), sgt(delta, 0)) {
+                    panic(0x11)
+                }
+            }
+            sstore(ptr.slot, newValue)
+        }
+}

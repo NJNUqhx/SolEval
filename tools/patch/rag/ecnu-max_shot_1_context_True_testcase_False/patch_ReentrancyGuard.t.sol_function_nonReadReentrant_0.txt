@@ -1,0 +1,18 @@
+function nonReadReentrant()  virtual {
+bytes32 constant REENTRANCY_GUARD_SLOT = 0x37a5ebf3a8e3a0e84e3b1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c;
+    bytes4 constant REENTRANCY_ERROR_SELECTOR = 0xab143c06; // Reentrancy()
+
+    bytes32 slot = REENTRANCY_GUARD_SLOT;
+    assembly {
+        let guard := sload(slot)
+        if eq(guard, address()) {
+            mstore(0x00, REENTRANCY_ERROR_SELECTOR)
+            revert(0x00, 0x04)
+        }
+        sstore(slot, address())
+    }
+    _;
+    assembly {
+        sstore(slot, 0)
+    }
+}

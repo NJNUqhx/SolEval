@@ -1,0 +1,215 @@
+[2026-03-30 09:31:59] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-03-30 09:31:59] [INFO] --------------prompt(start)-----------------
+[2026-03-30 09:31:59] [INFO] // IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Converts a given `TAddress` storage pointer into a compatible format.
+ * 
+ * Steps:
+ * 1. Uses inline assembly to perform the conversion.
+ * 2. Stores the `_LIB_TRANSIENT_COMPAT_SLOT_SEED` value at memory offset 0x04.
+ * 3. Stores the slot of the input pointer `ptr` at memory offset 0x00.
+ * 4. Computes the keccak256 hash of the memory range 0x00 to 0x24.
+ * 5. Assigns the resulting hash to the slot of the output pointer `c`.
+ *
+ * @dev This function is marked as `private pure` and uses assembly for low-level memory manipulation.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_CONTEXT
+
+// END_OF_CONTEXT
+
+// START_OF_FUNCTION
+function _compat(TAddress storage ptr) private pure returns (TAddress storage c) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x04, _LIB_TRANSIENT_COMPAT_SLOT_SEED)
+            mstore(0x00, ptr.slot)
+            c.slot := keccak256(0x00, 0x24)
+        }
+    }
+// END_OF_FUNCTION
+
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Packs two `bytes1` values into a single `bytes2` value.
+ *
+ * @param left The first `bytes1` value to be packed.
+ * @param right The second `bytes1` value to be packed.
+ * @return result The resulting `bytes2` value after packing.
+ *
+ * Steps:
+ * 1. Clear the higher bits of the `left` value to ensure it fits within the lower 8 bits.
+ * 2. Clear the higher bits of the `right` value to ensure it fits within the lower 8 bits.
+ * 3. Combine the `left` and `right` values into a single `bytes2` value by shifting and OR-ing them.
+ *
+ * @dev This function uses inline assembly to perform bitwise operations for efficiency.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
+
+[2026-03-30 09:31:59] [INFO] --------------prompt(end)-----------------
+[2026-03-30 09:32:08] [INFO] --------------function(start)-----------------
+[2026-03-30 09:32:08] [INFO] function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            left := and(left, 0xff)
+            right := and(right, 0xff)
+            result := or(shl(8, left), right)
+        }
+    }
+[2026-03-30 09:32:08] [INFO] --------------function(end)-----------------
+[2026-03-30 09:32:08] [INFO] average_inference_time: 8.50s
+[2026-03-30 09:32:08] [INFO] --------------prompt(start)-----------------
+[2026-03-30 09:32:08] [INFO] // IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Splits a string into an array of substrings based on a delimiter.
+ *
+ * @param subject The string to be split.
+ * @param delimiter The delimiter used to split the string.
+ *
+ * @return result An array of strings resulting from the split operation.
+ *
+ * Steps:
+ * 1. Convert the input strings (`subject` and `delimiter`) into byte arrays.
+ * 2. Use `LibBytes.split` to split the byte array of `subject` based on the byte array of `delimiter`.
+ * 3. Use assembly to assign the resulting byte array to the `result` string array.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_CONTEXT
+{'function split(bytes memory subject, bytes memory delimiter) internal  pure returns (bytes[] memory result)'}
+// END_OF_CONTEXT
+
+// START_OF_FUNCTION
+function split(string memory subject, string memory delimiter)
+        internal
+        pure
+        returns (string[] memory result)
+    {
+        bytes[] memory a = LibBytes.split(bytes(subject), bytes(delimiter));
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := a
+        }
+    }
+// END_OF_FUNCTION
+
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Packs two `bytes2` values into a single `bytes4` value.
+ *
+ * @param left The first `bytes2` value to be packed.
+ * @param right The second `bytes2` value to be packed.
+ * @return result The resulting `bytes4` value after packing the two `bytes2` values.
+ *
+ * Steps:
+ * 1. Use inline assembly to perform bitwise operations:
+ *    - Clear the upper 16 bits of `left` and `right` to ensure they are properly aligned.
+ *    - Shift `right` by 16 bits to the right and combine it with `left` using the `or` operation.
+ * 2. Return the resulting `bytes4` value.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
+
+[2026-03-30 09:32:08] [INFO] --------------prompt(end)-----------------
+[2026-03-30 09:32:30] [INFO] --------------function(start)-----------------
+[2026-03-30 09:32:30] [INFO] function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
+assembly {
+            result := or(and(left, 0xffff000000000000000000000000000000000000000000000000000000000000), shr(16, and(right, 0xffff000000000000000000000000000000000000000000000000000000000000)))
+        }
+    }
+[2026-03-30 09:32:30] [INFO] --------------function(end)-----------------
+[2026-03-30 09:32:30] [INFO] average_inference_time: 15.41s
+[2026-03-30 09:32:30] [INFO] --------------prompt(start)-----------------
+[2026-03-30 09:32:30] [INFO] // IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Sets the bytes data in the storage slot.
+ *
+ * Steps:
+ * 1. Load the length of the bytes data `s` into `n`.
+ * 2. Pack the length `n` with a prefix `0xff` and store it in `packed`.
+ *
+ * 3. If the length `n` is less than or equal to `0xfe`:
+ *    - Set `i` to `0x1f`.
+ *    - Pack the first 32 bytes of `s` with the length `n` and store it in `packed`.
+ *    - If the length `n` is less than or equal to `i`, break the loop.
+ *
+ * 4. Otherwise:
+ *    - Calculate the offset `o` as `s + 0x20`.
+ *    - Store the storage slot address in memory at `0x00`.
+ *    - Calculate the storage pointer `p` using `keccak256(0x00, 0x20)`.
+ *    - Store the bytes data in the storage slot in chunks of 32 bytes.
+ *    - Increment `i` by 32 bytes until all data is stored.
+ *
+ * 5. Store the packed data in the storage slot.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_CONTEXT
+
+// END_OF_CONTEXT
+
+// START_OF_FUNCTION
+function set(BytesStorage storage $, bytes memory s) internal {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let n := mload(s)
+            let packed := or(0xff, shl(8, n))
+            for { let i := 0 } 1 {} {
+                if iszero(gt(n, 0xfe)) {
+                    i := 0x1f
+                    packed := or(n, shl(8, mload(add(s, i))))
+                    if iszero(gt(n, i)) { break }
+                }
+                let o := add(s, 0x20)
+                mstore(0x00, $.slot)
+                for { let p := keccak256(0x00, 0x20) } 1 {} {
+                    sstore(add(p, shr(5, i)), mload(add(o, i)))
+                    i := add(i, 0x20)
+                    if iszero(lt(i, n)) { break }
+                }
+                break
+            }
+            sstore($.slot, packed)
+        }
+    }
+// END_OF_FUNCTION
+
+// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+
+// START_OF_REQUIREMENT
+/**
+ * @notice Packs a `bytes2` and a `bytes4` value into a single `bytes6` value.
+ *
+ * @dev This function uses inline assembly to perform bitwise operations for packing.
+ * - The `bytes2` value (`left`) is shifted left by 240 bits to align it properly.
+ * - The `bytes4` value (`right`) is shifted left by 224 bits to align it properly.
+ * - The `bytes4` value is then shifted right by 16 bits to combine it with the `bytes2` value.
+ * - The result is a `bytes6` value that combines both inputs.
+ *
+ * @param left The `bytes2` value to be packed.
+ * @param right The `bytes4` value to be packed.
+ * @return result The packed `bytes6` value.
+ */
+// END_OF_REQUIREMENT
+
+// START_OF_FUNCTION
+function pack_2_4(bytes2 left, bytes4 right) internal  pure returns (bytes6 result) {
+
+[2026-03-30 09:32:30] [INFO] --------------prompt(end)-----------------

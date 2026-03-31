@@ -1,39 +1,11 @@
 function replace_12_6(bytes12 self, bytes6 value, uint8 offset) internal  pure returns (bytes12 result) {
-function replace_12_6(bytes12 self, bytes6 value, uint8 offset) internal  pure returns (bytes12 result) {
-    assembly {
-        // Load the original 12-byte value and the new 6-byte value into registers.
-        // Since these are value types, they are right-aligned in their 32-byte slots.
-        let original := self
-        let newVal := value
-        
-        // Calculate the shift amount for the 6-byte segment.
-        // A 6-byte segment is 48 bits.
-        // The offset is in bytes. We need to shift the new value to the correct position.
-        // In a 32-byte word, the data is right-aligned. 
-        // For a 12-byte value, the data occupies the least significant 12 bytes (bits 0-95).
-        // However, when doing bitwise operations on the full 32-byte slot, we treat the 12 bytes
-        // as occupying bits 0 to 95.
-        // The segment to replace starts at `offset` bytes from the right (LSB).
-        // So we shift the new 6-byte value left by (offset * 8) bits.
-        let shift := shl(mul(offset, 8), newVal)
-        
-        // Create a mask for 6 bytes (48 bits): 0xFFFFFFFFFFFF
-        let mask := sub(shl(48, 1), 1)
-        
-        // Shift the mask to the correct position corresponding to the segment being replaced.
-        let shiftedMask := shl(mul(offset, 8), mask)
-        
-        // Clear the target 6-byte segment in the original value.
-        // original & ~shiftedMask
-        let cleared := and(original, not(shiftedMask))
-        
-        // Ensure the new value segment is properly masked (though input is bytes6, safety first)
-        // and shifted. The 'shift' variable already has the value shifted, but we must ensure
-        // no garbage bits exist outside the 6-byte window if the input wasn't clean.
-        // (newVal & mask) << shift
-        let cleanShiftedNew := and(shift, shiftedMask)
-        
-        // Combine the cleared original value with the new shifted value.
-        result := or(cleared, cleanShiftedNew)
-    }
+assembly {
+            let selfVal := and(self, 0xffffffffffffffffffffffff)
+            let valueVal := and(value, 0xffffffffffff)
+            let shift := shl(3, sub(12, add(offset, 6)))
+            let mask := shl(shift, 0xffffffffffff000000000000000000000000)
+            let oldSegment := and(selfVal, mask)
+            let newSegment := shl(shift, valueVal)
+            result := xor(xor(selfVal, oldSegment), newSegment)
+        }
 }

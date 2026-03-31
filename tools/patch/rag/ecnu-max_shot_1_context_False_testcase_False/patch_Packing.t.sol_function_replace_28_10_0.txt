@@ -1,60 +1,51 @@
 function replace_28_10(bytes28 self, bytes10 value, uint8 offset) internal  pure returns (bytes28 result) {
-function replace_28_10(bytes28 self, bytes10 value, uint8 offset) internal  pure returns (bytes28 result) {
-// IMPLEMENT THE FUNCTIONALITY BASED ON THE PROVIDED REQUIREMENT.
+assembly {
+        // Ensure the offset is within valid bounds (0 to 18 for a 10-byte segment in 28 bytes)
+        if gt(offset, 18) {
+            mstore(0x00, 0x4e487b71) // Selector for "Panic(uint256)"
+            mstore(0x20, 0x21) // Out-of-bounds access
+            revert(0x1c, 0x24)
+        }
 
-// START_OF_REQUIREMENT
-/**
- * @notice Replaces a 10-byte segment within a 28-byte value at a specified offset.
- *
- * @param self The original 28-byte value.
- * @param value The new 10-byte value to replace the segment with.
- * @param offset The position (in bytes) within the 28-byte value where the replacement should occur.
- * @return result The modified 28-byte value after replacement.
- *
- * Steps:
- * 1. Extract the existing 10-byte segment from the 28-byte value at the specified offset.
- * 2. Use inline assembly to:
- *    a. Mask the new 10-byte value to ensure it fits within the 10-byte segment.
- *    b. Calculate the result by XORing the original value with the old segment and then XORing with the new segment.
- * 3. Return the modified 28-byte value.
- *
- * @dev This function uses low-level assembly for precise byte manipulation.
- */
-// END_OF_REQUIREMENT
-
-// START_OF_FUNCTION
-function replace_28_10(bytes28 self, bytes10 value, uint8 offset) internal  pure returns (bytes28 result) {
-    /// @solidity memory-safe-assembly
-    assembly {
-        // Load the 28-byte value into a temporary variable.
-        // bytes28 is stored in the lower 224 bits of a bytes32 slot.
+        // Load the 28-byte value into a temporary variable (stored in the first 32 bytes of memory slot 'result')
+        // Since bytes28 fits in one word, we can operate directly on it.
         let original := self
 
-        // Calculate the number of bits to shift to align the target segment to the least significant position.
-        // The segment is 10 bytes long. The offset is in bytes from the left (MSB).
-        // Total size is 28 bytes.
-        // Shift amount in bits = (28 - offset - 10) * 8.
-        let shiftAmount := mul(sub(sub(28, offset), 10), 8)
-
-        // Create a mask for 10 bytes (80 bits).
-        // Type(uint160).max is 0xFFFF... (20 bytes), we need 10 bytes.
+        // Shift the new 10-byte value to the correct position.
+        // Total bits in 32 bytes = 256. We want to align the 10 bytes (80 bits) at 'offset'.
+        // The least significant byte of the 28-byte value is at bit position 0.
+        // The byte at 'offset' starts at bit (offset * 8).
+        // However, when stored in a uint256, the first byte of the bytes28 is the most significant.
+        // bytes28 layout: [byte0 ... byte27]
+        // In uint256 representation: byte0 is at bits 248-255, byte27 is at bits 0-7.
+        // So, byte at 'offset' corresponds to bits: (27 - offset) * 8 down to (27 - offset) * 8 + 7?
+        // Actually, simpler: The rightmost byte (index 27) is at shift 0.
+        // The byte at index 'offset' is at shift: (27 - offset) * 8.
+        // But we are replacing 10 bytes starting at 'offset'.
+        // The last byte of the segment is at (offset + 9). Its shift is (27 - (offset + 9)) * 8 = (18 - offset) * 8.
+        // The first byte of the segment is at 'offset'. Its shift is (27 - offset) * 8.
+        // We need to shift the 10-byte value left so its LSB aligns with the LSB of the target segment.
+        // Target segment LSB is at bit position: (27 - (offset + 9)) * 8 = (18 - offset) * 8.
+        let shiftAmount := mul(sub(18, offset), 8)
+        
+        // Mask the input value to ensure only 10 bytes are used (though bytes10 type enforces this, safety first)
         // 10 bytes = 80 bits. Mask = (1 << 80) - 1.
-        let mask := sub(shl(80, 1), 1)
+        let mask80 := sub(shl(80, 1), 1)
+        let cleanValue := and(value, mask80)
 
-        // Extract the old 10-byte segment from the original value.
-        // Shift right to bring the segment to the LSB, mask it, then shift back to original position.
-        let oldSegment := and(shr(shiftAmount, original), mask)
-        oldSegment := shl(shiftAmount, oldSegment)
+        // Shift the clean value to the target position
+        let shiftedValue := shl(shiftAmount, cleanValue)
 
-        // Prepare the new value.
-        // Convert the bytes10 input to a uint160 (or larger) and mask it to ensure only 10 bytes are used.
-        let newValue := and(value, mask)
-        // Shift the new value to the correct position.
-        newValue := shl(shiftAmount, newValue)
+        // Create a mask to clear the 10-byte segment in the original value.
+        // We need a mask of 10 zeros at the target position and 1s elsewhere.
+        // Invert the shifted value of 10 ones (which is shiftedValue if cleanValue was all 1s).
+        // Let's construct a block of 10 ones shifted to the position.
+        let ones80 := mask80
+        let shiftedOnes := shl(shiftAmount, ones80)
+        let clearMask := not(shiftedOnes)
 
-        // Perform the replacement using XOR logic:
-        // result = (original XOR oldSegment) XOR newValue
-        // This clears the old bits and sets the new bits.
-        result := xor(xor(original, oldSegment), newValue)
+        // Clear the old segment and OR in the new segment
+        let clearedOriginal := and(original, clearMask)
+        result := or(clearedOriginal, shiftedValue)
     }
 }

@@ -1,8 +1,0 @@
-function deriveArray(bytes32 slot) internal  pure returns (bytes32 result) {
-function deriveArray(bytes32 slot) internal  pure returns (bytes32 result) {
-/// @solidity memory-safe-assembly
-        assembly {
-            mstore(0x00, slot)
-            result := keccak256(0x00, 0x20)
-        }
-    }

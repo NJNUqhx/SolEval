@@ -1,0 +1,55 @@
+function pack_16_12(bytes16 left, bytes12 right) internal  pure returns (bytes28 result) {
+        assembly {
+            // Clear the lower 128 bits of `left` (shift left by 128 bits, then right by 128 bits)
+            // Actually, we just need to shift `left` to the upper 16 bytes of the 32-byte slot.
+            // bytes16 is 128 bits. To occupy the higher 16 bytes of a 32-byte word, it needs to be shifted left by 128 bits?
+            // No, `bytes16` in Solidity is right-aligned in the 32-byte slot when loaded directly if treated as a value?
+            // Let's re-evaluate standard Solidity behavior for fixed bytes.
+            // `bytes16` occupies the first 16 bytes (most significant) when stored in memory as a fixed size type?
+            // Actually, in assembly, `left` and `right` are values.
+            // A `bytes16` value passed to assembly is left-aligned in the 32-byte word (upper 16 bytes are data, lower 16 are zero).
+            // A `bytes12` value passed to assembly is left-aligned in the 32-byte word (upper 12 bytes are data, lower 20 are zero).
+            
+            // Requirement Step 1: Clear lower 128 bits of `left`. 
+            // Since `left` is `bytes16`, it is already in the upper 16 bytes (bits 255..128). The lower 128 bits are 0.
+            // However, to be safe and explicit per requirements:
+            // We want `left` to be in the top 16 bytes of the 28-byte result? 
+            // The result is `bytes28`. In a 32-byte return slot, `bytes28` data occupies the first 28 bytes (bits 255..24).
+            // So `left` (16 bytes) should occupy bits 255..128.
+            // `right` (12 bytes) should occupy bits 127..24.
+            
+            // Current state of `left` (bytes16): Bits 255..128 contain data, 127..0 are 0. This matches the target position for the first 16 bytes of a 28-byte sequence aligned to the left of a 32-byte word.
+            
+            // Current state of `right` (bytes12): Bits 255..160 contain data, 159..0 are 0.
+            // We need `right` to start at bit 127 (immediately after `left`).
+            // So we need to shift `right` right by (256 - 160) - (256 - 128 - 12)? 
+            // Let's count bits from MSB (255).
+            // `left` occupies 255 down to 128 (16 bytes).
+            // `right` needs to occupy 127 down to 24 (12 bytes).
+            // Currently `right` occupies 255 down to 160.
+            // We need to shift `right` right by (255 - 160) - (127 - 24)? No.
+            // Shift amount = current MSB position - target MSB position.
+            // Current MSB of `right` data is 255. Target MSB is 127.
+            // Shift right by 128 bits.
+            
+            let leftVal := left
+            let rightVal := right
+            
+            // Step 1: Ensure left is clean (it should be, but let's mask to be sure it only has top 16 bytes)
+            // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+            leftVal := and(leftVal, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000)
+            
+            // Step 2: Clear lower 160 bits of right? The requirement says "Clear the lower 160 bits of the `right` value".
+            // `bytes12` naturally has zeros in the lower 20 bytes (160 bits). 
+            // But let's apply the mask to ensure only the top 12 bytes are kept before shifting.
+            // Mask for top 12 bytes: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000
+            rightVal := and(rightVal, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000)
+            
+            // Shift rightVal to the correct position (move from top 12 bytes to bytes 16-27)
+            // Shift right by 128 bits (16 bytes).
+            rightVal := shr(128, rightVal)
+            
+            // Step 3: Combine
+            result := or(leftVal, rightVal)
+        }
+    }

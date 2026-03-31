@@ -1,0 +1,16 @@
+function deployDeterministic(uint256 value, bytes memory initCode, bytes32 salt) internal   returns (address deployed) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let initCodeSize := mload(initCode)
+            let initCodeStart := add(initCode, 0x20)
+            deployed := create2(value, initCodeStart, initCodeSize, salt)
+            if iszero(deployed) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+            if iszero(extcodesize(deployed)) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+        }
+    }

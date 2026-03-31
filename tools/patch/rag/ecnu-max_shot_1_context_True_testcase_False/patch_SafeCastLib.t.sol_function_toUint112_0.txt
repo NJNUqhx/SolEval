@@ -1,0 +1,4 @@
+function toUint112(uint256 x) internal  pure returns (uint112) {
+if (x >= 2 ** 112) revert("Overflow");
+        return uint112(x);
+}

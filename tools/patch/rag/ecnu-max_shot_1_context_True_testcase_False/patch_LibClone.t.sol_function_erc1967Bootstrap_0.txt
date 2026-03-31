@@ -1,0 +1,14 @@
+function erc1967Bootstrap(address authorizedUpgrader) internal   returns (address bootstrap) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let initCode := initCodeERC1967Bootstrap(authorizedUpgrader)
+            let length := mload(initCode)
+            let data := add(initCode, 0x20)
+            let salt := 0x0000000000000000000000000000000000000000000000000000000000000000
+            bootstrap := create2(0, data, length, salt)
+            if iszero(bootstrap) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+        }
+}

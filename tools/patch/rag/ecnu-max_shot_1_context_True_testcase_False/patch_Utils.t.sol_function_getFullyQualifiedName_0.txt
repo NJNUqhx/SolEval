@@ -1,0 +1,4 @@
+function getFullyQualifiedName(string memory contractName, string memory outDir) internal  view returns (string memory) {
+(string memory contractPath, string memory shortName) = getContractInfo(contractName, outDir);
+        return string(abi.encodePacked(contractPath, ":", shortName));
+    }

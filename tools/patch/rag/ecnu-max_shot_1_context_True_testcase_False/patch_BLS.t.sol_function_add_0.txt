@@ -1,0 +1,28 @@
+function add(G2Point memory point0, G2Point memory point1) internal  view returns (G2Point memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let f := mload(0x40)
+            mstore(f, mload(point0))
+            mstore(add(f, 0x20), mload(add(point0, 0x20)))
+            mstore(add(f, 0x40), mload(add(point0, 0x40)))
+            mstore(add(f, 0x60), mload(add(point0, 0x60)))
+            mstore(add(f, 0x80), mload(add(point0, 0x80)))
+            mstore(add(f, 0xa0), mload(add(point0, 0xa0)))
+            mstore(add(f, 0xc0), mload(point1))
+            mstore(add(f, 0xe0), mload(add(point1, 0x20)))
+            mstore(add(f, 0x100), mload(add(point1, 0x40)))
+            mstore(add(f, 0x120), mload(add(point1, 0x60)))
+            mstore(add(f, 0x140), mload(add(point1, 0x80)))
+            mstore(add(f, 0x160), mload(add(point1, 0xa0)))
+            if iszero(staticcall(gas(), 0x0e, f, 0x180, f, 0xc0)) {
+                mstore(0x00, 0x9163522c)
+                revert(0x1c, 0x04)
+            }
+            mstore(result, mload(f))
+            mstore(add(result, 0x20), mload(add(f, 0x20)))
+            mstore(add(result, 0x40), mload(add(f, 0x40)))
+            mstore(add(result, 0x60), mload(add(f, 0x60)))
+            mstore(add(result, 0x80), mload(add(f, 0x80)))
+            mstore(add(result, 0xa0), mload(add(f, 0xa0)))
+        }
+}

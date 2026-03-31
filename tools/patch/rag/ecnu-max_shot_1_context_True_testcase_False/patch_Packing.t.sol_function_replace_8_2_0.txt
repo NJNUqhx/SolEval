@@ -1,0 +1,9 @@
+function replace_8_2(bytes8 self, bytes2 value, uint8 offset) internal  pure returns (bytes8 result) {
+assembly {
+    let old := extract_8_2(self, offset)
+    let shift := shl(3, sub(7, offset))
+    let maskedValue := and(shl(shift, shr(6, value)), 0xFFFF000000000000)
+    let maskedOld := and(shl(shift, shr(6, old)), 0xFFFF000000000000)
+    result := xor(xor(self, maskedOld), maskedValue)
+}
+}

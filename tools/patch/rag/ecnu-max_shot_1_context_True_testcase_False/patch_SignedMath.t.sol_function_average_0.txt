@@ -1,0 +1,5 @@
+function average(int256 a, int256 b) internal  pure returns (int256) {
+int256 avg = (a & b) + ((a ^ b) >> 1);
+        int256 correction = ((a ^ b) & int256(1)) * ((avg < 0) ? 1 : -1);
+        return avg + correction;
+    }

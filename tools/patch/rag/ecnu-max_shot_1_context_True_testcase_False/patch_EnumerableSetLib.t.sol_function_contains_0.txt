@@ -1,0 +1,10 @@
+function contains(Uint8Set storage set, uint8 value) internal  view returns (bool result) {
+assembly {
+        let slot := set.slot
+        let bitIndex := mod(value, 256)
+        let byteIndex := div(value, 256)
+        let storageValue := sload(add(slot, byteIndex))
+        let mask := shl(bitIndex, 1)
+        result := and(storageValue, mask)
+    }
+}

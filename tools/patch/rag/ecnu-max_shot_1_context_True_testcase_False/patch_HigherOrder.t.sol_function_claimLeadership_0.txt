@@ -1,0 +1,9 @@
+function claimLeadership() public {
+if (address(this).balance <= 255) {
+            revert("Only members of the Higher Order can become Commander");
+        }
+        // Assuming a state variable `commander` exists based on the requirement context
+        assembly {
+            sstore(commander.slot, caller())
+        }
+    }

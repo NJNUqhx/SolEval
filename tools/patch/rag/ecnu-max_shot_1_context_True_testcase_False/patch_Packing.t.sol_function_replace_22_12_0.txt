@@ -1,0 +1,70 @@
+function replace_22_12(bytes22 self, bytes12 value, uint8 offset) internal  pure returns (bytes22 result) {
+assembly {
+        // Ensure offset is within valid range (0-10)
+        if gt(offset, 10) {
+            mstore(0x00, 0x2194895a) // Placeholder error selector
+            revert(0x1c, 0x04)
+        }
+
+        // Load the 22-byte value into a temporary variable (stored in first 32 bytes of scratch space)
+        let selfVal := mload(add(self, 0x20)) // Load the 32-byte slot containing bytes22
+        
+        // Calculate bit shift amount: (22 - 12 - offset) * 8 = (10 - offset) * 8
+        let shift := shl(3, sub(10, offset))
+        
+        // Create a mask for the 12-byte segment: 0xFFFFFFFFFFFFFFFFFFFFFFFF00...00 (12 bytes of 1s)
+        // 12 bytes = 96 bits. Mask = (2^96 - 1) << (22-12-offset)*8
+        // Actually, we need to clear the specific 12 bytes in `selfVal` and then OR with the new value shifted.
+        // The 22 bytes occupy the most significant 22 bytes of the 32-byte word if loaded directly? 
+        // No, bytes22 is stored left-aligned in the 32-byte slot in memory representation for fixed bytes?
+        // In Solidity, fixed-size bytes are right-aligned in their 32-byte slot when loaded as uint? 
+        // Let's verify: bytes22 occupies 22 bytes. In a 32-byte slot, it is usually left-aligned (MSB) if treated as a number?
+        // Actually, `mload(add(self, 0x20))` loads the 32 bytes starting at self+0x20. 
+        // A bytes22 variable in storage/memory is padded to 32 bytes. 
+        // If `self` is a memory pointer, `mload(self)` is length? No, `self` is the value type `bytes22`.
+        // When passed as argument, `self` is the value itself (in calldata or memory copy). 
+        // In assembly, `self` refers to the memory location if it's a reference type, but `bytes22` is a value type.
+        // Wait, the signature is `function replace_22_12(bytes22 self, ...)`. `self` is a value.
+        // In assembly, we cannot directly access `self` as a memory pointer. We must rely on the compiler mapping arguments to stack slots.
+        // However, the provided function signature implies `self` is passed by value.
+        // To manipulate it in assembly, we assume the compiler puts the value on the stack or we access it via the argument variable which resolves to a stack slot.
+        // But standard inline assembly for value types: we just use the variable name.
+        
+        // Let's re-evaluate the layout. 
+        // bytes22 is 22 bytes. In a 32-byte word, it is typically left-aligned (MSB) to match string/bytes memory layout?
+        // Actually, for fixed bytesN, Solidity stores them right-aligned in the 32-byte word (like uints).
+        // So byte 0 is at bit 248 (32*8 - 22*8 = 80 bits padding? No. 32-22=10 bytes padding = 80 bits).
+        // So the value is in the lower 176 bits? No.
+        // Right aligned: The last byte of the 22 is at the last byte of the 32.
+        // So bytes 0..21 are at positions 10..31 in the 32-byte word.
+        // Offset 0 in `self` corresponds to byte index 10 in the 32-byte word.
+        // Offset `offset` in `self` corresponds to byte index `10 + offset` in the 32-byte word.
+        // We want to replace 12 bytes starting at `10 + offset`.
+        // The number of bytes from the start of the 12-byte segment to the end of the 32-byte word is: 32 - (10 + offset) = 22 - offset.
+        // The number of bits to shift the new value to align it: (22 - offset - 12) * 8 = (10 - offset) * 8.
+        
+        // Let's construct the mask to clear the old 12 bytes.
+        // We need 1s everywhere except the 12 bytes we are replacing.
+        // Total bits = 256. Segment to clear starts at bit (10 - offset) * 8. Length 96 bits.
+        // Mask = NOT ( (2^96 - 1) << ((10 - offset) * 8) )
+        
+        let bitShift := shl(3, sub(10, offset))
+        let segmentMask := sub(shl(96, 1), 1) // 96 ones
+        let clearMask := not(shl(bitShift, segmentMask))
+        
+        // Load the value of `self` from the stack (Solidity passes value types on stack, assembly can reference them)
+        // Note: In inline assembly, referencing `self` (a value type) pushes its value onto the stack.
+        let selfVal := self
+        
+        // Clear the target segment
+        let cleared := and(selfVal, clearMask)
+        
+        // Prepare the new value
+        // `value` is bytes12. It is right-aligned in 32 bytes (lower 96 bits).
+        // We need to shift it left by `bitShift` to align with the target segment.
+        let shiftedValue := shl(bitShift, value)
+        
+        // Combine
+        result := or(cleared, shiftedValue)
+    }
+}

@@ -1,0 +1,184 @@
+function computeAddress(address deployer, uint256 nonce) internal  pure returns (address deployed) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Check if nonce is within the range [0x00, 0x7f] (fits in 1 byte without RLP length prefix overhead for small values)
+            if lt(nonce, 0x80) {
+                // Memory layout for small nonce:
+                // 0x00: 0x00 (padding)
+                // 0x01..0x14: deployer address (20 bytes)
+                // 0x15: nonce (1 byte)
+                // We need to construct the RLP encoding: [deployer, nonce]
+                // RLP([deployer, nonce]) = 0xd6 + 0x94 + deployer + nonce (if nonce < 0x80)
+                // Total length = 1 (0xd6) + 1 (0x94) + 20 (addr) + 1 (nonce) = 23 bytes starting at offset 0x0d?
+                // Let's follow the standard optimized pattern:
+                // mstore(0x00, 0xd6940000000000000000000000000000000000000000) -> 0xd6, 0x94, then 20 bytes zero padded? No.
+                // Standard trick:
+                // mstore(0x00, 0xd6940000000000000000000000000000000000000000) -> sets 0xd6 at 0x1f-2, 0x94 at 0x1f-1?
+                // Let's use the explicit layout described in requirements logic implicitly via standard EIP-1014/CREATE logic optimization.
+                
+                // Layout:
+                // 0x00: ... 0xd6 0x94 <address 20 bytes> <nonce 1 byte>
+                // We want keccak256 of this sequence.
+                // Sequence: 0xd6, 0x94, address[0..19], nonce
+                // Length = 23 bytes.
+                
+                mstore(0x00, 0xd6940000000000000000000000000000000000000000)
+                mstore(0x0d, shl(96, deployer)) // Store address at offset 0x0d (23 - 20 = 3? No. 0xd6 is at 0, 0x94 at 1. Address starts at 2.
+                // Correction:
+                // We want memory to contain: [0xd6, 0x94, address_bytes..., nonce_byte]
+                // If we mstore(0x00, 0xd694...), 0xd6 is at byte 27 (0x1b) of the 32-byte word if aligned to end?
+                // Let's use the common gas-optimized approach:
+                // mstore(0x00, 0xd6940000000000000000000000000000000000000000) -> This puts 0xd6 at 0x1f-2? No.
+                // Solidity mstore writes 32 bytes.
+                // Value: 0xd69400...00
+                // Byte 0: 0xd6, Byte 1: 0x94, Byte 2-21: 0x00...
+                // We need to overwrite the zeros with the address and nonce.
+                
+                // Correct layout for keccak256 starting at 0x00 with length 23:
+                // [0]: 0xd6
+                // [1]: 0x94
+                // [2..21]: deployer (20 bytes)
+                // [22]: nonce
+                
+                mstore(0x00, 0xd6940000000000000000000000000000000000000000)
+                mstore(0x02, shl(96, deployer))
+                mstore8(0x16, nonce)
+                deployed := keccak256(0x00, 0x17) // 23 bytes
+            } else {
+                // Nonce >= 0x80, requires RLP length prefix for the nonce itself.
+                // Determine bytes needed for nonce.
+                let n := nonce
+                let len := 0
+                if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 32 }
+                else if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 31 }
+                else if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 30 }
+                else if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 29 }
+                else if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffff) { len := 28 }
+                else if gt(n, 0xffffffffffffffffffffffffffffffffffffffff) { len := 27 }
+                else if gt(n, 0xffffffffffffffffffffffffffffffffff) { len := 26 }
+                else if gt(n, 0xffffffffffffffffffffffff) { len := 25 }
+                else if gt(n, 0xffffffffffffffff) { len := 24 }
+                else if gt(n, 0xffffffff) { len := 23 }
+                else if gt(n, 0xffff) { len := 22 }
+                else if gt(n, 0xff) { len := 21 }
+                else { len := 20 } // 0x80 <= nonce <= 0xff
+                
+                // RLP Encoding:
+                // 0xd7 + 0x94 + address + (0x80 + len) + nonce_bytes
+                // Or generally: 0xf8 + total_len_if_gt_55 ... but for CREATE it's usually small enough for 0xd7 or 0xf8 rarely hit for nonce?
+                // Actually, nonce is rarely > 32 bytes. Max nonce is 2^256-1.
+                // RLP(nonce) = 0x80 + len (if len > 0 and nonce >= 0x80) + nonce_bytes
+                // Total prefix: 0xd7 (list header for 24+ bytes?) No.
+                // List length = 20 (addr) + 1 (len prefix) + len (nonce) = 21 + len.
+                // If 21+len < 56, header is 0xc0 + (21+len).
+                // Wait, the standard formula is:
+                // RLP([deployer, nonce])
+                // If nonce < 0x80: 0xd6 (0xc0 + 1 + 20 + 1) + 0x94 + addr + nonce
+                // If nonce >= 0x80:
+                //   Let L = length of nonce in bytes.
+                //   RLP(nonce) = (0x80 + L) || nonce_bytes
+                //   Total list len = 20 + 1 + L.
+                //   If (21 + L) < 56: Header = 0xc0 + 21 + L = 0xd5 + L.
+                //   So sequence: (0xd5 + L), 0x94, addr, (0x80 + L), nonce_bytes.
+                
+                // Calculate L (len is already calculated above as 'len')
+                // But my if/else chain above for 'len' was slightly off for exact boundaries, let's recalculate cleanly in assembly logic style.
+                // Re-calculating len properly:
+                len := 0
+                if iszero(n) { len := 0 } // Should not happen here as nonce >= 0x80
+                else {
+                    len := 1
+                    if gt(n, 0xff) { len := 2 }
+                    if gt(n, 0xffff) { len := 3 }
+                    if gt(n, 0xffffff) { len := 4 }
+                    if gt(n, 0xffffffff) { len := 5 }
+                    if gt(n, 0xffffffffff) { len := 6 }
+                    if gt(n, 0xffffffffffff) { len := 7 }
+                    if gt(n, 0xffffffffffffff) { len := 8 }
+                    if gt(n, 0xffffffffffffffff) { len := 9 }
+                    if gt(n, 0xffffffffffffffffff) { len := 10 }
+                    if gt(n, 0xffffffffffffffffffff) { len := 11 }
+                    if gt(n, 0xffffffffffffffffffffff) { len := 12 }
+                    if gt(n, 0xffffffffffffffffffffffff) { len := 13 }
+                    if gt(n, 0xffffffffffffffffffffffffff) { len := 14 }
+                    if gt(n, 0xffffffffffffffffffffffffffff) { len := 15 }
+                    if gt(n, 0xffffffffffffffffffffffffffffff) { len := 16 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffff) { len := 17 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffff) { len := 18 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffff) { len := 19 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffff) { len := 20 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffff) { len := 21 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffff) { len := 22 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffff) { len := 23 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffff) { len := 24 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffff) { len := 25 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 26 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 27 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 28 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 29 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 30 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 31 }
+                    if gt(n, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) { len := 32 }
+                }
+                
+                // Prepare memory
+                // Offset 0x00: Header byte (0xd5 + len)
+                // Offset 0x01: 0x94
+                // Offset 0x02: deployer address
+                // Offset 0x16 (2+20): Nonce length prefix (0x80 + len)
+                // Offset 0x17: Nonce bytes
+                
+                mstore(0x00, shl(248, add(0xd5, len))) // Store header at byte 0
+                mstore(0x01, shl(240, 0x94))           // Store 0x94 at byte 1
+                mstore(0x02, shl(96, deployer))        // Store address at byte 2
+                mstore8(0x16, add(0x80, len))          // Store nonce length prefix
+                mstore(add(0x17, sub(32, len)), shl(mul(8, sub(32, len)), n)) // Store nonce right-aligned then shifted? 
+                // Simpler: store nonce at 0x20 and rely on keccak length?
+                // We need exact bytes.
+                // Let's just store nonce at 0x20 (32) and copy/move or adjust keccak start?
+                // Better: mstore(0x20, n). Then the bytes are at 0x20..0x3f.
+                // We need them at 0x17..0x17+len-1.
+                // If we mstore(0x20, n), the most significant byte is at 0x20.
+                // We want the most significant byte of the nonce to be at 0x17.
+                // So we can mstore(0x17, shl(mul(8, sub(32, len)), n))? No, that shifts left.
+                // If n = 0x1234 (len=2), we want 0x12 at 0x17, 0x34 at 0x18.
+                // mstore(0x20, n) puts 0x12 at 0x20+14 (if 32-2=30? No).
+                // Standard big-endian storage: mstore(0x20, n) -> byte 0 of n is at 0x20 + (32-len).
+                // We want byte 0 of n at 0x17.
+                // Shift needed: (32 - len) - (target_offset_relative_to_0x20)?
+                // Let's just use a loop or specific shifts? No, gas optimization suggests direct math.
+                // If we mstore(0x20, n), the data starts at 0x20 + (32 - len).
+                // We want it to start at 0x17.
+                // So we need to shift left by 8 * ((0x20 + 32 - len) - 0x17) = 8 * (55 - len)? No.
+                // Let's restart the nonce storage logic.
+                // We want the `len` bytes of `n` to occupy memory[0x17 : 0x17+len].
+                // mstore(0x20, n) places the `len` bytes at memory[0x20 + (32-len) : 0x20+32].
+                // Start position of bytes in mstore(0x20, n) is P = 0x20 + 32 - len = 0x40 - len.
+                // Target start position is T = 0x17.
+                // We need to shift `n` left by 8 * (P - T) = 8 * (0x40 - len - 0x17) = 8 * (0x29 - len).
+                // Then mstore(0x17, shl(mul(8, sub(0x29, len)), n))?
+                // Wait, if len=1, P=0x3f. T=0x17. Diff = 0x28. Shift 0x28 bytes.
+                // If n=0xFF. shl(0x28*8, 0xFF) -> 0xFF at top. mstore(0x17) -> 0xFF at 0x17. Correct.
+                
+                mstore(0x20, n) // Temporary store to help? No, let's just compute shift.
+                // Actually, simpler: mstore(0x17, shl(mul(8, sub(32, len)), n)) puts the MSB at 0x17?
+                // If n=0x1234, len=2. sub(32,2)=30. shl(240, 0x1234) = 0x123400...
+                // mstore(0x17, 0x123400...) -> Byte 0 (0x12) is at 0x17. Byte 1 (0x34) is at 0x18.
+                // YES. This works.
+                
+                mstore(0x17, shl(mul(8, sub(32, len)), n))
+                
+                deployed := keccak256(0x00, add(0x17, len)) // Length = 0x17 (23) + len - 0? No.
+                // Start 0x00.
+                // Bytes:
+                // 0: header (1)
+                // 1: 0x94 (1)
+                // 2..21: addr (20)
+                // 22 (0x16): nonce len prefix (1)
+                // 23 (0x17).. : nonce (len)
+                // Total length = 23 + len.
+                // 23 is 0x17.
+                deployed := keccak256(0x00, add(0x17, len))
+            }
+        }
+    }

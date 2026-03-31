@@ -1,7 +1,0 @@
-function byteLengthWithFallback(ShortString value, string storage store) internal  view returns (uint256) {
-function byteLengthWithFallback(ShortString value, string storage store) internal  view returns (uint256) {
-if (!isFallbackSentinel(value)) {
-            return byteLength(value);
-        }
-        return length(store);
-    }

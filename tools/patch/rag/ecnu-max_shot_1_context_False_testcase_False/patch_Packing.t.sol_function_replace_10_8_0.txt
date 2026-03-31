@@ -1,58 +1,11 @@
 function replace_10_8(bytes10 self, bytes8 value, uint8 offset) internal  pure returns (bytes10 result) {
-function replace_10_8(bytes10 self, bytes8 value, uint8 offset) internal  pure returns (bytes10 result) {
-function replace_10_8(bytes10 self, bytes8 value, uint8 offset) internal  pure returns (bytes10 result) {
     assembly {
-        // Convert bytes10 and bytes8 to uint256 for manipulation.
-        // bytes10 is stored in the lower 10 bytes of the word.
-        let selfVal := self
-        let valueVal := value
-
-        // Ensure offset is within valid range (0 to 2) since 10 - 8 = 2.
-        // If offset > 2, the 8-byte value would exceed the 10-byte boundary.
-        if gt(offset, 2) {
-            mstore(0x00, 0x2194895a) // Revert with error selector (reusing previous or generic)
-            revert(0x1c, 0x04)
-        }
-
-        // Calculate the shift amount in bits.
-        // The bytes are aligned to the left in the bytesN type when converted to uint?
-        // Actually, in Solidity assembly, `bytes10` loaded into a slot is left-aligned if treated as fixed bytes?
-        // No, `bytes10` variable in assembly `self` is right-aligned (least significant bytes) if loaded directly from stack?
-        // Let's verify Solidity behavior: `bytes10` passed to assembly is right-aligned (value is in the lower bits).
-        // Example: bytes10 0x0102...0a -> uint256 0x...000102...0a.
-        // We need to replace 8 bytes starting at `offset`.
-        // Total bytes = 10. Replacement size = 8.
-        // The segment to replace starts at bit position: (10 - 8 - offset) * 8?
-        // Let's visualize: Bytes [0][1][2][3][4][5][6][7][8][9]
-        // If offset = 0, we replace [0] to [7].
-        // If offset = 1, we replace [1] to [8].
-        // If offset = 2, we replace [2] to [9].
-        
-        // In a right-aligned uint256 representing 10 bytes:
-        // Byte 9 is at bits 0-7.
-        // Byte 0 is at bits 72-79.
-        // Wait, 10 bytes = 80 bits.
-        // Byte index `i` (0-based from left) corresponds to bits: (9 - i) * 8 to (9 - i) * 8 + 7.
-        // We want to replace 8 bytes starting at `offset`.
-        // The highest byte index in the replacement is `offset`.
-        // The lowest byte index in the replacement is `offset + 7`.
-        // Highest bit position (MSB of the 8-byte chunk) = (9 - offset) * 8.
-        // Lowest bit position (LSB of the 8-byte chunk) = (9 - (offset + 7)) * 8 = (2 - offset) * 8.
-        // The shift amount to align the 8-byte value to this position is (2 - offset) * 8.
-        
-        let shiftBits := shl(3, sub(2, offset)) // (2 - offset) * 8
-
-        // Create a mask for the 8 bytes (64 bits).
-        let mask := shl(shiftBits, sub(shl(64, 1), 1)) // 0xFF...FF (64 ones) shifted to position.
-
-        // Clear the old 8 bytes in selfVal.
-        let clearedSelf := and(selfVal, not(mask))
-
-        // Shift the new value to the correct position.
-        // The input `value` (bytes8) is right-aligned (LSB at bit 0).
-        let shiftedValue := shl(shiftBits, valueVal)
-
-        // Combine cleared self with the new shifted value.
-        result := or(clearedSelf, shiftedValue)
+        let selfVal := shl(128, self)
+        let valueVal := shl(128, value)
+        let shift := shl(3, sub(10, add(offset, 8)))
+        let mask := not(shl(shift, not(0)))
+        let oldSegment := and(selfVal, mask)
+        let newSegment := and(valueVal, mask)
+        result := shr(128, xor(xor(selfVal, oldSegment), newSegment))
     }
 }

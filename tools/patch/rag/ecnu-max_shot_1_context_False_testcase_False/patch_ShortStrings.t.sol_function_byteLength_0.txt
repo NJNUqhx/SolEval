@@ -1,6 +1,0 @@
-function byteLength(ShortString sstr) internal  pure returns (uint256) {
-function byteLength(ShortString sstr) internal  pure returns (uint256) {
-uint256 result = uint256(sstr) & 0xFF;
-        if (result > 31) revert InvalidShortString();
-        return result;
-    }

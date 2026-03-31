@@ -1,0 +1,7 @@
+function pack_8_16(bytes8 left, bytes16 right) internal  pure returns (bytes24 result) {
+assembly {
+            let l := and(left, not(shl(192, sub(shl(256, 1), 1))))
+            let r := and(right, not(shl(128, sub(shl(256, 1), 1))))
+            result := or(l, shr(64, r))
+        }
+    }

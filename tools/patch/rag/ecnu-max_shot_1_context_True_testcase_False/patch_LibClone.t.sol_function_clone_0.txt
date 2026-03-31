@@ -1,0 +1,251 @@
+function clone(uint256 value, address implementation, bytes memory args) internal   returns (address instance) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Calculate the total length of the creation code + runtime code + args
+        // Creation code: 9 bytes
+        // Runtime code: 45 bytes
+        // Args length: mload(args)
+        let argsLength := mload(args)
+        let totalLength := add(0x36, argsLength) // 0x36 = 9 (creation) + 45 (runtime) - 18 (overlapped/padding adjustments handled by layout)
+        
+        // We will construct the bytecode at a temporary location.
+        // Layout:
+        // [0x00 .. 0x09): Creation Code (9 bytes)
+        // [0x09 .. 0x36): Runtime Code (45 bytes)
+        // [0x36 .. end): Args
+        
+        // Store Runtime Code (45 bytes)
+        // The runtime code expects the implementation address at a specific offset relative to the start of runtime code.
+        // In the provided assembly snippet for clone_PUSH0, the runtime code structure is:
+        // 5f5f365f5f37365f73[ADDR]5af43d5f5f3e6029573d5ffd5b3d5ff3
+        // The '73' (PUSH20) is at offset 6 within the runtime code block if we count from the start of the runtime sequence.
+        // Let's align with the previous function's logic which stored parts separately.
+        
+        // To make it clean and follow the requirement steps:
+        // 1. Load args into memory right after the code.
+        let dataPtr := add(0x20, args) // Pointer to actual args data
+        let codeStart := mload(0x40) // Allocate free memory
+        
+        // Construct Creation Code (9 bytes): 60<runSize> 5f 81 60<offset> 5f 39 f3
+        // runSize = 45 + argsLength
+        // offset = 9 (start of runtime code relative to codeStart)
+        let runSize := add(0x2d, argsLength) // 0x2d = 45 decimal
+        
+        // Build the creation code header
+        // We need to write: 60 <runSize> 5f 81 60 09 5f 39 f3
+        // Then the runtime code immediately after.
+        
+        // Let's use a simpler approach by mimicking the memory layout of the working `clone_PUSH0` but appending args.
+        // The `clone_PUSH0` wrote:
+        // 0x00: 0x602d5f8160095f39f35f5f365f5f37365f73 (Creation + part of Runtime)
+        // 0x14: implementation (overwrites the placeholder in the above long word)
+        // 0x24: rest of runtime
+        
+        // We need to insert args after the runtime code.
+        // Total size to create = 9 (creation) + 45 (runtime) + argsLength
+        
+        let creationCodePtr := codeStart
+        
+        // Write the combined creation and runtime template
+        // First 9 bytes: Creation logic
+        // Next 45 bytes: Runtime logic
+        
+        // Using mstore for efficiency.
+        // Template part 1 (Bytes 0-31): Creation (9) + Runtime start (22)
+        // 60 2d 5f 81 60 09 5f 39 f3 5f 5f 36 5f 5f 37 36 5f 73 [ADDR_PAD] ...
+        mstore(creationCodePtr, 0x60005f8160095f39f35f5f365f5f37365f730000000000000000000000000000)
+        
+        // Correct the runSize in the first byte based on actual argsLength
+        // The byte at creationCodePtr is 0x60. The next byte must be runSize.
+        // runSize = 45 + argsLength.
+        // We need to update the byte at creationCodePtr + 1.
+        let runSizeByte := add(0x2d, argsLength)
+        // Mask out the old size and insert new size
+        // Current word: 0x60XX.... We want 0x60<runSize>....
+        // Actually, easier to just reconstruct the first word or patch it.
+        // Let's patch:
+        mstore8(add(creationCodePtr, 1), runSizeByte)
+        
+        // Write Implementation Address at offset 0x14 (20) relative to creationCodePtr
+        // The '73' opcode is at offset 0x0F (15) in the runtime section?
+        // Let's re-verify the offset from the provided clone_PUSH0.
+        // clone_PUSH0: mstore(0x00, 0x602d5f8160095f39f35f5f365f5f37365f73)
+        // Bytes:
+        // 0: 60 (PUSH1)
+        // 1: 2d (runSize)
+        // 2: 5f (PUSH0)
+        // 3: 81 (DUP2)
+        // 4: 60 (PUSH1)
+        // 5: 09 (offset)
+        // 6: 5f (PUSH0)
+        // 7: 39 (CODECOPY)
+        // 8: f3 (RETURN) -> End of creation code (9 bytes: 0-8)
+        // 9: 5f (PUSH0) -> Start of runtime
+        // 10: 5f
+        // 11: 36
+        // 12: 5f
+        // 13: 5f
+        // 14: 37
+        // 15: 36
+        // 16: 5f
+        // 17: 73 (PUSH20) -> Address follows here.
+        // So address should be at creationCodePtr + 18.
+        
+        mstore(add(creationCodePtr, 0x12), shl(96, implementation)) // 0x12 = 18. Shift left 96 to align to 20 bytes right-aligned in 32
+        
+        // Write the rest of the runtime code (from offset 24 in the original constant)
+        // Original: mstore(0x24, 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+        // This starts at byte 24 of the 0x00 slot? No, 0x24 is memory address 36.
+        // In clone_PUSH0:
+        // 0x00 holds 32 bytes. Indices 0..31.
+        // 0x14 holds implementation (overwrites bytes 20..31 of the word at 0x00? No, 0x14 is address 20).
+        // Address 20 is inside the first word (0..31).
+        // The '73' is at index 17. Address occupies 18..37.
+        // So mstore(0x14, impl) writes to 20, 21, 22, 23. It misses the first 2 bytes of the address if we just mstore.
+        // Ah, the clone_PUSH0 implementation uses `mstore(0x14, implementation)`.
+        // If `implementation` is 20 bytes, mstore writes 32 bytes.
+        // Wait, `implementation` is a uint256 in assembly context if loaded directly? No, it's an address type.
+        // In assembly `mstore(offset, value)` writes 32 bytes.
+        // If `implementation` is an address, it's treated as a number.
+        // The pattern `mstore(0x14, implementation)` in the reference code implies the reference code might have had the '73' at 0x14?
+        // Let's re-read the reference hex: 0x602d5f8160095f39f35f5f365f5f37365f73
+        // Length of this hex string (bytes): 18 bytes.
+        // 0x60 (1) 0x2d (2) 0x5f (3) 0x81 (4) 0x60 (5) 0x09 (6) 0x5f (7) 0x39 (8) 0xf3 (9) -- Creation done.
+        // 0x5f (10) 0x5f (11) 0x36 (12) 0x5f (13) 0x5f (14) 0x37 (15) 0x36 (16) 0x5f (17) 0x73 (18).
+        // So '73' is the 18th byte (index 17).
+        // The address needs to follow immediately.
+        // If we do `mstore(add(ptr, 18), shl(96, implementation))`, it writes 32 bytes starting at 18.
+        // This covers indices 18 to 49.
+        // The address is 20 bytes. It will occupy 18 to 37.
+        // The next part of runtime code starts at index 38?
+        // Let's check the second mstore in reference: `mstore(0x24, ...)`
+        // 0x24 is 36 decimal.
+        // If address ends at 37 (18 + 20 - 1), then 36 is overlapping the address!
+        // This suggests the reference code relies on the fact that `mstore(0x14, implementation)` (if implementation is 20 bytes padded?)
+        // Actually, in Solidity inline assembly, `implementation` is a 256-bit value with the address in the least significant 20 bits.
+        // `mstore(0x14, implementation)` writes the whole 32 bytes.
+        // Indices 20 to 51.
+        // But the '73' is at 17. The address should be at 18.
+        // So `mstore(0x12, ...)` would be correct for 32-byte write if we want it to start at 18.
+        // The reference code `mstore(0x14, implementation)` seems to assume the '73' is at 0x14?
+        // Let's re-examine the hex: `...365f73`.
+        // 36 is at 16. 5f is at 17. 73 is at 18?
+        // Count:
+        // 1: 60
+        // 2: 2d
+        // 3: 5f
+        // 4: 81
+        // 5: 60
+        // 6: 09
+        // 7: 5f
+        // 8: 39
+        // 9: f3
+        // 10: 5f
+        // 11: 5f
+        // 12: 36
+        // 13: 5f
+        // 14: 5f
+        // 15: 37
+        // 16: 36
+        // 17: 5f
+        // 18: 73
+        // Yes, 73 is at index 17 (0-based). So address starts at 18.
+        // Reference code: `mstore(0x14, implementation)`. 0x14 = 20.
+        // This would write the address starting at byte 20.
+        // That leaves bytes 18 and 19 uninitialized or zero?
+        // Unless the hex string was different or I am miscounting.
+        // Maybe the reference code used `mstore8` or a different layout?
+        // Wait, the reference code `mstore(0x00, 0x602d5f8160095f39f35f5f365f5f37365f73)`
+        // This literal is 18 bytes. When stored in memory via mstore(0x00, ...), it fills 32 bytes.
+        // The bytes 18..31 are zero.
+        // Then `mstore(0x14, implementation)` writes 32 bytes starting at 20.
+        // This overwrites zeros at 20..31 and continues to 32..51.
+        // But the address should start at 18.
+        // There is a discrepancy in my manual count vs the reference code's apparent logic.
+        // HOWEVER, I must follow the requirement to "Clone a contract... with arguments".
+        // I will implement a robust version that correctly places the address and appends args.
+        
+        // Robust Layout:
+        // Ptr + 0: Creation Code (9 bytes)
+        // Ptr + 9: Runtime Code (45 bytes)
+        //   Within Runtime Code, the PUSH20 (0x73) is at offset 8 (relative to runtime start).
+        //   So absolute offset of 0x73 is 9 + 8 = 17.
+        //   Address goes at 18.
+        // Ptr + 9 + 45 = Ptr + 54: Args start.
+        
+        let runtimeOffset := 9
+        let addrOffset := add(runtimeOffset, 8) // 17 is the opcode, 18 is the data start? 
+        // Runtime: 5f(0) 5f(1) 36(2) 5f(3) 5f(4) 37(5) 36(6) 5f(7) 73(8).
+        // Yes, 73 is at index 8 of runtime.
+        // So address data starts at runtimeOffset + 8 + 1 = 18.
+        
+        // Let's rebuild the constant to be safe and clear.
+        // Creation: 60<runSize> 5f 81 60 09 5f 39 f3
+        // Runtime: 5f 5f 36 5f 5f 37 36 5f 73 <ADDR> 5a f4 3d 5f 5f 3e 60 29 57 3d 5f fd 5b 3d 5f f3
+        
+        // Write Creation + Runtime prefix (up to 73)
+        // We can write this as a single 32-byte word if it fits, or multiple.
+        // Length of (Creation 9 + Runtime prefix 9) = 18 bytes.
+        let prefix := 0x60005f8160095f39f35f5f365f5f37365f730000000000000000000000000000
+        mstore(creationCodePtr, prefix)
+        
+        // Patch runSize
+        mstore8(add(creationCodePtr, 1), runSizeByte)
+        
+        // Write Address (20 bytes) at offset 18
+        // We shift implementation left by 96 bits to align to the end of a 32-byte word?
+        // No, we just want it at offset 18.
+        // mstore(add(creationCodePtr, 18), shl(96, implementation)) -> Writes 32 bytes from 18 to 49.
+        // The address occupies 18..37.
+        // The remaining runtime code must start at 38.
+        
+        // Remaining Runtime Code suffix: 5a f4 3d 5f 5f 3e 60 29 57 3d 5f fd 5b 3d 5f f3
+        // Length: 17 bytes.
+        // Starts at 38.
+        let suffix := 0x5af43d5f5f3e6029573d5ffd5b3d5ff3000000000000000000000000000000
+        mstore(add(creationCodePtr, 38), suffix)
+        
+        // Copy Args
+        if argsLength {
+            memcpy(add(creationCodePtr, 54), dataPtr, argsLength)
+        }
+        
+        // Deploy
+        instance := create(value, creationCodePtr, add(54, argsLength))
+        
+        // Cleanup memory (restore free pointer if needed, though create doesn't consume the memory permanently in Solidity's view usually, 
+        // but the requirement says "Restore the overwritten part of the free memory pointer")
+        // The reference did: mstore(0x24, 0). This was specific to their fixed location 0x00.
+        // Since we used mload(0x40) (free pointer), we don't necessarily need to zero out unless we want to be clean.
+        // But the requirement step 4 says "Restore the overwritten part...".
+        // In the context of using the free memory pointer, usually we just update the free memory pointer if we allocated.
+        // However, `create` doesn't change `0x40`. We just used the space temporarily.
+        // To be strictly compliant with "Restore", and since we didn't permanently allocate (we didn't update 0x40), 
+        // there is nothing to restore unless we consider the dirty memory.
+        // The reference code used fixed memory 0x00, so it had to clean up 0x24.
+        // Here, we used `codeStart` from `mload(0x40)`. We didn't update `0x40`.
+        // So the "free memory pointer" wasn't advanced. The memory is just dirty.
+        // If the requirement implies we should mimic the cleanup style, we can just leave it or zero out specific parts if reusing 0x00.
+        // But using 0x00 is unsafe with args of unknown size.
+        // I will assume the requirement's "Restore" step is satisfied by not permanently altering the allocator state, 
+        // or I can explicitly zero out the used memory if it falls in a sensitive area, but standard practice with `mload(0x40)` is fine.
+        // Wait, the requirement says "Restore the overwritten part of the free memory pointer."
+        // This phrasing is specific to the reference implementation which overwrote 0x24 (part of the slot containing the free pointer? No, 0x20 is free pointer).
+        // 0x24 is just after the free pointer.
+        // I will stick to the safe dynamic allocation.
+        
+        if iszero(instance) {
+            mstore(0x00, 0x30116425) // `DeploymentFailed()`.
+            revert(0x1c, 0x04)
+        }
+    }
+}
+
+// Helper for memory copy if not available in scope, but usually available in Yul context of such libraries.
+// Implementing inline to be safe and self-contained.
+function memcpy(dest, src, len) {
+    // Copy 32 bytes at a time
+    for { let i := 0 } lt(i, len) { i := add(i, 32) } {
+        mstore(add(dest, i), mload(add(src, i)))
+    }
+}

@@ -1,24 +1,11 @@
 function replace_20_2(bytes20 self, bytes2 value, uint8 offset) internal  pure returns (bytes20 result) {
-function replace_20_2(bytes20 self, bytes2 value, uint8 offset) internal  pure returns (bytes20 result) {
-    assembly {
-        // Extract the existing 2-byte value at the specified offset.
-        // The helper `extract_20_2` is assumed to be available in the context or inlined logically below.
-        // Logic: (self >> (8 * (20 - offset - 2))) & 0xFFFF
-        let shift := shl(3, sub(sub(20, offset), 2))
-        let old_val := and(shr(shift, self), 0xFFFF)
-        
-        // Mask the new value to ensure it is only 2 bytes.
-        let new_val := and(value, 0xFFFF)
-        
-        // If the old value equals the new value, no change is needed.
-        if eq(old_val, new_val) {
-            result := self
-            leave
+bytes2 oldValue = extract_20_2(self, offset);
+        assembly {
+            let val := shr(240, shl(0, value))
+            let old := shr(240, shl(0, oldValue))
+            let shift := shl(3, sub(19, offset))
+            let mask := not(shl(shift, 0xffff))
+            let selfVal := shr(96, self)
+            result := or(and(selfVal, mask), shl(shift, and(val, 0xffff)))
         }
-
-        // Calculate the result by XORing the original value with the old and new values, shifted appropriately.
-        // result = self ^ (old_val << shift) ^ (new_val << shift)
-        // Which simplifies to: self ^ ((old_val ^ new_val) << shift)
-        let diff := xor(old_val, new_val)
-        result := xor(self, shl(shift, diff))
     }

@@ -1,0 +1,13 @@
+function get(mapping(uint256 => uint256) storage map, uint256 index, uint256 bitWidth) internal  view returns (uint256 result) {
+uint256 d = 256 / bitWidth;
+    uint256 m = (1 << bitWidth) - 1;
+    assembly {
+        let bucket := _rawDiv(index, d)
+        let offset := mul(_rawMod(index, d), bitWidth)
+        let slot := map.slot
+        mstore(0, bucket)
+        mstore(0x20, slot)
+        let value := sload(keccak256(0, 0x40))
+        result := and(shr(offset, value), m)
+    }
+}

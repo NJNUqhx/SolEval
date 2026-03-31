@@ -1,0 +1,18 @@
+function isSortedAndUniquified(int256[] memory a) internal  pure returns (bool result) {
+assembly {
+        result := 1
+        let length := mload(a)
+        if iszero(lt(length, 2)) {
+            let i := 0
+            for {} lt(i, sub(length, 1)) { i := add(i, 1) } {
+                let current := mload(add(add(a, 0x20), mul(i, 0x20)))
+                let next := mload(add(add(a, 0x20), mul(add(i, 1), 0x20)))
+                if iszero(slt(current, next)) {
+                    result := 0
+                    break
+                }
+            }
+        }
+    }
+    return result;
+}

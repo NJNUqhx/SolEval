@@ -1,0 +1,7 @@
+function clearCompat(TBytes storage ptr) internal {
+if (block.chainid == 1) {
+            ptr.clear();
+        } else {
+            ptr._compat._spacer = 0;
+        }
+    }

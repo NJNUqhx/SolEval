@@ -1,5 +1,0 @@
-function toInt168(int256 x) internal  pure returns (int168) {
-function toInt168(int256 x) internal  pure returns (int168) {
-require(x == int256(int168(x)), "INT168_OVERFLOW");
-        return int168(x);
-    }

@@ -1,0 +1,34 @@
+function resize(DynamicArray memory a, uint256 n) internal  pure returns (DynamicArray memory result) {
+unsafe {
+        result.data = new bytes(n);
+        if (a.data.length > 0) {
+            if (n <= a.data.length) {
+                assembly {
+                    mstore(add(result.data, 0x20), n)
+                    let src := add(a.data, 0x20)
+                    let dst := add(result.data, 0x20)
+                    for { let i := 0 } lt(i, n) { i := add(i, 0x20) } {
+                        mstore(add(dst, i), mload(add(src, i)))
+                    }
+                }
+            } else {
+                assembly {
+                    let src := add(a.data, 0x20)
+                    let dst := add(result.data, 0x20)
+                    let len := mload(add(a.data, 0x20))
+                    for { let i := 0 } lt(i, len) { i := add(i, 0x20) } {
+                        mstore(add(dst, i), mload(add(src, i)))
+                    }
+                    mstore(add(result.data, 0x20), n)
+                    let codeStart := add(a.data, add(len, 0x20))
+                    let fillStart := add(dst, len)
+                    let fillEnd := add(dst, n)
+                    for { let i := fillStart } lt(i, fillEnd) { i := add(i, 0x20) } {
+                        mstore(i, mload(codeStart))
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}

@@ -1,0 +1,6 @@
+function toInt152(uint256 x) internal  pure returns (int152) {
+if (x >= 2**151) {
+            revert("Overflow when converting uint256 to int152");
+        }
+        return int152(int256(x));
+    }

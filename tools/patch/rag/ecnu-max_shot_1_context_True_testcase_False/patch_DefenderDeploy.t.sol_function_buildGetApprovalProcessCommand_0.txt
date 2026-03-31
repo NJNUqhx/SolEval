@@ -1,0 +1,16 @@
+function buildGetApprovalProcessCommand(string memory command) internal  view returns (string[] memory) {
+string[] memory inputBuilder = new string[](255);
+        inputBuilder[0] = "npx";
+        inputBuilder[1] = DEFENDER_DEPLOY_CLIENT_CLI;
+        inputBuilder[2] = command;
+        inputBuilder[3] = "--chainId";
+        inputBuilder[4] = toString(block.chainid);
+
+        uint256 count = 5;
+        string[] memory inputs = new string[](count);
+        for (uint256 i = 0; i < count; i++) {
+            inputs[i] = inputBuilder[i];
+        }
+
+        return inputs;
+    }

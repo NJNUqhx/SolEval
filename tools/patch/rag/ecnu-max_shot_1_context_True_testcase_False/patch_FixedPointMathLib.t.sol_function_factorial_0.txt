@@ -1,0 +1,10 @@
+function factorial(uint256 x) internal  pure returns (uint256 z) {
+if (x >= 58) revert();
+    assembly {
+        z := 1
+        let counter := x
+        for { } gt(counter, 0) { counter := sub(counter, 1) } {
+            z := mul(z, counter)
+        }
+    }
+}

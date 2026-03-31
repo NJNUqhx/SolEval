@@ -1,0 +1,31 @@
+function isValidERC1271SignatureNow(address signer, bytes32 hash, uint8 v, bytes32 r, bytes32 s) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        bytes4 selector = 0x1626ba7e;
+
+        assembly {
+            let m := mload(0x40)
+            
+            mstore(m, selector)
+            mstore(add(m, 0x04), hash)
+            
+            let sigOffset := add(m, 0x24)
+            mstore(sigOffset, 0x41)
+            
+            let sigDataOffset := add(sigOffset, 0x20)
+            mstore(sigDataOffset, 0x41)
+            
+            let rPtr := add(sigDataOffset, 0x20)
+            mstore(rPtr, r)
+            mstore(add(rPtr, 0x20), s)
+            mstore(add(rPtr, 0x40), shl(248, v))
+            
+            let success := staticcall(gas(), signer, m, 0x85, m, 0x20)
+            
+            if and(success, eq(mload(m), selector)) {
+                isValid := 1
+            }
+        }
+    }

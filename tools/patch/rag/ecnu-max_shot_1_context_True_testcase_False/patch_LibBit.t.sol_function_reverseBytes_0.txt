@@ -1,0 +1,24 @@
+function reverseBytes(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+            let m0 := xor(x, shr(128, x))
+            let m1 := xor(m0, shr(64, m0))
+            let m2 := xor(m1, shr(32, m1))
+            let m3 := xor(m2, shr(16, m2))
+            m3 := xor(m3, shr(8, m3))
+            m3 := xor(m3, shr(4, m3))
+            m3 := xor(m3, shr(2, m3))
+            m3 := xor(m3, shr(1, m3))
+            m0 := and(m0, 0xFFFFFFFFFFFFFFFF0000000000000000)
+            m1 := and(m1, 0x00000000FFFFFFFF00000000FFFFFFFF)
+            m2 := and(m2, 0x0000FFFF0000FFFF0000FFFF0000FFFF)
+            m3 := and(m3, 0x00FF00FF00FF00FF00FF00FF00FF00FF)
+            r := or(shr(128, m0), shl(128, m0))
+            r := or(and(r, 0xFFFFFFFF00000000FFFFFFFF00000000), or(shl(64, and(m1, 0x00000000FFFFFFFF00000000)), shr(64, and(m1, 0xFFFFFFFF00000000))))
+            r := or(and(r, 0xFFFF0000FFFF0000FFFF0000FFFF0000), or(shl(32, and(m2, 0x0000FFFF0000FFFF0000FFFF0000FFFF)), shr(32, and(m2, 0xFFFF0000FFFF0000FFFF0000FFFF0000))))
+            r := or(and(r, 0xFF00FF00FF00FF00FF00FF00FF00FF00), or(shl(16, and(m3, 0x00FF00FF00FF00FF00FF00FF00FF00FF)), shr(16, and(m3, 0xFF00FF00FF00FF00FF00FF00FF00FF00))))
+            r := or(shr(8, and(r, 0xF0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0)), shl(8, and(r, 0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F)))
+            r := or(shr(4, and(r, 0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC)), shl(4, and(r, 0x33333333333333333333333333333333)))
+            r := or(shr(2, and(r, 0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA)), shl(2, and(r, 0x55555555555555555555555555555555)))
+            r := or(shr(1, and(r, 0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA)), shl(1, and(r, 0x55555555555555555555555555555555)))
+        }
+    }

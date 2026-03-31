@@ -1,0 +1,10 @@
+function replace_28_2(bytes28 self, bytes2 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+            let oldVal := extract_28_2(self, offset)
+            let newVal := and(shl(240, value), 0xffff0000000000000000000000000000000000000000000000000000)
+            let shift := shl(3, sub(26, offset))
+            newVal := shr(shift, newVal)
+            oldVal := shr(shift, oldVal)
+            result := xor(xor(self, oldVal), newVal)
+        }
+}

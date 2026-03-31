@@ -1,0 +1,22 @@
+function log2Up(uint256 x) internal  pure returns (uint256 r) {
+require(x > 0, "Input must be greater than 0");
+    assembly {
+        let highestBit := 0
+        let temp := x
+        if gt(temp, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) { temp := shr(128, temp); highestBit := add(highestBit, 128) }
+        if gt(temp, 0xFFFFFFFFFFFFFFFF) { temp := shr(64, temp); highestBit := add(highestBit, 64) }
+        if gt(temp, 0xFFFFFFFF) { temp := shr(32, temp); highestBit := add(highestBit, 32) }
+        if gt(temp, 0xFFFF) { temp := shr(16, temp); highestBit := add(highestBit, 16) }
+        if gt(temp, 0xFF) { temp := shr(8, temp); highestBit := add(highestBit, 8) }
+        if gt(temp, 0xF) { temp := shr(4, temp); highestBit := add(highestBit, 4) }
+        if gt(temp, 0x3) { temp := shr(2, temp); highestBit := add(highestBit, 2) }
+        if gt(temp, 0x1) { highestBit := add(highestBit, 1) }
+        
+        r := highestBit
+        
+        let shifted := shl(r, 1)
+        if lt(shifted, x) {
+            r := add(r, 1)
+        }
+    }
+}

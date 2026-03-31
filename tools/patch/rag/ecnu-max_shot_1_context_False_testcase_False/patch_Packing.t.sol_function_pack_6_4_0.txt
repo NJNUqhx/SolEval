@@ -1,24 +1,5 @@
 function pack_6_4(bytes6 left, bytes4 right) internal  pure returns (bytes10 result) {
-function pack_6_4(bytes6 left, bytes4 right) internal  pure returns (bytes10 result) {
 assembly {
-        // Clear higher bits of left to ensure it fits within 6 bytes (48 bits)
-        // bytes6 is stored in the lower 48 bits of the 32-byte slot.
-        // We mask out everything above the 48th bit.
-        // Mask: 0x0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-        left := and(left, 0x0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-
-        // Clear higher bits of right to ensure it fits within 4 bytes (32 bits)
-        // bytes4 is stored in the lower 32 bits of the 32-byte slot.
-        // We mask out everything above the 32nd bit.
-        // Mask: 0x00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-        right := and(right, 0x00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-
-        // Shift left value by 32 bits (4 bytes) to make room for the right value
-        // Since we are packing into bytes10 (80 bits), left (6 bytes) goes to the high 6 bytes.
-        // In a 32-byte slot, shifting left by 32 bits moves the 6-byte value to bits 80-33.
-        left := shl(32, left)
-
-        // Combine left and right using OR
-        result := or(left, right)
+        result := or(shl(32, and(left, 0xFFFFFFFFFFFF)), and(right, 0xFFFFFFFF))
     }
 }

@@ -1,0 +1,38 @@
+function recoverCalldata(bytes32 hash, bytes calldata signature) internal  view returns (address result) {
+assembly {
+            let len := signature.length
+            if or(eq(len, 64), eq(len, 65)) {
+                let r := calldataload(signature.offset)
+                let s := calldataload(add(signature.offset, 0x20))
+                let v := 0
+                if eq(len, 65) {
+                    v := byte(0, calldataload(add(signature.offset, 0x40)))
+                }
+                
+                mstore(0x00, hash)
+                mstore(0x20, v)
+                mstore(0x40, r)
+                mstore(0x60, s)
+                
+                let success := staticcall(gas(), 0x01, 0x00, 0x80, 0x00, 0x20)
+                
+                if and(success, mload(0x00)) {
+                    result := mload(0x00)
+                } else {
+                    let ptr := mload(0x40)
+                    mstore(ptr, 0x08c379a000000000000000000000000000000000000000000000000000000000)
+                    mstore(add(ptr, 0x04), 0x0000000000000000000000000000000000000000000000000000000000000020)
+                    mstore(add(ptr, 0x24), 0x0000000000000000000000000000000000000000000000000000000000000010)
+                    mstore(add(ptr, 0x44), 0x496e76616c69645369676e617475726500000000000000000000000000000000)
+                    revert(ptr, 0x64)
+                }
+            } else {
+                let ptr := mload(0x40)
+                mstore(ptr, 0x08c379a000000000000000000000000000000000000000000000000000000000)
+                mstore(add(ptr, 0x04), 0x0000000000000000000000000000000000000000000000000000000000000020)
+                mstore(add(ptr, 0x24), 0x0000000000000000000000000000000000000000000000000000000000000010)
+                mstore(add(ptr, 0x44), 0x496e76616c69645369676e617475726500000000000000000000000000000000)
+                revert(ptr, 0x64)
+            }
+        }
+}

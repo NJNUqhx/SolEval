@@ -1,0 +1,13 @@
+function checkStartsWith(bytes32 salt, address by) internal  pure {
+if (by == address(0)) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if shr(96, salt) { revert(0, 0) }
+        }
+    } else {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if xor(shr(96, salt), by) { revert(0, 0) }
+        }
+    }
+}

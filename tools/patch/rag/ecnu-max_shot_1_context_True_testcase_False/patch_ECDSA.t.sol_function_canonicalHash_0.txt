@@ -1,0 +1,15 @@
+function canonicalHash(uint8 v, bytes32 r, bytes32 s) internal  pure returns (bytes32 result) {
+assembly {
+        mstore(0x00, r)
+        let halfN := 0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0
+        let N := 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+        if gt(s, halfN) {
+            v := xor(v, 7)
+            s := sub(N, s)
+        }
+        mstore(0x20, s)
+        mstore8(0x40, v)
+        result := keccak256(0x00, 0x41)
+        mstore(0x21, 0)
+    }
+}

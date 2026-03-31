@@ -1,0 +1,104 @@
+function reserve(DynamicArray memory a, uint256 minimum) internal  pure returns (DynamicArray memory result) {
+result = a;
+    /// @solidity memory-safe-assembly
+    assembly {
+        // Deallocate any existing memory for the result array if it was previously allocated in this scope.
+        // Note: In pure functions with memory inputs, we typically just reassign pointers.
+        // The requirement mentions deallocation, but for memory arrays passed by value,
+        // we just need to ensure we manage the new allocation correctly.
+
+        let minCap := minimum
+        // Check if minimum is within safe range (less than 0xffffffff)
+        if gt(minCap, 0xffffffff) {
+            minCap := 0xffffffff
+        }
+
+        let dataPtr := mload(add(result, 0x20))
+        let length := mload(result)
+
+        // If the array data pointer is zero (uninitialized), allocate new memory
+        if iszero(dataPtr) {
+            if iszero(minCap) { break }
+            
+            // Calculate new capacity (at least minCap)
+            let newCap := minCap
+            
+            // Allocate memory for capacity slot + array data
+            // Layout: [capacity][data...]
+            // Capacity slot stores: (capacity << 1) | 1 (using 1 as a prime marker for dynamic array)
+            let memPtr := mload(0x40)
+            let capSlot := memPtr
+            let dataStart := add(capSlot, 0x20)
+            
+            // Store capacity marker: (newCap << 1) | 1
+            mstore(capSlot, or(shl(1, newCap), 1))
+            
+            // Initialize length to 0 (or keep existing length if any, but for new alloc it's 0)
+            mstore(dataStart, 0) // Actually length is stored separately in the struct
+            
+            // Update result struct
+            mstore(add(result, 0x20), dataStart)
+            mstore(result, length) // Length remains whatever was passed (usually 0 for new)
+            
+            // Update free memory pointer
+            mstore(0x40, add(dataStart, mul(newCap, 0x20)))
+            break
+        }
+
+        // Array is already initialized
+        // Extract current capacity from the slot before data
+        // The capacity is stored as (capacity << 1) | 1
+        let capSlot := sub(dataPtr, 0x20)
+        let capEncoded := mload(capSlot)
+        
+        // Ensure it's a valid dynamic array marker (odd number)
+        if iszero(and(capEncoded, 1)) {
+            // Not a valid dynamic array, treat as needing reallocation
+            capEncoded := 1
+        }
+        
+        let currentCap := shr(1, capEncoded)
+        
+        // If current capacity is sufficient, break
+        if gt(currentCap, minCap) {
+            break
+        }
+        
+        // Calculate new capacity
+        let newCap := minCap
+        // Optionally grow exponentially if needed, but requirement says based on minimum
+        if iszero(newCap) {
+            newCap := 1
+        }
+        
+        // Check if memory is contiguous to expand
+        let endOfArray := add(dataPtr, mul(currentCap, 0x20))
+        let freeMem := mload(0x40)
+        
+        if eq(endOfArray, freeMem) {
+            // Memory is contiguous, expand in place
+            mstore(capSlot, or(shl(1, newCap), 1))
+            mstore(0x40, add(dataPtr, mul(newCap, 0x20)))
+        } else {
+            // Reallocate memory
+            let newMemPtr := mload(0x40)
+            let newCapSlot := newMemPtr
+            let newDataStart := add(newCapSlot, 0x20)
+            
+            // Store new capacity
+            mstore(newCapSlot, or(shl(1, newCap), 1))
+            
+            // Copy existing data
+            let copySize := mul(length, 0x20)
+            if gt(copySize, 0) {
+                mcopy(newDataStart, dataPtr, copySize)
+            }
+            
+            // Update result struct
+            mstore(add(result, 0x20), newDataStart)
+            
+            // Update free memory pointer
+            mstore(0x40, add(newDataStart, mul(newCap, 0x20)))
+        }
+    }
+}

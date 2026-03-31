@@ -1,0 +1,12 @@
+function pop(Uint256Heap storage self, function(uint256, uint256) view returns (bool) comp) internal   returns (uint256) {
+uint256 size = self.tree.length;
+        if (size == 0) panic(EMPTY_ARRAY_POP);
+        uint256 rootValue = self.tree.unsafeAccess(0).value;
+        uint256 lastValue = self.tree.unsafeAccess(size - 1).value;
+        self.tree.unsafeAccess(0).value = lastValue;
+        self.tree.pop();
+        if (size > 1) {
+            _siftDown(self, 0, lastValue, comp);
+        }
+        return rootValue;
+    }

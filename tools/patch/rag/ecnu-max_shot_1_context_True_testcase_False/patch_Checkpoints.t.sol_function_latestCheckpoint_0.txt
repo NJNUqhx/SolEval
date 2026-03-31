@@ -1,0 +1,9 @@
+function latestCheckpoint(Trace160 storage self) internal  view returns (bool exists, uint96 _key, uint160 _value) {
+uint256 pos = self._checkpoints.length;
+        if (pos == 0) {
+            return (false, 0, 0);
+        } else {
+            Checkpoint160 storage ckpt = _unsafeAccess(self._checkpoints, pos - 1);
+            return (true, ckpt._key, ckpt._value);
+        }
+    }

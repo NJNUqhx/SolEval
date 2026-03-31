@@ -1,0 +1,12 @@
+function remove(Uint8Set storage set, uint8 value) internal   returns (bool result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let slot := set.slot
+            let mask := shl(value, 1)
+            let current := sload(slot)
+            result := and(current, mask)
+            if result {
+                sstore(slot, and(current, not(mask)))
+            }
+        }
+    }

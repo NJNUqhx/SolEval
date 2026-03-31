@@ -1,0 +1,27 @@
+function argsOnERC1967(address instance, uint256 start, uint256 end) internal  view returns (bytes memory args) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // 1. Allocate memory for the `args` variable.
+            args := mload(0x40)
+            // 2. Ensure the `end` value does not exceed 0xffff.
+            if gt(end, 0xffff) {
+                revert(0, 0)
+            }
+            // 3. Calculate the length of the data to be copied (`d`).
+            let d := sub(end, start)
+            // 4. Use `extcodecopy` to copy the specified range of bytes from the contract's code into the `args` variable.
+            // We copy into args + 0x20 to leave space for the length prefix.
+            extcodecopy(instance, add(args, 0x20), start, d)
+            // 5. Handle edge cases where the extracted data might need adjustment.
+            // (No specific adjustment logic provided in requirements beyond standard copying)
+            // 6. Store the length of the extracted data in the first 32 bytes of `args`.
+            mstore(args, d)
+            // 7. Zeroize the memory slot immediately after the extracted data.
+            // The data ends at add(args, 0x20) + d. We zero the next 32-byte slot.
+            let dataEnd := add(add(args, 0x20), d)
+            mstore(dataEnd, 0)
+            // 8. Update the free memory pointer to allocate memory for the extracted data.
+            // New free pointer = dataEnd + 32 (to account for the zeroed slot alignment)
+            mstore(0x40, add(dataEnd, 0x20))
+        }
+}

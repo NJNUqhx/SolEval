@@ -1,0 +1,5 @@
+function emptyProof() internal  pure returns (bytes32[] calldata proof) {
+assembly {
+            mstore(proof, 0)
+        }
+    }

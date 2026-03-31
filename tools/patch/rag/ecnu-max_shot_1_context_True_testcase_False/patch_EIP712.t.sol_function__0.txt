@@ -1,0 +1,22 @@
+constructor () {
+_unguessable = uint256(uint160(address(this)));
+        _chainId = block.chainid;
+
+        if (!_domainNameAndVersionMayChange()) {
+            bytes32 nameHash = keccak256(bytes(_domainName()));
+            bytes32 versionHash = keccak256(bytes(_domainVersion()));
+            _cachedNameHash = nameHash;
+            _cachedVersionHash = versionHash;
+
+            bytes32 domainSeparator = keccak256(
+                abi.encode(
+                    _DOMAIN_TYPE_HASH,
+                    nameHash,
+                    versionHash,
+                    block.chainid,
+                    address(this)
+                )
+            );
+            _cachedDomainSeparator = domainSeparator;
+        }
+    }

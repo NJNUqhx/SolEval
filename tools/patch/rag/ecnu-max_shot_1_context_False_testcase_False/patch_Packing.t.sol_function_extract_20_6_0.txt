@@ -1,25 +1,8 @@
 function extract_20_6(bytes20 self, uint8 offset) internal  pure returns (bytes6 result) {
-function extract_20_6(bytes20 self, uint8 offset) internal  pure returns (bytes6 result) {
 if (offset > 14) {
-            revert OutOfRangeAccess();
+            revert("OutOfRangeAccess");
         }
-
         assembly {
-            // Shift the 20-byte value left by 8 * offset bits to align the desired segment to the top.
-            // Since `self` is in the lower 160 bits of the slot, shifting left moves the target bytes up.
-            let shifted := shl(mul(offset, 8), self)
-            
-            // Mask to keep only the top 6 bytes (48 bits).
-            // 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000
-            // However, since we will return a `bytes6`, Solidity expects the result in the lower 48 bits of the return slot.
-            // So we shift right by (256 - 48) = 208 bits after masking, or simply mask the top 6 bytes and shift right.
-            // A more efficient way: Shift left to align to MSB, then shift right by 208 to bring to LSB.
-            // Mask for top 6 bytes: 0xFFFFFFFFFFFF followed by zeros.
-            // Actually, let's just shift left to align the 6 bytes to the most significant position,
-            // then shift right by 208 bits to place them in the least significant position of the result.
-            
-            // Step 1: Shift left by offset * 8
-            // Step 2: Shift right by 208 (256 - 48) to isolate the top 6 bytes and move them to the bottom.
-            result := shr(208, shifted)
+            result := shr(mul(sub(20, add(offset, 6)), 8), shl(mul(offset, 8), self))
         }
     }

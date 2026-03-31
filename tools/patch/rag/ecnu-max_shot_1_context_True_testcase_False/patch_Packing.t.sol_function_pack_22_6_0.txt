@@ -1,0 +1,10 @@
+function pack_22_6(bytes22 left, bytes6 right) internal  pure returns (bytes28 result) {
+assembly {
+        // Clear the lower 80 bits of `left` to ensure it aligns properly (keep upper 176 bits)
+        let cleanLeft := and(left, shl(80, not(0)))
+        // Clear the lower 208 bits of `right` to ensure it aligns properly (keep upper 48 bits)
+        let cleanRight := and(right, shl(208, not(0)))
+        // Shift `right` to the correct position (lower 48 bits of the 28-byte result) and combine with `left`
+        result := or(cleanLeft, shr(208, cleanRight))
+    }
+}

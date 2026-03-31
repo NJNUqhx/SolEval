@@ -1,65 +1,11 @@
 function replace_20_16(bytes20 self, bytes16 value, uint8 offset) internal  pure returns (bytes20 result) {
-function replace_20_16(bytes20 self, bytes16 value, uint8 offset) internal  pure returns (bytes20 result) {
 assembly {
-        // Ensure offset is within valid range (0 to 4) for a 20-byte value with a 16-byte replacement.
-        // 20 - 16 = 4. If offset > 4, the replacement would go out of bounds.
-        if gt(offset, 4) {
-            revert(0, 0)
+            let selfVal := shl(96, self)
+            let valueVal := shl(96, value)
+            let shift := sub(256, mul(add(offset, 16), 8))
+            let mask := not(shl(sub(256, mul(16, 8)), shl(shift, not(0))))
+            let oldSegment := and(selfVal, mask)
+            let newSegment := and(shl(shift, valueVal), mask)
+            result := shr(96, xor(xor(selfVal, oldSegment), newSegment))
         }
-
-        // Calculate the number of bits to shift. Each byte is 8 bits.
-        let shift := mul(offset, 8)
-
-        // Create a mask for the 16-byte segment (128 bits).
-        // The mask should have 1s in the positions corresponding to the 16-byte segment at the given offset.
-        // Since we are working with a 20-byte (160-bit) value stored in a 256-bit slot,
-        // we need to be careful with the alignment.
-        // The value is left-aligned in the 32-byte slot when treated as bytes20? 
-        // Actually, in Solidity, bytes20 is right-aligned in the 32-byte word (padded with zeros on the left).
-        // So byte 0 is at bit position 128 (256 - 20*8), and byte 19 is at bit position 7.
-        // Wait, standard Solidity encoding for fixed bytes:
-        // bytes20 value: stored in the least significant 20 bytes of the 32-byte word.
-        // Bit 255 down to 160 are zero. Bit 159 down to 0 contain the data.
-        // Byte 0 is the most significant byte of the data (bits 159-152).
-        // Byte 19 is the least significant byte (bits 7-0).
-        
-        // If offset is 0, we replace bytes 0-15 (bits 159 down to 159 - 128 + 1 = 32).
-        // If offset is 4, we replace bytes 4-19 (bits 127 down to 0).
-        
-        // Let's construct the mask dynamically.
-        // We want 128 ones starting at the position corresponding to `offset`.
-        // The start bit position (from LSB, 0-indexed) for byte `offset` in a bytes20:
-        // Total bits in bytes20 = 160.
-        // Byte 0 starts at bit 159 (MSB of the 160 bits).
-        // Byte `offset` starts at bit (159 - offset * 8).
-        // We need a mask of 128 ones starting at this bit.
-        // Mask = ((1 << 128) - 1) << (159 - offset * 8 - 127)? No.
-        // Let's simplify.
-        // We can create a mask of 128 ones: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-        // Then shift it to the correct position.
-        // The lowest bit of the 16-byte segment at `offset` corresponds to:
-        // The last byte of the segment is at index (offset + 15).
-        // Its LSB is at bit position: (19 - (offset + 15)) * 8 = (4 - offset) * 8.
-        // So the segment occupies bits from ((4 - offset) * 8) to ((4 - offset) * 8 + 127).
-        
-        let start_bit := mul(sub(4, offset), 8)
-        
-        // Create 128 ones: not(0) >> 128
-        let ones128 := shr(128, not(0))
-        
-        // Shift the ones to the start_bit position
-        let mask := shl(start_bit, ones128)
-        
-        // Extract the old segment from self (optional for logic, but good for understanding)
-        // let old_segment := and(self, mask)
-        
-        // Prepare the new value:
-        // 1. The input `value` is bytes16, so it's right-aligned in its 32-byte slot (bits 127-0).
-        // 2. We need to shift it to align with the mask in the 20-byte slot.
-        let shifted_value := shl(start_bit, value)
-        
-        // Perform the replacement:
-        // 1. Clear the bits in `self` where the mask is 1: and(self, not(mask))
-        // 2. OR with the shifted new value: or(..., shifted_value)
-        result := or(and(self, not(mask)), shifted_value)
     }

@@ -1,0 +1,19 @@
+function replace_22_2(bytes22 self, bytes2 value, uint8 offset) internal  pure returns (bytes22 result) {
+        assembly {
+            // Load the 22-byte value and the 2-byte replacement value
+            let original := mload(add(self, 32)) // bytes22 starts at offset 32 in memory
+            let newValue := and(mload(add(value, 32)), 0xFFFF0000000000000000000000000000000000000000000000000000)
+            
+            // Calculate shift amount: (21 - offset) * 8
+            let shift := mul(sub(21, offset), 8)
+            
+            // Extract old 2-byte value at the offset
+            let oldValue := and(shr(shift, original), 0xFFFF0000000000000000000000000000000000000000000000000000)
+            
+            // Clear the old value and insert the new value
+            // result = (original & ~oldValue) | (newValue >> shift)
+            let cleared := and(original, not(oldValue))
+            let shiftedNew := shr(shift, newValue)
+            result := or(cleared, shiftedNew)
+        }
+    }

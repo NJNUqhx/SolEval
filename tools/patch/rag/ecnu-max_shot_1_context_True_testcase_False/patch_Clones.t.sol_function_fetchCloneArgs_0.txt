@@ -1,0 +1,15 @@
+function fetchCloneArgs(address instance) internal  view returns (bytes memory) {
+uint256 size;
+        assembly {
+            size := extcodesize(instance)
+        }
+        if (size < 45) {
+            revert("Bytecode too short");
+        }
+        uint256 resultSize = size - 45;
+        bytes memory result = new bytes(resultSize);
+        assembly {
+            extcodecopy(instance, add(result, 32), 45, resultSize)
+        }
+        return result;
+    }

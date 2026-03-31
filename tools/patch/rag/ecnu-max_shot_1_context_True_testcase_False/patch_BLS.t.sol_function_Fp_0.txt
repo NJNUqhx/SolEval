@@ -1,0 +1,6 @@
+function Fp() {
+struct Fp {
+    uint256 a;
+    uint256 b;
+}
+}

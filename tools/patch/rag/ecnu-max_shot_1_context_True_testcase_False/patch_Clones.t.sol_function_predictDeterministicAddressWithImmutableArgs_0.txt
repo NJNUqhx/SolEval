@@ -1,0 +1,3 @@
+function predictDeterministicAddressWithImmutableArgs(address implementation, bytes memory args, bytes32 salt) internal  view returns (address predicted) {
+predicted = predictDeterministicAddressWithImmutableArgs(implementation, args, salt, address(this));
+}

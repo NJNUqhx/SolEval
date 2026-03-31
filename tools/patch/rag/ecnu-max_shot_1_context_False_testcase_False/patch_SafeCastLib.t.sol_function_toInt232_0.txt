@@ -1,5 +1,0 @@
-function toInt232(int256 x) internal  pure returns (int232) {
-function toInt232(int256 x) internal  pure returns (int232) {
-require(x >= type(int232).min && x <= type(int232).max, "Overflow");
-        return int232(x);
-    } 

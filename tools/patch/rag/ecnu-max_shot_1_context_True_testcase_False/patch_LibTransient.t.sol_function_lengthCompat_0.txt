@@ -1,0 +1,9 @@
+function lengthCompat(TBytes storage ptr) internal  view returns (uint256 result) {
+if (block.chainid == 1) {
+            return length(ptr);
+        }
+        TBytes storage compatPtr = _compat(ptr);
+        assembly {
+            result := shr(32, sload(compatPtr.slot))
+        }
+    }

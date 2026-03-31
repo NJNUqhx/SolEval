@@ -1,0 +1,16 @@
+function at(Item memory item, string memory k) internal  pure returns (Item memory result) {
+result = Item({ pointer: 0 });
+        if (item.kind() != Kind.Object) return result;
+        bytes32 targetHash = keccak256(bytes(k));
+        Item[] memory children = item.children();
+        uint256 len = children.length;
+        for (uint256 i = 0; i < len; i++) {
+            Item memory child = children[i];
+            if (child.kind() != Kind.Property) continue;
+            string memory childKey = child.key();
+            if (keccak256(bytes(childKey)) == targetHash) {
+                result = child.valueItem();
+                break;
+            }
+        }
+    }

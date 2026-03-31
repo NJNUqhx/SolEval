@@ -1,5 +1,0 @@
-function toInt80(int256 x) internal  pure returns (int80) {
-function toInt80(int256 x) internal  pure returns (int80) {
-require(x >= type(int80).min && x <= type(int80).max, "toInt80: overflow");
-    return int80(x);
-} 

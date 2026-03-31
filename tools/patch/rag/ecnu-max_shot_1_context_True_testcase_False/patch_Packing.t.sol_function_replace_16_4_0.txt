@@ -1,0 +1,24 @@
+function replace_16_4(bytes16 self, bytes4 value, uint8 offset) internal  pure returns (bytes16 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Ensure offset is within valid range (0 to 12 for a 4-byte segment in 16 bytes)
+            if gt(offset, 12) { revert(0, 0) }
+
+            // Calculate the shift amount in bits (offset * 8)
+            let shift := shl(3, offset)
+
+            // Create a mask for 4 bytes (0xFFFFFFFF) shifted to the correct position
+            // We work on the 16-byte value as a single uint256 slot
+            let mask := shl(shift, 0xFFFFFFFF00000000000000000000000000000000)
+            
+            // Extract the old 4-byte value at the offset from self
+            let oldVal := and(self, mask)
+            
+            // Prepare the new value: load 'value', shift it to the correct position, and mask it
+            let newVal := and(shl(shift, value), mask)
+            
+            // Perform the replacement: (self XOR oldVal) XOR newVal
+            // This clears the old bits and sets the new bits
+            result := xor(xor(self, oldVal), newVal)
+        }
+    }

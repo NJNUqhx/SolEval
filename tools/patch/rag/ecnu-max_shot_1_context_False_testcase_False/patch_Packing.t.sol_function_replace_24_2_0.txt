@@ -1,32 +1,11 @@
 function replace_24_2(bytes24 self, bytes2 value, uint8 offset) internal  pure returns (bytes24 result) {
-function replace_24_2(bytes24 self, bytes2 value, uint8 offset) internal  pure returns (bytes24 result) {
 assembly {
-            // Load the 24-byte value into a temporary variable (using the first 24 bytes of a 32-byte slot)
-            let original := mload(add(self, 32))
-            // Load the 2-byte value
-            let newVal := mload(add(value, 32))
-            
-            // Calculate the shift amount: (24 - 2 - offset) * 8 bits
-            // We want to align the 2-byte value to the specific offset within the 24-byte range.
-            // The 24-byte value occupies bits 0 to 191 (from LSB). 
-            // If offset is 0, we replace the last 2 bytes (bits 0-15).
-            // If offset is 22, we replace the first 2 bytes (bits 176-191).
-            // Shift = (22 - offset) * 8
-            let shift := mul(sub(22, offset), 8)
-            
-            // Align the new value to the correct position
-            let shiftedNew := shl(shift, and(newVal, 0xFFFF))
-            
-            // Create a mask for the 2 bytes at the specific position to isolate the old value
-            let mask := shl(shift, 0xFFFF)
-            
-            // Extract the old value at that position
-            let shiftedOld := and(original, mask)
-            
-            // Perform the replacement:
-            // 1. Clear the old 2 bytes from the original value (original & ~mask)
-            // 2. Add the new 2 bytes (shiftedNew)
-            // Equivalent to: original ^ shiftedOld ^ shiftedNew
-            result := xor(xor(original, shiftedOld), shiftedNew)
+            let selfVal := shr(32, shl(32, self))
+            let valueVal := shr(112, shl(112, value))
+            let shift := shl(3, sub(23, offset))
+            let mask := shl(shift, 0xffff)
+            let oldSeg := and(selfVal, mask)
+            let newSeg := shl(shift, valueVal)
+            result := xor(xor(selfVal, oldSeg), newSeg)
         }
-    }
+}

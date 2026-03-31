@@ -1,21 +1,8 @@
 function pack_4_20(bytes4 left, bytes20 right) internal  pure returns (bytes24 result) {
-function pack_4_20(bytes4 left, bytes20 right) internal  pure returns (bytes24 result) {
-    /// @solidity memory-safe-assembly
-    assembly {
-        // Step 1: Clear extraneous bits from `left` (keep only the first 4 bytes / 32 bits).
-        // Mask: 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
-        // This is equivalent to `shl(224, not(0))` as `not(0)` is all 1s.
-        left := and(left, shl(224, not(0)))
-
-        // Step 2: Clear extraneous bits from `right` (keep only the first 20 bytes / 160 bits).
-        // Mask: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000000000
-        // This is equivalent to `shl(96, not(0))`.
-        right := and(right, shl(96, not(0)))
-
-        // Step 3: Combine `left` and `right`.
-        // `left` is already in the upper 32 bits (bits 255-224).
-        // `right` currently occupies bits 255-96. We need it to occupy bits 223-64.
-        // Therefore, we shift `right` right by 32 bits.
-        // Then we OR it with `left`.
-        result := or(left, shr(32, right))
+/// @solidity memory-safe-assembly
+        assembly {
+            left := and(left, shl(224, not(0)))
+            right := and(right, shl(96, not(0)))
+            result := or(left, shr(32, right))
+        }
     }

@@ -1,48 +1,9 @@
 function replace_10_1(bytes10 self, bytes1 value, uint8 offset) internal  pure returns (bytes10 result) {
-function replace_10_1(bytes10 self, bytes1 value, uint8 offset) internal  pure returns (bytes10 result) {
-/// @solidity memory-safe-assembly
-        assembly {
-            // Ensure offset is within bounds (0-9) and value is a single byte (though bytes1 type enforces this).
-            // We calculate the shift amount: (9 - offset) * 8.
-            // bytes10 is 10 bytes. Index 0 is the most significant byte in the context of shifting if we treat it as a big-endian integer.
-            // However, Solidity bytesN types are left-aligned. 
-            // bytes10 layout: [byte0][byte1]...[byte9][0...0] (22 bytes of zero padding in a slot).
-            // Actually, bytes10 occupies the first 10 bytes of the 32-byte slot.
-            // To replace byte at `offset` (0-indexed from left):
-            // Shift amount = (9 - offset) * 8 bits to move the target byte to the least significant position of the 10-byte segment?
-            // No, simpler approach:
-            // Create a mask for the specific byte position.
-            // The byte at `offset` starts at bit (248 - offset * 8). 
-            // Wait, bytes10 is stored in the high-order bytes of the 32-byte word? 
-            // No, in Solidity, `bytes10` value `0x0102...` is stored as `0x0102...0000...` (left-aligned).
-            // Byte 0 is at bit 248 (32*8 - 8). Byte 9 is at bit 176 (32*8 - 8*10).
-            // Shift amount to move target byte to the lowest byte of the 32-byte word: (248 - offset * 8).
-            // But we want to construct the result directly.
-            
-            // Let's use the XOR method: result = self ^ (old_byte ^ new_byte) << shift.
-            // Extract old byte: shift self right by (248 - offset * 8), then AND with 0xFF.
-            // Or simpler: create a mask with 0xFF at the target position.
-            
-            // Position of the byte in bits from the LSB of the 32-byte word:
-            // Total bits = 256. bytes10 uses top 80 bits.
-            // Byte 0 is at bits 248..255.
-            // Byte `offset` is at bits (248 - offset * 8) .. (255 - offset * 8).
-            
-            let shift := sub(248, mul(offset, 8))
-            
-            // Extract the old byte at the offset
-            let old_byte := and(shr(shift, self), 0xFF)
-            
-            // Get the new byte value (ensure it's treated as a number)
-            let new_byte := and(value, 0xFF)
-            
-            // Calculate the difference to XOR
-            let diff := xor(old_byte, new_byte)
-            
-            // Shift the difference back to the correct position
-            let diff_shifted := shl(shift, diff)
-            
-            // Apply the change
-            result := xor(self, diff_shifted)
+assembly {
+            let v := and(value, 0xFF)
+            let shift := shl(3, sub(9, offset))
+            let mask := not(shl(shift, 0xFF))
+            let old := and(shr(shift, self), 0xFF)
+            result := or(and(self, mask), shl(shift, v))
         }
     }

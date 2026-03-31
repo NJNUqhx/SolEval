@@ -1,0 +1,17 @@
+function toHexString(uint256 value, uint256 length) internal  pure returns (string memory) {
+uint256 localValue = value;
+        bytes memory buffer = new bytes(2 * length + 2);
+        buffer[0] = "0";
+        buffer[1] = "x";
+        for (uint256 i = 2 * length + 1; i > 1; --i) {
+            uint256 nibble = localValue & 0xF;
+            if (nibble < 10) {
+                buffer[i] = bytes1(uint8(nibble + 48));
+            } else {
+                buffer[i] = bytes1(uint8(nibble - 10 + 97));
+            }
+            localValue >>= 4;
+        }
+        require(localValue == 0, "Insufficient length for hex conversion");
+        return string(buffer);
+}

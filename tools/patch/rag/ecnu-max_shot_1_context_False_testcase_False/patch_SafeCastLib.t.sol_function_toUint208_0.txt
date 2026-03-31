@@ -1,7 +1,0 @@
-function toUint208(uint256 x) internal  pure returns (uint208) {
-function toUint208(uint256 x) internal  pure returns (uint208) {
-if (x >= type(uint208).max + 1) {
-            revert();
-        }
-        return uint208(x);
-    }

@@ -1,0 +1,10 @@
+function replace_4_2(bytes4 self, bytes2 value, uint8 offset) internal  pure returns (bytes4 result) {
+bytes2 old = extract_4_2(self, offset);
+        assembly {
+            let shift := shl(mul(sub(1, offset), 8), 0xFFFF000000000000000000000000000000000000000000000000000000000000)
+            let mask := not(shift)
+            let oldValue := shl(mul(sub(1, offset), 8), shl(208, old))
+            let newValue := shl(mul(sub(1, offset), 8), shl(208, value))
+            result := xor(and(self, mask), xor(oldValue, newValue))
+        }
+    }

@@ -1,0 +1,20 @@
+function initCodeERC1967BeaconProxy(address beacon, bytes memory args) internal  pure returns (bytes memory c) {
+/// @solidity memory-safe-assembly
+        assembly {
+            c := mload(0x40)
+            let length := mload(args)
+            if gt(length, 0xffad) {
+                revert(0, 0)
+            }
+            let dataPtr := add(args, 0x20)
+            let codePtr := add(c, 0x20)
+            pop(staticcall(gas(), 0x04, dataPtr, length, codePtr, length))
+            mstore(codePtr, 0x363d3d373d3d363d73)
+            mstore(add(codePtr, 0x0a), shl(0x60, beacon))
+            mstore(add(codePtr, 0x1a), 0x5af43d82803e903d91602b57fd5bf3)
+            let totalLength := add(0x29, length)
+            mstore(c, totalLength)
+            mstore(add(c, add(0x20, totalLength)), 0)
+            mstore(0x40, add(c, add(0x20, add(totalLength, 0x20))))
+        }
+    }

@@ -1,0 +1,9 @@
+function replace_32_8(bytes32 self, bytes8 value, uint8 offset) internal  pure returns (bytes32 result) {
+assembly {
+        let shift := shl(3, offset)
+        let mask := not(shl(208, sub(0xff, shift)))
+        let old_val := and(self, mask)
+        let new_val := shl(shift, and(value, 0xffffffffffffffff))
+        result := xor(xor(self, old_val), new_val)
+    }
+}

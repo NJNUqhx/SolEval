@@ -1,0 +1,3 @@
+function slice(bytes memory subject, uint256 start) internal  pure returns (bytes memory result) {
+        return slice(subject, start, type(uint256).max);
+    }

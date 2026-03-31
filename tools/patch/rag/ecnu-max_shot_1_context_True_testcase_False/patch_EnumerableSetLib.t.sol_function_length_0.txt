@@ -1,0 +1,12 @@
+function length(Uint8Set storage set) internal  view returns (uint256 result) {
+assembly {
+        let slot := set.slot
+        let data := sload(slot)
+        result := 0
+        for { let i := 0 } lt(i, 256) { i := add(i, 8) } {
+            if and(data, shl(i, 1)) {
+                result := add(result, 1)
+            }
+        }
+    }
+}

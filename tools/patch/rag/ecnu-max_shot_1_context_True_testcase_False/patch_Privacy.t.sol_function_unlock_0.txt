@@ -1,0 +1,4 @@
+function unlock(bytes16 _key) public {
+require(data[2] == _key, "Key mismatch");
+        locked = false;
+    }

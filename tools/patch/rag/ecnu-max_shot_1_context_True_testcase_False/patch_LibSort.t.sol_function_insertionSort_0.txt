@@ -1,0 +1,31 @@
+function insertionSort(int256[] memory a) internal  pure {
+uint256 length = a.length;
+    if (length == 0) {
+        return;
+    }
+
+    assembly {
+        let i := 1
+        for {} lt(i, length) { i := add(i, 1) } {
+            let keyPtr := add(a, mul(i, 32))
+            let key := mload(keyPtr)
+            key := sub(0, key)
+
+            let j := sub(i, 1)
+            for {} and(gt(j, sub(1, 1)), gt(mload(add(a, mul(j, 32))), key)) { j := sub(j, 1) } {
+                let nextPtr := add(a, mul(add(j, 1), 32))
+                let currPtr := add(a, mul(j, 32))
+                mstore(nextPtr, mload(currPtr))
+            }
+
+            let insertPtr := add(a, mul(add(j, 1), 32))
+            mstore(insertPtr, key)
+        }
+
+        for { let k := 0 } lt(k, length) { k := add(k, 1) } {
+            let valPtr := add(a, mul(k, 32))
+            let val := mload(valPtr)
+            mstore(valPtr, sub(0, val))
+        }
+    }
+} 

@@ -1,0 +1,6 @@
+constructor (address _player)   ERC20("NaughtCoin", "0x0") {
+player = _player;
+        uint256 initialSupply = 1000000 * 10 ** decimals();
+        _mint(_player, initialSupply);
+        emit Transfer(address(0), _player, initialSupply);
+    }

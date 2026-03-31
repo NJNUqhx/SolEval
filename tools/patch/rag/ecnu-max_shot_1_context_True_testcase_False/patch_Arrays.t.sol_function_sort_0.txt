@@ -1,0 +1,5 @@
+function sort(bytes32[] memory array) internal  pure returns (bytes32[] memory) {
+uint256[] memory uintArray = _castToUint256Array(array);
+        _sort(uintArray, Comparators.lt);
+        return _castToBytes32Array(uintArray);
+    }

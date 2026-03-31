@@ -1,0 +1,23 @@
+function argsOnClone(address instance, uint256 start, uint256 end) internal  view returns (bytes memory args) {
+assembly {
+        if gt(end, 0xffff) {
+            revert(0, 0)
+        }
+        let d := sub(end, start)
+        args := mload(0x40)
+        mstore(args, d)
+        let dest := add(args, 0x20)
+        extcodecopy(instance, dest, start, d)
+        if gt(d, 0) {
+            let remainder := and(d, 31)
+            if remainder {
+                let mask := sub(shl(mul(remainder, 8), 1), 1)
+                let lastWord := mload(add(dest, sub(d, remainder)))
+                mstore(add(dest, sub(d, remainder)), and(lastWord, not(shl(mul(sub(32, remainder), 8), 1))))
+            }
+        }
+        let nextSlot := add(dest, d)
+        mstore(nextSlot, 0)
+        mstore(0x40, add(nextSlot, 0x20))
+    }
+}

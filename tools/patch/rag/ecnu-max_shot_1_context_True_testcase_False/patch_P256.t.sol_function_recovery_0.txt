@@ -1,0 +1,30 @@
+function recovery(bytes32 h, uint8 v, bytes32 r, bytes32 s) internal  view returns (bytes32 x, bytes32 y) {
+if (v > 1 || uint256(r) >= FIELD_SIZE || uint256(s) >= FIELD_SIZE || uint256(s) == 0) {
+            return (0, 0);
+        }
+
+        uint256 rVal = uint256(r);
+        uint256 sVal = uint256(s);
+        uint256 hVal = uint256(h);
+
+        uint256 ySquared = addmod(mulmod(mulmod(rVal, rVal, FIELD_SIZE), rVal, FIELD_SIZE), CURVE_B, FIELD_SIZE);
+        uint256 yCandidate = modExp(ySquared, (FIELD_SIZE + 1) / 4, FIELD_SIZE);
+
+        if (mulmod(yCandidate, yCandidate, FIELD_SIZE) != ySquared) {
+            return (0, 0);
+        }
+
+        if ((yCandidate & 1) != v) {
+            yCandidate = FIELD_SIZE - yCandidate;
+        }
+
+        JPoint[16] memory points = _precomputeJacobian(rVal, yCandidate, 1);
+
+        uint256 rInv = invModPrime(rVal, FIELD_SIZE);
+        uint256 u1 = mulmod(hVal, rInv, CURVE_N);
+        uint256 u2 = mulmod(sVal, rInv, CURVE_N);
+
+        (uint256 rx, uint256 ry) = _jMultShamir(points, u1, u2);
+
+        return (bytes32(rx), bytes32(ry));
+    }

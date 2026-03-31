@@ -1,0 +1,21 @@
+function toEthSignedMessageHash(bytes memory s) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let length := mload(s)
+            let m := mload(0x40)
+            mstore(m, 0x19457468657265756d205369676e6564204d6573736167653a0a3332)
+            mstore(add(m, 0x1d), length)
+            let headerLength := add(0x1e, mul(div(add(length, 31), 32), 32))
+            if gt(headerLength, 0x20) {
+                mstore(m, 0x19457468657265756d205369676e6564204d6573736167653a0a3333)
+                mstore(add(m, 0x1e), length)
+                headerLength := add(0x1f, mul(div(add(length, 31), 32), 32))
+            }
+            if gt(headerLength, 0x20) { revert(0, 0) }
+            let start := add(s, 0x20)
+            let end := add(start, length)
+            let hash := keccak256(m, add(headerLength, length))
+            mstore(s, length)
+            result := hash
+        }
+    }

@@ -1,0 +1,4 @@
+function set(AddressToAddressMap storage map, address key, address value) internal   returns (bool) {
+map._values[key] = value;
+return add(map._keys, key);
+}

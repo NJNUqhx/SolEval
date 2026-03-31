@@ -1,0 +1,44 @@
+function parseInt(string memory s) internal  pure returns (int256 result) {
+uint256 len = bytes(s).length;
+        if (len == 0) revert ParsingFailed();
+
+        uint256 i = 0;
+        bool negative = false;
+
+        // Check for sign
+        if (bytes(s)[0] == '-') {
+            negative = true;
+            i = 1;
+        } else if (bytes(s)[0] == '+') {
+            i = 1;
+        }
+
+        if (i >= len) revert ParsingFailed();
+
+        uint256 value = 0;
+        for (; i < len; i++) {
+            uint8 b = uint8(bytes(s)[i]);
+            if (b < 48 || b > 57) revert ParsingFailed();
+            
+            uint256 digit = b - 48;
+            
+            // Check for overflow before multiplication and addition
+            if (value > (type(uint256).max - digit) / 10) {
+                revert ParsingFailed();
+            }
+            
+            value = value * 10 + digit;
+        }
+
+        if (negative) {
+            if (value > uint256(type(int256).max) + 1) {
+                revert ParsingFailed();
+            }
+            result = -int256(value);
+        } else {
+            if (value > uint256(type(int256).max)) {
+                revert ParsingFailed();
+            }
+            result = int256(value);
+        }
+}

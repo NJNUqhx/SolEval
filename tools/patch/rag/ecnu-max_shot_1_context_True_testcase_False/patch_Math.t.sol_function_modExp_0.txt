@@ -1,0 +1,7 @@
+function modExp(bytes memory b, bytes memory e, bytes memory m) internal  view returns (bytes memory) {
+bytes memory result = tryModExp(b, e, m);
+        if (result.length == 0) {
+            panic(DIVISION_BY_ZERO);
+        }
+        return result;
+    }

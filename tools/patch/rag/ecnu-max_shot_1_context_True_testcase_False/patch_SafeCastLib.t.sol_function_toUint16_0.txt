@@ -1,0 +1,4 @@
+function toUint16(uint256 x) internal  pure returns (uint16) {
+if (x > type(uint16).max) revert();
+        return uint16(x);
+    } 

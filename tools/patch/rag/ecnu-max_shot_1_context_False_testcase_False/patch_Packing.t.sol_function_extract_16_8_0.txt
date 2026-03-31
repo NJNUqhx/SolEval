@@ -1,14 +1,6 @@
 function extract_16_8(bytes16 self, uint8 offset) internal  pure returns (bytes8 result) {
-function extract_16_8(bytes16 self, uint8 offset) internal  pure returns (bytes8 result) {
-if (offset > 8) {
-            revert OutOfRangeAccess();
-        }
-
-        assembly {
-            // Shift the bytes16 value left by (offset * 8) bits to align the target bytes to the high order
-            let shifted := shl(mul(offset, 8), self)
-            // Mask the result to keep only the first 8 bytes (64 bits), effectively discarding the rest
-            let mask := 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000
-            result := and(shifted, mask)
-        }
+if (offset > 8) revert OutOfRangeAccess();
+    assembly {
+        result := shr(mul(8, sub(16, offset)), shl(64, self))
     }
+}

@@ -1,5 +1,0 @@
-function diffMinutes(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
-function diffMinutes(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
-require(toTimestamp >= fromTimestamp, "Timestamps invalid");
-        result = (toTimestamp - fromTimestamp) / 60;
-    }

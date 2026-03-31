@@ -1,10 +1,10 @@
 function extract_28_1(bytes28 self, uint8 offset) internal  pure returns (bytes1 result) {
-function extract_28_1(bytes28 self, uint8 offset) internal  pure returns (bytes1 result) {
-require(offset < 28, "OutOfRangeAccess");
-    assembly {
-        // Shift left to move the target byte to the most significant position
-        let shifted := shl(mul(offset, 8), self)
-        // Mask to keep only the most significant byte (0xFF00...00)
-        // shl(248, not(0)) creates a mask with the top 8 bits set to 1
-        result := and(shifted, shl(248, not(0)))
+if (offset > 27) {
+            revert OutOfRangeAccess();
+        }
+
+        assembly {
+            let shifted := shl(mul(8, offset), self)
+            result := and(shifted, shl(248, not(0)))
+        }
     }

@@ -1,0 +1,18 @@
+function deployDeterministicERC1967BeaconProxy(uint256 value, address beacon, bytes memory args, bytes32 salt) internal   returns (address instance) {
+assembly {
+            let m := mload(0x40)
+            let argsLength := mload(args)
+            mstore(m, 0x60115b602d600c6000396000602d526000815260206000f35b600080fd5b600060065260016000f05b600080fd)
+            mstore(add(m, 0x1b), beacon)
+            if gt(argsLength, 0x12d) {
+                revert(0x00, 0x00)
+            }
+            mstore(add(m, 0x3b), argsLength)
+            calldatacopy(add(m, 0x5b), add(args, 0x20), argsLength)
+            instance := create2(value, m, add(0x5b, argsLength), salt)
+            if iszero(instance) {
+                mstore(0x00, 0x314795c900000000000000000000000000000000000000000000000000000000)
+                revert(0x1c, 0x04)
+            }
+        }
+}

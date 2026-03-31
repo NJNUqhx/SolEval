@@ -1,0 +1,4 @@
+function tryParseHexUint(string memory input, uint256 begin, uint256 end) internal  pure returns (bool success, uint256 value) {
+if (end > bytes(input).length || begin > end) return (false, 0);
+        return _tryParseHexUintUncheckedBounds(input, begin, end);
+    }

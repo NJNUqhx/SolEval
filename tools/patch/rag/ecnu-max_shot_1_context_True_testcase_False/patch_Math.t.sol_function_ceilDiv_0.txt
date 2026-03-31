@@ -1,0 +1,6 @@
+function ceilDiv(uint256 a, uint256 b) internal  pure returns (uint256) {
+if (b == 0) panic(DIVISION_BY_ZERO);
+        unchecked {
+            return (a - 1) / b + 1;
+        }
+}

@@ -1,4 +1,0 @@
-function deployDeterministic(address implementation, address admin, bytes32 salt) public  payable returns (address proxy) {
-function deployDeterministic(address implementation, address admin, bytes32 salt) public  payable returns (address proxy) {
-proxy = deployDeterministicAndCall(implementation, admin, salt, "");
-    }

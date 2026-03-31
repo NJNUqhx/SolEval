@@ -1,0 +1,38 @@
+function cloneWithImmutableArgs(address implementation, bytes memory args, uint256 value) internal   returns (address instance) {
+if (address(this).balance < value) {
+            revert InsufficientBalance();
+        }
+
+        bytes memory bytecode = _getCloneWithImmutableArgsBytecode(implementation, args);
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            instance := create(value, add(bytecode, 0x20), mload(bytecode))
+        }
+
+        if (instance == address(0)) {
+            revert FailedDeployment();
+        }
+    }
+
+    function _getCloneWithImmutableArgsBytecode(address implementation, bytes memory args) internal pure returns (bytes memory) {
+        uint256 argsLength = args.length;
+        bytes memory bytecode = new bytes(0x3D + argsLength);
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let ptr := add(bytecode, 0x20)
+            mstore(ptr, 0x602d5f8160095f39f35f5f365f5f37365f73)
+            mstore(add(ptr, 0x09), implementation)
+            mstore(add(ptr, 0x1d), 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            
+            let argsPtr := add(args, 0x20)
+            let destPtr := add(ptr, 0x2d)
+            
+            for { let i := 0 } lt(i, argsLength) { i := add(i, 0x20) } {
+                mstore(add(destPtr, i), mload(add(argsPtr, i)))
+            }
+        }
+
+        return bytecode;
+    }

@@ -1,0 +1,20 @@
+function initCodeHash(address implementation, bytes memory args) internal  pure returns (bytes32 hash) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            let n := mload(args)
+            if gt(n, 0xffd2) {
+                revert(0x00, 0x00)
+            }
+            let data := add(args, 0x20)
+            mstore(m, 0x602d8060093d393df3363d3d373d3d3d363d73000000000000000000000000)
+            mstore(add(m, 0x14), shl(96, implementation))
+            mstore(add(m, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+            pop(staticcall(gas(), 0x04, data, n, add(m, 0x3c), n))
+            let suffixOffset := add(m, 0x3c)
+            let suffixLength := add(0x0d, n)
+            mstore(add(suffixOffset, sub(0x20, n)), shl(248, suffixLength))
+            hash := keccak256(m, add(0x3c, n))
+            mstore(0x40, add(m, add(0x3c, n)))
+        }
+    }

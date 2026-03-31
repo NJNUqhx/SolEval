@@ -1,0 +1,6 @@
+constructor (address _logic) {
+require(_logic.code.length > 0, "ERC1967: new implementation is not a contract");
+        _setImplementation(_logic);
+        (bool success, ) = _logic.delegatecall(abi.encodeWithSignature("initialize()"));
+        require(success, "Call failed");
+    }

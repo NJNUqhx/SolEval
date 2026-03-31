@@ -1,7 +1,0 @@
-function tBool(bytes32 tSlot) internal  pure returns (TBool storage ptr) {
-function tBool(bytes32 tSlot) internal  pure returns (TBool storage ptr) {
-/// @solidity memory-safe-assembly
-        assembly {
-            ptr.slot := tSlot
-        }
-    }

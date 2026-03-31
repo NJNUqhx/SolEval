@@ -1,43 +1,7 @@
 function extract_12_10(bytes12 self, uint8 offset) internal  pure returns (bytes10 result) {
-function extract_12_10(bytes12 self, uint8 offset) internal  pure returns (bytes10 result) {
-if (offset > 2) {
-            revert OutOfRangeAccess();
-        }
-
-        assembly {
-            // Shift left by 8 * offset bytes to align the desired segment to the most significant bits
-            let shifted := shl(mul(offset, 8), self)
-            // Mask to retain only the top 10 bytes (80 bits).
-            // The mask is 0xFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000
-            // which corresponds to keeping bits 255 down to 176 (10 bytes).
-            let masked := and(shifted, 0xFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000)
-            // Shift right by 16 bytes (128 bits) to move the 10-byte segment to the least significant position
-            // suitable for a bytes10 return value (which occupies the upper 10 bytes of a 32-byte word in memory usually,
-            // but here we just need the value aligned correctly for the return type).
-            // Actually, for a bytes10 return, Solidity expects the data in the upper 10 bytes of the 32-byte slot.
-            // Our mask already positioned it at the top. We just need to ensure the lower bits are zeroed (done by mask)
-            // and the value is assigned.
-            // Wait, let's re-evaluate the shift logic for bytes10.
-            // bytes12 is stored in the upper 12 bytes of a 32-byte word.
-            // Input: [0..11][data...][12..31 zeros] ? No, bytes12 is left-aligned in the 32-byte word.
-            // bits 255-208 contain the 12 bytes.
-            // We want 10 bytes starting at offset.
-            // If offset=0, we want bytes 0-9.
-            // If offset=2, we want bytes 2-11.
-            
-            // Step 1: Shift left by offset * 8. This moves byte 'offset' to position 0 (MSB).
-            // Original: [B0 B1 ... B11] (at MSB)
-            // Shifted: [B_offset ... B11 0x00 ...]
-            
-            // Step 2: We need exactly 10 bytes. The current value has (12-offset) bytes of data + zeros.
-            // We need to clear the bottom (12 - offset - 10) = (2 - offset) bytes if we were right aligned, 
-            // but since we are working with left-aligned words for fixed bytes types:
-            // We want to keep the top 10 bytes of the shifted result.
-            // The shifted result has valid data from MSB down to (12-offset)*8 bits.
-            // We want to keep only the top 10*8 bits.
-            // So we apply a mask that keeps the top 80 bits and zeroes the rest.
-            // Mask: 0xFFFFFFFFFFFFFFFFFFFF0000000000000000000000000000000000000000 (top 80 bits set)
-            
-            result := masked
-        }
+if (offset > 2) revert OutOfRangeAccess();
+    assembly {
+        result := and(shl(mul(8, offset), self), 0xffffffffffffffffff000000000000000000000000000000000000000000000000)
+        result := shr(176, result)
     }
+}

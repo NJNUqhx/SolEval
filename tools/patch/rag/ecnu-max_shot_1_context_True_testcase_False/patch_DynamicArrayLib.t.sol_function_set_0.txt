@@ -1,0 +1,7 @@
+function set(DynamicArray memory a, uint256 i, bytes32 data) internal  pure returns (DynamicArray memory result) {
+    result = a;
+    assembly {
+        let ptr := add(add(result, 0x20), mul(i, 0x20))
+        mstore(ptr, data)
+    }
+}

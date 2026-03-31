@@ -1,29 +1,7 @@
 function pack_4_24(bytes4 left, bytes24 right) internal  pure returns (bytes28 result) {
-function pack_4_24(bytes4 left, bytes24 right) internal  pure returns (bytes28 result) {
-/// @solidity memory-safe-assembly
-    assembly {
-        // Step 1: Clear extraneous bits from left (mask with 0xFFFFFFFF)
-        // Since left is bytes4, we shift it to the upper 32 bits of the 28-byte result later.
-        // Actually, we need to place 'left' in the high 4 bytes and 'right' in the low 24 bytes.
-        // A bytes28 is 224 bits.
-        // Left (4 bytes) should occupy bits [223:192] (the most significant 32 bits).
-        // Right (24 bytes) should occupy bits [191:0].
-        
-        // Mask left to ensure only 4 bytes are used (though solidity type system mostly handles this, assembly is explicit)
-        let cleanLeft := and(left, 0xFFFFFFFF)
-        
-        // Mask right to ensure only 24 bytes are used
-        let cleanRight := and(right, 0xFFFFFFFFFFFFFFFFFFFFFFFF)
-        
-        // Shift cleanLeft to the top 32 bits of a 224-bit integer.
-        // 224 bits total. 224 - 32 = 192 bits shift.
-        // 192 bits = 24 bytes = 0x18 bytes = 192 bits.
-        let shiftedLeft := shl(192, cleanLeft)
-        
-        // Combine using OR. The right value is already in the lower 192 bits position relative to the 224 bit space?
-        // Wait, `right` is a bytes24. In assembly, if we treat it as a number, it occupies the lower bits.
-        // So `cleanRight` is effectively in bits [191:0].
-        // `shiftedLeft` is in bits [223:192].
-        // So we just OR them.
-        result := or(shiftedLeft, cleanRight)
-    }
+assembly {
+    left := and(left, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+    right := and(right, 0x00000000FFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000)
+    result := or(left, shr(32, right))
+}
+}

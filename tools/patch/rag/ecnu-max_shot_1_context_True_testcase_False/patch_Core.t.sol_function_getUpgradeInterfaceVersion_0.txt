@@ -1,0 +1,19 @@
+function getUpgradeInterfaceVersion(address addr) internal  view returns (string memory) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mPtr := mload(0x40)
+            mstore(mPtr, 0x5a836a5f00000000000000000000000000000000000000000000000000000000)
+            let success := staticcall(gas(), addr, mPtr, 0x04, mPtr, 0x20)
+            if success {
+                let size := mload(mPtr)
+                if gt(size, 31) {
+                    if lt(add(size, 0x20), returndatasize()) {
+                        returndatacopy(add(mPtr, 0x20), 0x20, size)
+                        mstore(0x40, add(add(mPtr, 0x20), size))
+                        return(mPtr, add(size, 0x20))
+                    }
+                }
+            }
+            return(mPtr, 0x20)
+        }
+}

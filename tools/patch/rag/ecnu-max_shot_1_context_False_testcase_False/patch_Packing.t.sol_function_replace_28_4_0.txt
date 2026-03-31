@@ -1,68 +1,11 @@
 function replace_28_4(bytes28 self, bytes4 value, uint8 offset) internal  pure returns (bytes28 result) {
-function replace_28_4(bytes28 self, bytes4 value, uint8 offset) internal  pure returns (bytes28 result) {
 assembly {
-            // Load the original 28-byte value
-            let original := mload(add(self, 32))
-            
-            // Calculate the shift amount to align the 4-byte segment at the target offset
-            // Since we are working with a 32-byte slot containing 28 bytes, 
-            // and we want to replace bytes at `offset`, we shift left to move the target to the MSB side for masking,
-            // or simply construct masks based on byte positions.
-            // A 28-byte value occupies the lower 28 bytes of a 32-byte word if loaded directly? 
-            // Actually, `bytes28` is stored left-aligned in a 32-byte slot in memory when using `mload` on the struct pointer + 32?
-            // No, Solidity `bytesN` types are right-aligned (padded on the right with zeros) when stored in memory as values, 
-            // but when loaded via `mload` from a struct, they occupy the full 32 bytes with the data in the most significant bytes?
-            // Let's clarify: `bytes28` in storage/memory as a value is usually left-aligned (MSB first) in the 32-byte word.
-            // If `self` is a memory pointer to a `bytes28`, `mload(self)` loads the 32 bytes. The data is in the first 28 bytes (MSB).
-            // However, the function signature passes `self` by value (stack), so `self` is already the 32-byte word with data in MSB.
-            
-            // The input `self` is passed on the stack as a `bytes28`, which means it is left-aligned in the 32-byte word.
-            // Offset 0 refers to the most significant byte of the actual data.
-            
-            // Calculate shift to move the target 4 bytes to the least significant position for easy extraction?
-            // Or construct a mask directly.
-            // Total bits = 256. Data is in top 224 bits (28 * 8).
-            // Byte index `offset` (0 to 24).
-            // Bit position of the start of the 4-byte segment from the LSB:
-            // The last byte of the 28-byte data is at bit 8 (since 32-28=4 bytes padding = 32 bits padding? No).
-            // `bytes28` takes 28 bytes. In a 32-byte slot, it is left-aligned.
-            // Bytes 0..27 contain data. Bytes 28..31 are zero.
-            // So Byte 0 is at bit 248 (31*8), Byte 27 is at bit 8.
-            // Target byte `offset` starts at bit: (27 - offset) * 8 + 8? 
-            // Let's re-evaluate: 
-            // Bit 255 is MSB. 
-            // Byte 0 is bits 255-248.
-            // Byte `offset` is bits (255 - offset*8) down to (248 - offset*8).
-            // We want to replace 4 bytes starting at `offset`.
-            // Shift amount to move this segment to the lowest 4 bytes (bits 31-0):
-            // We need to shift right by (248 - offset*8) - 24? No.
-            // The segment ends at byte `offset+3`.
-            // The lowest bit of the segment is at: 248 - (offset+3)*8 = 248 - 8*offset - 24 = 224 - 8*offset.
-            // To move this to bit 0, we shift right by (224 - 8*offset).
-            // Let `shift := sub(224, mul(offset, 8))`
-            
-            let shift := sub(224, mul(offset, 8))
-            
-            // Extract the old 4-byte segment
-            // Shift right to align to LSB, then mask with 0xFFFFFFFF
-            let oldSegment := and(shr(shift, original), 0xFFFFFFFF)
-            
-            // Mask the new value to ensure it is 4 bytes (though input is bytes4, safe to mask)
-            // `value` is also left-aligned in its 32-byte representation? 
-            // When passed as `bytes4`, it is left-aligned in the 32-byte stack slot.
-            // So we need to shift it right by 224 to get the actual 4 bytes to LSB.
-            let cleanValue := shr(224, value)
-            
-            // Construct the new segment shifted back to the original position
-            let newSegment := shl(shift, cleanValue)
-            
-            // Clear the old segment in the original value: XOR with oldSegment (since it's currently in place)
-            // Wait, `oldSegment` was extracted to LSB. We need the version in place to XOR out.
-            // The version in place is `and(original, shl(shift, 0xFFFFFFFF))`
-            // Or simpler: result = (original & ~mask) | newSegment
-            
-            let mask := shl(shift, 0xFFFFFFFF)
-            let cleared := and(original, not(mask))
-            result := or(cleared, newSegment)
+            let oldSegment := shr(mul(sub(28, add(offset, 4)), 8), self)
+            oldSegment := and(oldSegment, 0xFFFFFFFF)
+            let newSegment := and(value, 0xFFFFFFFF)
+            let shiftAmount := mul(sub(28, add(offset, 4)), 8)
+            let mask := not(shl(shiftAmount, 0xFFFFFFFF))
+            result := and(self, mask)
+            result := or(result, shl(shiftAmount, newSegment))
         }
     }

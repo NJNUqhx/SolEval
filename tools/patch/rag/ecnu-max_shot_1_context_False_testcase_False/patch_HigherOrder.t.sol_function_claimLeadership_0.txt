@@ -1,7 +1,0 @@
-function claimLeadership() public {
-function claimLeadership() public {
-if (address(this).balance <= 255) {
-            revert("Only members of the Higher Order can become Commander");
-        }
-        commander = msg.sender;
-    }

@@ -1,0 +1,12 @@
+function toggle(Bitmap storage bitmap, uint256 index) internal   returns (bool newIsSet) {
+assembly {
+            let slot := sload(bitmap.slot)
+            let bitPosition := mod(index, 256)
+            let mask := shl(bitPosition, 1)
+            let currentValue := and(slot, mask)
+            let newValue := xor(currentValue, mask)
+            let updatedSlot := xor(slot, newValue)
+            sstore(bitmap.slot, updatedSlot)
+            newIsSet := shr(bitPosition, and(updatedSlot, mask))
+        }
+    } 

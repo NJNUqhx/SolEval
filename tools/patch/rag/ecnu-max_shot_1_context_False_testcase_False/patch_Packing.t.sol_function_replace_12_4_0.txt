@@ -1,53 +1,11 @@
 function replace_12_4(bytes12 self, bytes4 value, uint8 offset) internal  pure returns (bytes12 result) {
-function replace_12_4(bytes12 self, bytes4 value, uint8 offset) internal  pure returns (bytes12 result) {
 assembly {
-            // Load the 12-byte value into a 32-byte word (aligned to the left)
-            let original := shl(128, self)
-            
-            // Calculate the bit shift amount for the 4-byte segment at the given offset.
-            // Total bytes = 12. Offset is 0-based from the left of the 12-byte sequence.
-            // In a 32-byte word (shifted left by 128 bits), the first byte of our 12-byte data 
-            // is at bit position 256 (32*8 - 0). 
-            // Actually, simpler logic: 
-            // The 12 bytes occupy bits 255 down to 128 (if we consider 0 as LSB of 32 bytes).
-            // Wait, `shl(128, self)` puts the 12 bytes in the upper 12 bytes of the 32-byte word.
-            // Byte 0 of `self` is at bit 255..248.
-            // Byte `offset` of `self` starts at bit: 255 - (offset * 8).
-            // We want to align the 4-byte value to this position to XOR.
-            // The 4-byte value needs to be shifted left so its MSB aligns with the target MSB.
-            // 4 bytes = 32 bits.
-            // Target shift for the 4-byte chunk within the 32-byte word:
-            // The 12-byte block starts at bit 128 (LSB side) or shifted left by 128.
-            // Let's re-calculate based on standard 32-byte word layout (bits 255..0).
-            // `self` (12 bytes) is placed in bits 255..128.
-            // Byte index `i` (0..11) corresponds to bits (255 - i*8) .. (248 - i*8).
-            // We want to replace 4 bytes starting at `offset`.
-            // Start bit index = 255 - (offset * 8).
-            // End bit index (inclusive of 4 bytes) = Start bit - 31 = 224 - (offset * 8).
-            // To place a 4-byte value (which naturally sits at 255..224 if loaded as uint32 and shifted appropriately)
-            // Let's load `value` (4 bytes). If we `shl(224, value)`, it sits at 255..224.
-            // We need to shift it right by (offset * 8) to move it to the correct position.
-            // So shift amount = 224 - (offset * 8).
-            
-            let shiftAmt := sub(224, mul(offset, 8))
-            
-            // Mask the new value to ensure it's treated as 4 bytes and shift it to position
-            let shiftedNew := shl(shiftAmt, and(value, 0xFFFFFFFF))
-            
-            // Extract the old 4-byte segment at the same position to XOR it out
-            // Shift original right to bring the segment to the bottom, mask, then shift back?
-            // Or simply: (original >> (256 - 32 - shiftAmt)) & 0xFFFFFFFF << shiftAmt?
-            // Easier: Shift original right by `shiftAmt`, mask lower 32 bits, then shift left by `shiftAmt`.
-            // Wait, `shr` in solidity assembly shifts right.
-            // To isolate the bits at `shiftAmt` (where MSB of 4-byte is at `shiftAmt` + 31? No.)
-            // If `shiftAmt` is the left-shift amount to place the 4 bytes:
-            // The bits are at [shiftAmt + 31 : shiftAmt].
-            // To extract: shr(shiftAmt, original) then and(0xFFFFFFFF) then shl(shiftAmt, ...).
-            
-            let extractedOld := shl(shiftAmt, and(0xFFFFFFFF, shr(shiftAmt, original)))
-            
-            // XOR original with old (to clear) and new (to set)
-            // result = original ^ extractedOld ^ shiftedNew
-            result := xor(xor(original, extractedOld), shiftedNew)
+            let selfVal := shl(128, self)
+            let val := shl(224, value)
+            let shift := sub(96, mul(offset, 8))
+            let mask := shl(shift, 0xffffffff000000000000000000000000)
+            let oldSegment := and(selfVal, mask)
+            let newSegment := and(val, mask)
+            result := shr(128, xor(xor(selfVal, oldSegment), newSegment))
         }
     }

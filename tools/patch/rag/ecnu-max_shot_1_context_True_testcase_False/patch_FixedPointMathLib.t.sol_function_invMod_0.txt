@@ -1,0 +1,22 @@
+function invMod(uint256 a, uint256 n) internal  pure returns (uint256 x) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let g := n
+            let r := mod(a, n)
+            let y := 0
+            x := 1
+            if r {
+                for {} 1 {} {
+                    let q := div(g, r)
+                    let t := mod(g, r)
+                    g := r
+                    r := t
+                    t := mod(mul(q, y), n)
+                    y := x
+                    x := mod(sub(x, t), n)
+                    if iszero(r) { break }
+                }
+            }
+            if iszero(eq(g, 1)) { x := 0 }
+        }
+    }

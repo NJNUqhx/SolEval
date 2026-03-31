@@ -1,0 +1,19 @@
+function decSigned(TUint256 storage ptr, int256 delta) internal   returns (uint256 newValue) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let currentValue := sload(ptr.slot)
+            newValue := sub(currentValue, delta)
+            
+            // Check for underflow/overflow
+            // If delta > 0 and newValue > currentValue -> underflow
+            // If delta < 0 and newValue < currentValue -> overflow
+            if and(gt(delta, 0), gt(newValue, currentValue)) {
+                revert(0, 0)
+            }
+            if and(lt(delta, 0), lt(newValue, currentValue)) {
+                revert(0, 0)
+            }
+            
+            sstore(ptr.slot, newValue)
+        }
+    }

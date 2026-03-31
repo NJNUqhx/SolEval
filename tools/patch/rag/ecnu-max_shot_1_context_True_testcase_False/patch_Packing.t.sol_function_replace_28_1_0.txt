@@ -1,0 +1,10 @@
+function replace_28_1(bytes28 self, bytes1 value, uint8 offset) internal  pure returns (bytes28 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let oldByte := and(shr(mul(8, sub(27, offset))), self)
+            oldByte := and(oldByte, 0xff)
+            let newByte := and(value, 0xff)
+            let shift := mul(8, sub(27, offset))
+            result := xor(xor(self, shl(shift, oldByte)), shl(shift, newByte))
+        }
+    }

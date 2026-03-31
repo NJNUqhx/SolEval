@@ -1,0 +1,19 @@
+function mul(G2Point memory point, bytes32 scalar) internal  view returns (G2Point memory result) {
+assembly {
+            mstore(add(result, 0x20), mload(add(point, 0x20)))
+            mstore(add(result, 0x40), mload(add(point, 0x40)))
+            mstore(add(result, 0x60), mload(add(point, 0x60)))
+            mstore(add(result, 0x80), mload(add(point, 0x80)))
+            mstore(add(result, 0xA0), mload(add(point, 0xA0)))
+            mstore(add(result, 0xC0), mload(add(point, 0xC0)))
+            mstore(add(result, 0xE0), mload(add(point, 0xE0)))
+            mstore(add(result, 0x100), mload(add(point, 0x100)))
+            mstore(add(result, 0x120), scalar)
+            if iszero(staticcall(gas(), 0x14, add(result, 0x20), 0x140, add(result, 0x20), 0x100)) {
+                revert(0, 0)
+            }
+            if iszero(eq(returndatasize(), 0x100)) {
+                revert(0, 0)
+            }
+        }
+    }

@@ -1,0 +1,71 @@
+function log2(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+        let mask := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        let shift := 128
+        let temp := x
+        let result := 0
+
+        // Check upper 128 bits
+        if iszero(and(temp, mask)) {
+            result := or(result, shift)
+            temp := shl(shift, temp)
+        }
+
+        // Check next 64 bits
+        mask := shr(64, mask)
+        shift := 64
+        if iszero(and(temp, mask)) {
+            result := or(result, shift)
+            temp := shl(shift, temp)
+        }
+
+        // Check next 32 bits
+        mask := shr(32, mask)
+        shift := 32
+        if iszero(and(temp, mask)) {
+            result := or(result, shift)
+            temp := shl(shift, temp)
+        }
+
+        // Check next 16 bits
+        mask := shr(16, mask)
+        shift := 16
+        if iszero(and(temp, mask)) {
+            result := or(result, shift)
+            temp := shl(shift, temp)
+        }
+
+        // Check next 8 bits
+        mask := shr(8, mask)
+        shift := 8
+        if iszero(and(temp, mask)) {
+            result := or(result, shift)
+            temp := shl(shift, temp)
+        }
+
+        // Check next 4 bits
+        mask := shr(4, mask)
+        shift := 4
+        if iszero(and(temp, mask)) {
+            result := or(result, shift)
+            temp := shl(shift, temp)
+        }
+
+        // Check next 2 bits
+        mask := shr(2, mask)
+        shift := 2
+        if iszero(and(temp, mask)) {
+            result := or(result, shift)
+            temp := shl(shift, temp)
+        }
+
+        // Check last bit
+        mask := shr(1, mask)
+        shift := 1
+        if iszero(and(temp, mask)) {
+            result := or(result, shift)
+        }
+
+        r := sub(255, result)
+    }
+}

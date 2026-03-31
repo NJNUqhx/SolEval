@@ -1,39 +1,7 @@
 function replace_32_28(bytes32 self, bytes28 value, uint8 offset) internal  pure returns (bytes32 result) {
-function replace_32_28(bytes32 self, bytes28 value, uint8 offset) internal  pure returns (bytes32 result) {
 assembly {
-            // Calculate the number of bits to shift based on the byte offset.
-            // Each byte is 8 bits, so we shift by offset * 8.
-            let shift := mul(offset, 8)
-            
-            // Create a mask to clear the 28-byte segment in the original value.
-            // 28 bytes = 224 bits.
-            // We want a mask that has 0s in the 224-bit window starting at 'shift'
-            // and 1s everywhere else.
-            // Strategy: Create a 224-bit wide mask of 1s (which is 2^224 - 1),
-            // shift it left by 'shift', then invert it to get 0s in the target area.
-            
-            // 2^224 - 1 in hex is 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF (28 F's)
-            // In solidity/assembly, we can construct this by shifting.
-            // A full 256-bit mask of 1s is not(0).
-            // We need a mask of 224 ones: (1 << 224) - 1.
-            let width := 224
-            let ones224 := sub(shl(width, 1), 1)
-            
-            // Shift the 224-bit ones to the target position
-            let windowMask := shl(shift, ones224)
-            
-            // Invert to get the clear mask (1s everywhere except the 28-byte window)
-            let clearMask := not(windowMask)
-            
-            // Clear the target segment in 'self'
-            let clearedSelf := and(self, clearMask)
-            
-            // Prepare the new value:
-            // 1. Ensure 'value' is treated as a 256-bit number (it already is in assembly context).
-            // 2. Shift 'value' left by 'shift' to align it with the target offset.
-            let shiftedValue := shl(shift, value)
-            
-            // Combine the cleared original value with the shifted new value
-            result := or(clearedSelf, shiftedValue)
+            let mask := not(shl(mul(224, offset), sub(shl(224, offset), 1)))
+            let shiftedValue := shl(mul(224, offset), shr(mul(32, sub(28, offset)), value))
+            result := or(and(self, mask), shiftedValue)
         }
     }

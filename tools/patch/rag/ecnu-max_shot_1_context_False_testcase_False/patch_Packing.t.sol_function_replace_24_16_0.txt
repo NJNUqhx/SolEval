@@ -1,26 +1,12 @@
 function replace_24_16(bytes24 self, bytes16 value, uint8 offset) internal  pure returns (bytes24 result) {
-function replace_24_16(bytes24 self, bytes16 value, uint8 offset) internal  pure returns (bytes24 result) {
 assembly {
-        // Load the 24-byte value into a temporary variable (stored in the lower 24 bytes of a 32-byte slot)
-        let original := self
-        // Load the 16-byte replacement value
-        let newVal := value
-        // Convert offset to bit shift amount (offset * 8)
-        let shift := shl(3, offset)
-        
-        // Create a mask for 16 bytes: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-        let mask16 := sub(shl(128, 1), 1)
-        // Shift the mask to the correct position
-        let shiftedMask := shl(shift, mask16)
-        
-        // Extract the old 16-byte segment from the original value at the offset
-        let oldVal := and(shiftedMask, original)
-        
-        // Shift the new value to the correct position
-        let shiftedNewVal := shl(shift, newVal)
-        
-        // Perform the replacement using XOR logic:
-        // 1. Clear the old segment: original ^ oldVal
-        // 2. Insert the new segment: (original ^ oldVal) ^ shiftedNewVal
-        result := xor(xor(original, oldVal), shiftedNewVal)
-    }
+            let original := and(self, not(0))
+            let newValue := and(value, not(0))
+            let shift := shl(mul(sub(24, add(offset, 16)), 8), 1)
+            let mask := sub(shl(mul(16, 8), 1), 1)
+            let shiftedMask := shl(mul(sub(24, add(offset, 16)), 8), mask)
+            let oldSegment := and(original, shiftedMask)
+            let newSegment := and(shl(mul(sub(24, add(offset, 16)), 8), newValue), shiftedMask)
+            result := xor(xor(original, oldSegment), newSegment)
+        }
+}

@@ -1,0 +1,38 @@
+function parseUint(string memory s) internal  pure returns (uint256 result) {
+uint256 n;
+    /// @solidity memory-safe-assembly
+    assembly {
+        let sData := add(s, 0x20)
+        n := mload(s)
+        let end := add(sData, n)
+        let tempResult := 0
+        let preMulOverflowThres := div(sub(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff, 9), 10)
+
+        for { let i := sData } lt(i, end) { i := add(i, 1) } {
+            let char := byte(0, mload(i))
+            if or(lt(char, 48), gt(char, 57)) {
+                mstore(0, 0x552015a700000000000000000000000000000000000000000000000000000000) // ParsingFailed()
+                revert(0, 4)
+            }
+            let digit := sub(char, 48)
+            if gt(tempResult, preMulOverflowThres) {
+                mstore(0, 0x552015a700000000000000000000000000000000000000000000000000000000) // ParsingFailed()
+                revert(0, 4)
+            }
+            tempResult := add(mul(tempResult, 10), digit)
+        }
+        result := tempResult
+    }
+    if n == 0 {
+        revert(0, 4); // ParsingFailed() for empty string if strict, though loop handles 0 length gracefully returning 0. Assuming requirement implies non-empty or 0 is valid.
+        // Based on step 4 "If parsing fails... revert", and empty string has no invalid chars but value 0.
+        // However, standard parsers often return 0 for empty or revert. Let's assume 0 is valid unless specified otherwise.
+        // But wait, if n=0, loop doesn't run, result=0. Is empty string valid? Usually no for strict parsers.
+        // The requirement says "If parsing fails (e.g., invalid characters or overflow)". Empty string might be considered invalid depending on context.
+        // Given the steps, if n=0, we skip loop. Let's assume empty string is invalid based on typical "parse" semantics requiring digits.
+        if mload(s) == 0 {
+             mstore(0, 0x552015a700000000000000000000000000000000000000000000000000000000)
+             revert(0, 4)
+        }
+    }
+}

@@ -1,0 +1,4 @@
+function toInt216(uint256 x) internal  pure returns (int216) {
+if (x >= 2**215) revert Overflow();
+        return int216(int256(x));
+    }

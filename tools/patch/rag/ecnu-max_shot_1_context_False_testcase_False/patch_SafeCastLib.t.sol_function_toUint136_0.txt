@@ -1,7 +1,0 @@
-function toUint136(uint256 x) internal  pure returns (uint136) {
-function toUint136(uint256 x) internal  pure returns (uint136) {
-if (x >= (1 << 136)) {
-            revert("Overflow: value exceeds uint136 limit");
-        }
-        return uint136(x);
-    }

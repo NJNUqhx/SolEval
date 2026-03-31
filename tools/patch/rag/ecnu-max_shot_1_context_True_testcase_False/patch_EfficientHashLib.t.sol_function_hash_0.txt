@@ -1,0 +1,6 @@
+function hash(bytes memory b) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := keccak256(add(b, 0x20), mload(b))
+        }
+    }

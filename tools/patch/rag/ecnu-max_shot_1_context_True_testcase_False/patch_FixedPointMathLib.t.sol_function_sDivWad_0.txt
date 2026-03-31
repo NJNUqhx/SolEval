@@ -1,0 +1,11 @@
+function sDivWad(int256 x, int256 y) internal  pure returns (int256 z) {
+assembly ("memory-safe") {
+            let wad := 1000000000000000000
+            let xx := mul(x, wad)
+            if or(iszero(y), xor(signextend(31, x), signextend(31, xx))) {
+                mstore(0x00, 0xa3b3b3b3) // `SDivWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            z := sdiv(xx, y)
+        }
+    }

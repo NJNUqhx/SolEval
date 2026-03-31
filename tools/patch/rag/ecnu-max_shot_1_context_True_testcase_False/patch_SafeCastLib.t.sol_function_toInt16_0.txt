@@ -1,0 +1,4 @@
+function toInt16(uint256 x) internal  pure returns (int16) {
+if (x >= 2**15) revert();
+        return int16(uint16(x));
+    } 

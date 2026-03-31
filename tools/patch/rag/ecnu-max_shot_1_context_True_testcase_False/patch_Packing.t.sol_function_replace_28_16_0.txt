@@ -1,0 +1,10 @@
+function replace_28_16(bytes28 self, bytes16 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+            let original := and(self, sub(shl(224, 1), 1))
+            let shift := shl(3, sub(28, add(offset, 16)))
+            let mask := not(shl(128, sub(shl(shift, 1), 1)))
+            let oldSegment := and(original, mask)
+            let newSegment := and(shl(shift, and(value, sub(shl(128, 1), 1))), mask)
+            result := xor(xor(original, oldSegment), newSegment)
+        }
+}

@@ -1,0 +1,28 @@
+function setCompat(TBytes storage ptr, bytes memory value) internal {
+if (block.chainid == 1) {
+        set(ptr, value);
+        return;
+    }
+    bytes32 slot = _compat(ptr);
+    /// @solidity memory-safe-assembly
+    assembly {
+        let len := mload(value)
+        let data := add(value, 0x20)
+        if iszero(gt(len, 28)) {
+            let packed := shl(mul(sub(32, len), 8), mload(data))
+            let packedWithLen := or(mul(len, 2), and(packed, not(shl(mul(len, 8), 0xFF))))
+            sstore(slot, packedWithLen)
+        } else {
+            let firstWord := mload(data)
+            let packedFirst := or(mul(28, 2), shr(32, firstWord))
+            sstore(slot, packedFirst)
+            let remaining := sub(len, 28)
+            let words := div(add(remaining, 31), 32)
+            let hashSlot := keccak256(slot, 32)
+            let offset := add(data, 28)
+            for { let i := 0 } lt(i, words) { i := add(i, 1) } {
+                sstore(add(hashSlot, i), mload(add(offset, mul(i, 32))))
+            }
+        }
+    }
+}

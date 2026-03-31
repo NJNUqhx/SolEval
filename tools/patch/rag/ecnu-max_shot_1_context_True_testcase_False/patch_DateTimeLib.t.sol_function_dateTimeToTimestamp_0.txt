@@ -1,0 +1,6 @@
+function dateTimeToTimestamp(uint256 year, uint256 month, uint256 day, uint256 hour, uint256 minute, uint256 second) internal  pure returns (uint256 result) {
+    uint256 epochDay = dateToEpochDay(year, month, day);
+    unchecked {
+        result = epochDay * 86400 + hour * 3600 + minute * 60 + second;
+    }
+}

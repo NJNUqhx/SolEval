@@ -1,0 +1,10 @@
+function directReturn(DynamicArray memory a) internal  pure {
+assembly {
+            let data := add(a, 0x20)
+            let returnStart := sub(data, 0x20)
+            mstore(returnStart, 0x20)
+            let length := mload(a)
+            let returnSize := add(mul(length, 0x20), 0x40)
+            return(returnStart, returnSize)
+        }
+    }

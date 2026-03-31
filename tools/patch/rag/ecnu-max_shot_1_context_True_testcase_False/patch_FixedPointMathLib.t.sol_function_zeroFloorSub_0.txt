@@ -1,0 +1,9 @@
+function zeroFloorSub(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+if (x > y) {
+            assembly {
+                z := sub(x, y)
+            }
+        } else {
+            z = 0;
+        }
+    }

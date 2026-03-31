@@ -1,25 +1,5 @@
 function pack_8_8(bytes8 left, bytes8 right) internal  pure returns (bytes16 result) {
-function pack_8_8(bytes8 left, bytes8 right) internal  pure returns (bytes16 result) {
-/// @solidity memory-safe-assembly
-        assembly {
-            // Clear the lower 192 bits of `left` (keep upper 64 bits) and shift to upper 64 bits of result
-            // bytes8 is stored in the highest 8 bytes of a 32-byte word.
-            // We want the result to have `left` in the first 8 bytes and `right` in the next 8 bytes.
-            // In a 32-byte word (bytes32), bytes8 `left` occupies bytes 0-7 (bits 248-255).
-            // bytes8 `right` occupies bytes 0-7 (bits 248-255).
-            // Target `bytes16` result should have `left` at 0-7 and `right` at 8-15.
-            
-            // Step 1: Normalize inputs to ensure only the relevant 8 bytes are used.
-            // Mask to keep only the top 8 bytes (bits 248-255) for `left`.
-            let l := and(left, 0xFF00000000000000000000000000000000000000000000000000000000000000)
-            
-            // Mask to keep only the top 8 bytes (bits 248-255) for `right`.
-            let r := and(right, 0xFF00000000000000000000000000000000000000000000000000000000000000)
-            
-            // Step 2: Shift `right` down by 8 bytes (64 bits) so it occupies bytes 8-15.
-            r := shr(64, r)
-            
-            // Step 3: Combine `left` and shifted `right`.
-            result := or(l, r)
-        }
-    }
+assembly {
+    result := or(shl(64, and(left, 0xFFFFFFFFFFFFFFFF00000000000000000000000000000000)), and(right, 0xFFFFFFFFFFFFFFFF00000000000000000000000000000000))
+}
+}

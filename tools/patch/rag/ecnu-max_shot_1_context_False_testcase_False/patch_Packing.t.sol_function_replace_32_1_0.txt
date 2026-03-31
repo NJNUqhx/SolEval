@@ -1,30 +1,8 @@
 function replace_32_1(bytes32 self, bytes1 value, uint8 offset) internal  pure returns (bytes32 result) {
-function replace_32_1(bytes32 self, bytes1 value, uint8 offset) internal  pure returns (bytes32 result) {
 assembly {
-        // Ensure the offset is within bounds (0-31). If not, revert.
-        if gt(offset, 31) {
-            mstore(0x00, 0x4e487b71) // Selector for "Panic(uint256)" with code 0x21 (out-of-bounds)
-            mstore(0x20, 0x21)
-            revert(0x1c, 0x24)
-        }
-
-        // Calculate the shift amount: (31 - offset) * 8
-        // We need to shift the single byte to the correct position within the 32-byte word.
-        let shift := shl(3, sub(31, offset))
-
-        // Create a mask for the single byte at the target position: 0xFF << shift
-        let mask := shl(shift, 0xff)
-
-        // Clear the existing byte at the target position in 'self'
-        // self & ~mask
-        let cleared := and(self, not(mask))
-
-        // Prepare the new value:
-        // 1. Load the byte value into a full word.
-        // 2. Shift it to the correct position.
-        // 3. Ensure it is masked (though input is bytes1, this is safe practice).
-        let shiftedValue := and(shl(shift, byte(0, value)), mask)
-
-        // Combine the cleared original value with the new shifted value using OR
-        result := or(cleared, shiftedValue)
+        let mask := shl(shl(3, sub(31, offset)), 0xff)
+        let shiftedValue := shl(shl(3, sub(31, offset)), and(value, 0xff))
+        let clearedSelf := and(self, not(mask))
+        result := or(clearedSelf, shiftedValue)
     }
+}

@@ -1,30 +1,11 @@
 function replace_24_4(bytes24 self, bytes4 value, uint8 offset) internal  pure returns (bytes24 result) {
-function replace_24_4(bytes24 self, bytes4 value, uint8 offset) internal  pure returns (bytes24 result) {
-function replace_24_4(bytes24 self, bytes4 value, uint8 offset) internal  pure returns (bytes24 result) {
-        assembly {
-            // Convert bytes24 and bytes4 to uint256 for manipulation
-            let original := and(self, sub(shl(192, 1), 1)) // Mask to ensure 24 bytes (192 bits)
-            let newSegment := and(value, 0xFFFFFFFF000000000000000000000000000000000000000000000000)
-            
-            // Calculate shift amount: (24 - offset - 4) * 8
-            // We want to align the 4-byte value to the specific offset within the 24-byte space.
-            // The 24 bytes occupy bits 191 down to 0 (if treated as right-aligned) or we treat the whole word.
-            // Let's assume standard big-endian alignment where byte 0 is the most significant.
-            // Offset 0 means the first 4 bytes (bits 191-160).
-            // Shift = (24 - 4 - offset) * 8 = (20 - offset) * 8
-            
-            let shift := mul(sub(20, offset), 8)
-            
-            // Align the new segment to the correct position
-            let alignedNew := shr(shift, newSegment)
-            
-            // Create a mask for the 4 bytes at the target position: 0xFFFFFFFF shifted
-            let mask := shl(shift, 0xFFFFFFFF)
-            
-            // Clear the old segment in the original value
-            let cleared := and(original, not(mask))
-            
-            // Insert the new segment
-            result := or(cleared, alignedNew)
+assembly {
+            let selfVal := shl(shl(2, sub(32, 24)), self)
+            let valShift := shl(3, sub(20, offset))
+            let mask := not(shl(32, not(0)))
+            let shiftedMask := shl(valShift, mask)
+            let shiftedValue := shl(valShift, and(value, 0xFFFFFFFF))
+            let oldSegment := and(selfVal, shiftedMask)
+            result := xor(xor(selfVal, oldSegment), shiftedValue)
         }
-    }
+}

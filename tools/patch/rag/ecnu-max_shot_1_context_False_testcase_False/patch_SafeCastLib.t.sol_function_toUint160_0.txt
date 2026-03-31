@@ -1,7 +1,0 @@
-function toUint160(uint256 x) internal  pure returns (uint160) {
-function toUint160(uint256 x) internal  pure returns (uint160) {
-if (x >= 2 ** 160) {
-            revert("Overflow: uint256 to uint160");
-        }
-        return uint160(x);
-    }

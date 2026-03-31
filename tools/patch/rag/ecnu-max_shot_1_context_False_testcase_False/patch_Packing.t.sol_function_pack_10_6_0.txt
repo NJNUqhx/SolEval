@@ -1,60 +1,7 @@
 function pack_10_6(bytes10 left, bytes6 right) internal  pure returns (bytes16 result) {
-function pack_10_6(bytes10 left, bytes6 right) internal  pure returns (bytes16 result) {
-/// @solidity memory-safe-assembly
-        assembly {
-            // Step 1: Clear the lower 176 bits of `left` (keep only the top 80 bits).
-            // bytes10 is 80 bits. In a bytes32 (256 bits), it occupies the top 80 bits.
-            // We shift left by 176 to move the 80 bits to the top, then shift right by 176 to zero-fill the bottom.
-            // Alternatively, since `left` is already in the top 80 bits of the 32-byte slot when loaded as bytes32,
-            // we just need to ensure the bottom 176 bits are 0.
-            // However, Solidity stores fixed-size bytes types right-aligned in the 32-byte slot?
-            // No, Solidity stores fixed-size bytes types like `bytes10` in the *most significant* bytes (left-aligned) of the 32-byte word.
-            // So `left` already has the value in bits 255..176, and bits 175..0 are 0.
-            // Wait, let's re-verify Solidity ABI encoding for static types.
-            // Static types (like bytes10) are stored in the 32-byte word with the value in the most significant bytes.
-            // So `left` (bytes10) occupies bits 255 down to 176. Bits 175 down to 0 are zero.
-            // `right` (bytes6) occupies bits 255 down to 208. Bits 207 down to 0 are zero.
-            
-            // We want `result` (bytes16) to have:
-            // - `left` (10 bytes) in the top 10 bytes (bits 255..160).
-            // - `right` (6 bytes) in the next 6 bytes (bits 159..112).
-            // - The remaining 160 bits (bits 111..0) should be 0? 
-            // Wait, `bytes16` is 128 bits.
-            // The return type is `bytes16`. In Solidity, a `bytes16` return value is stored in the top 16 bytes of the 32-byte return slot.
-            // So we need to construct a 32-byte word where:
-            // - Bits 255..128 contain our packed `bytes16` value.
-            // - Bits 127..0 are 0 (irrelevant for the return value of a static type, but good practice).
-            
-            // The packed `bytes16` value should be:
-            // [ left (10 bytes) | right (6 bytes) ]
-            // This forms 16 bytes.
-            
-            // Current state in 32-byte slots:
-            // `left`:  [ L (10 bytes) | 0 (22 bytes) ]
-            // `right`: [ R (6 bytes)  | 0 (26 bytes) ]
-            
-            // We need to shift `right` so it sits immediately after `left`.
-            // `left` ends at bit 176 (256 - 80).
-            // `right` needs to start at bit 176 - 48 = 128? No.
-            // Let's count bytes from the top (MSB):
-            // Bytes 0-9: Left (10 bytes)
-            // Bytes 10-15: Right (6 bytes)
-            // Total 16 bytes.
-            
-            // `left` is currently at bytes 0-9. (Bits 255..176).
-            // `right` is currently at bytes 0-5. (Bits 255..208).
-            // We need to shift `right` down by 10 bytes (80 bits) so it lands in bytes 10-15.
-            // Shifting right by 80 bits moves the content from [0-5] to [10-15].
-            
-            let shifted_right := shr(80, right)
-            
-            // Now combine them. Since `left` has zeros in the lower part and `shifted_right` has zeros in the upper part (after shift),
-            // we can just OR them.
-            // `left`: [ L (10) | 0 (22) ]
-            // `shifted_right`: [ 0 (10) | R (6) | 0 (16) ]
-            // Result: [ L (10) | R (6) | 0 (16) ]
-            // This corresponds to a `bytes16` value in the top 16 bytes, which is exactly what Solidity expects for a `bytes16` return.
-            
-            result := or(left, shifted_right)
-        }
-    }
+assembly {
+    let l := and(left, not(shl(176, 1)))
+    let r := and(right, not(shl(208, 1)))
+    result := or(shl(48, l), r)
+}
+}

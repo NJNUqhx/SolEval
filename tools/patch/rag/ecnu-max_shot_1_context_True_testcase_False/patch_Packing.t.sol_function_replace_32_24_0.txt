@@ -1,0 +1,10 @@
+function replace_32_24(bytes32 self, bytes24 value, uint8 offset) internal  pure returns (bytes32 result) {
+assembly {
+        let shiftedOffset := shl(3, offset)
+        let mask := not(shl(192, sub(shl(24, 1), 1)))
+        let shiftedMask := shr(shiftedOffset, mask)
+        let oldSegment := and(self, shiftedMask)
+        let newSegment := and(shr(shiftedOffset, shl(192, value)), shiftedMask)
+        result := xor(xor(self, oldSegment), newSegment)
+    }
+}

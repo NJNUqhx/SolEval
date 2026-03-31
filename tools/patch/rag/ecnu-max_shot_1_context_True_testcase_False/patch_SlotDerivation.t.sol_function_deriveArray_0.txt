@@ -1,0 +1,6 @@
+function deriveArray(bytes32 slot) internal  pure returns (bytes32 result) {
+assembly {
+    mstore(0x00, slot)
+    result := keccak256(0x00, 0x20)
+}
+}

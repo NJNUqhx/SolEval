@@ -1,0 +1,28 @@
+function nonReentrant()  virtual {
+modifier nonReentrant() virtual {
+    /// @solidity memory-safe-assembly
+    assembly {
+        let guardSlot := _REENTRANCY_GUARD_SLOT()
+        let selfAddr := address()
+        
+        // Step 1: Check if the reentrancy guard slot is already set to the current contract's address
+        if eq(sload(guardSlot), selfAddr) {
+            mstore(0x00, 0xab143c06) // `Reentrancy()` selector
+            revert(0x1c, 0x04)
+        }
+        
+        // Step 2: Set the reentrancy guard slot to the current contract's address
+        sstore(guardSlot, selfAddr)
+    }
+    
+    _;
+    
+    /// @solidity memory-safe-assembly
+    assembly {
+        let guardSlot := _REENTRANCY_GUARD_SLOT()
+        
+        // Step 4: Reset the reentrancy guard slot to codesize() (a non-zero value)
+        sstore(guardSlot, extcodesize(address()))
+    }
+}
+}

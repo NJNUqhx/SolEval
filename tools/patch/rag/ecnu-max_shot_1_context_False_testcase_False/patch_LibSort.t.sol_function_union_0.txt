@@ -1,4 +1,0 @@
-function union(uint256[] memory a, uint256[] memory b) internal  pure returns (uint256[] memory c) {
-function union(uint256[] memory a, uint256[] memory b) internal  pure returns (uint256[] memory c) {
-(c, ) = _union(a, b, 0);
-    }

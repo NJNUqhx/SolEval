@@ -1,0 +1,5 @@
+function hash(DynamicArray memory a) internal  pure returns (bytes32 result) {
+assembly {
+            result := keccak256(add(mload(a), 0x20), shl(5, mload(mload(a))))
+        }
+    }

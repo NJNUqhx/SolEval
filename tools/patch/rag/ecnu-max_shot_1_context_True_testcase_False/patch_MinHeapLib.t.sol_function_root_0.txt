@@ -1,0 +1,4 @@
+function root(MemHeap memory heap) internal  pure returns (uint256 result) {
+result = heap.root;
+        if (result == 0) revert HeapIsEmpty();
+    }

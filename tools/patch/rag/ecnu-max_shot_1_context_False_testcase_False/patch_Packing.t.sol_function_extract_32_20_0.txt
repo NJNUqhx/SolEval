@@ -1,15 +1,8 @@
 function extract_32_20(bytes32 self, uint8 offset) internal  pure returns (bytes20 result) {
-function extract_32_20(bytes32 self, uint8 offset) internal  pure returns (bytes20 result) {
 if (offset > 12) {
             revert("OutOfRangeAccess");
         }
-
         assembly {
-            // Shift left by 8 * offset bits to align the desired 20-byte segment to the start
-            let shifted := shl(mul(offset, 8), self)
-            // Mask to keep only the first 20 bytes (160 bits)
-            // 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
-            let mask := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
-            result := and(shifted, mask)
+            result := and(shl(mul(8, offset), self), 0xffffffffffffffffffffffffffffffffffffffff000000000000000000000000)
         }
     }

@@ -1,0 +1,5 @@
+function getAddress(DynamicArray memory a, uint256 i) internal  pure returns (address result) {
+assembly {
+            result := mload(add(a, add(0x20, mul(i, 0x20))))
+        }
+    }

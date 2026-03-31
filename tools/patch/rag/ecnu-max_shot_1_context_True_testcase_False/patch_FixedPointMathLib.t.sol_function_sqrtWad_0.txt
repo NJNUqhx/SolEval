@@ -1,0 +1,17 @@
+function sqrtWad(uint256 x) internal  pure returns (uint256 z) {
+assembly {
+            let wad := 1000000000000000000
+            let threshold := div(type(uint256).max, wad)
+            if lt(x, threshold) {
+                z := sqrt(mul(x, wad))
+                leave
+            }
+            z := mul(sqrt(x), 1000000000)
+            let remainder := mod(x, mul(z, z))
+            if gt(remainder, 0) {
+                let correction := div(wad, mul(2, z))
+                z := add(z, correction)
+            }
+            z := sub(z, 1)
+        }
+    }

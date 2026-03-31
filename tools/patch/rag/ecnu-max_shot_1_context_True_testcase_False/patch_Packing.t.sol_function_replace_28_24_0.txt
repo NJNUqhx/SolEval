@@ -1,0 +1,120 @@
+function replace_28_24(bytes28 self, bytes24 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+        // Ensure the offset is within valid bounds (0 to 4, since 28 - 24 = 4)
+        if gt(offset, 4) {
+            mstore(0x00, 0x2194895a) // Revert with error selector (reusing previous for brevity, normally specific error)
+            revert(0x1c, 0x04)
+        }
+
+        // Load the full 28-byte value into memory slot 0x00
+        mstore(0x00, self)
+        
+        // Load the 24-byte replacement value into memory slot 0x1c (aligned to 32 bytes effectively)
+        // bytes24 stored in a slot is left-aligned in the 32-byte word if treated as bytes32, 
+        // but here we treat it as a value to be shifted.
+        // Actually, bytes24 in solidity when cast to bytes32 is left-padded with zeros? No, it's right-aligned in the variable space but when stored in a slot it occupies the high order bytes if it's a fixed size?
+        // Let's clarify: bytes24 is 24 bytes. In a bytes32 slot, it occupies the most significant 24 bytes if we consider standard ABI encoding for fixed bytes?
+        // No, fixed bytes types like bytes24 are left-aligned in the 32-byte word (i.e., stored in the high-order bytes).
+        // So `value` as a bytes24, when loaded, has its data in the top 24 bytes of the 32-byte word.
+        
+        // We need to place this 24-byte value into the `self` value at `offset`.
+        // `self` is 28 bytes.
+        // Layout of 28 bytes in a 32-byte word (big-endian view of the word):
+        // Bytes 0-3: Unused (or part of the 28 bytes? No, bytes28 takes 28 bytes).
+        // A bytes28 variable stored in a slot occupies the first 28 bytes (most significant).
+        // So indices 0 to 27 are valid.
+        // We want to replace 24 bytes starting at `offset`.
+        // The range is [offset, offset + 24).
+        // Since max offset is 4, max index is 4+24=28. This fits exactly in 28 bytes.
+        
+        // Strategy:
+        // 1. Create a mask to clear the 24 bytes at `offset` in `self`.
+        // 2. Shift the `value` (which is left-aligned in its 32-byte representation) to the correct position.
+        // 3. OR them together.
+        
+        // `self` is in mload(0x00). It is left-aligned (bytes 0-27 contain data, 28-31 are zero).
+        // `value` is passed as an argument. In assembly, `value` refers to the 32-byte slot content.
+        // Since it's bytes24, the data is in the top 24 bytes (bits 255 down to 32). Bits 31-0 are zero.
+        
+        // We need to shift `value` right by `offset * 8` bits to align it with the target position in `self`.
+        // Wait, `self` is left-aligned. Index 0 is the most significant byte.
+        // If offset is 0, we replace bytes 0-23. The `value` (already top 24 bytes) fits perfectly. Shift = 0.
+        // If offset is 1, we replace bytes 1-24. We need to shift `value` right by 1 byte (8 bits).
+        // So shift amount = offset * 8.
+        
+        let shift := mul(offset, 8)
+        let shiftedValue := shr(shift, value)
+        
+        // Now create a mask to zero out the corresponding 24 bytes in `self`.
+        // We need a mask that has 0s in the range [offset, offset+24) and 1s elsewhere (within the 28-byte range).
+        // Actually, easier to construct the result directly:
+        // Part 1: Bytes before the offset (0 to offset-1).
+        // Part 2: The new value (shifted).
+        // Part 3: Bytes after the replaced segment (offset+24 to 27).
+        
+        // Total length 28. Replaced length 24. Remaining = 4 bytes.
+        // These 4 bytes are split: `offset` bytes at the start, and `4 - offset` bytes at the end.
+        
+        // Mask for the head (bytes before offset):
+        // We want to keep the top `offset` bytes of `self`.
+        // If offset is 0, keep 0 bytes.
+        // If offset is 4, keep 4 bytes.
+        // Mask = ~0 << (32 - offset) * 8 ? No, we are working with 28 bytes effectively but stored in 32.
+        // Let's just use bitwise operations on the 32-bit word assuming data is at the top.
+        
+        // Clear the 24-byte region in `self` starting at `offset`.
+        // The region to clear starts at bit (255 - offset*8) and ends at ...
+        // Actually, simpler:
+        // `mask_clear` should have 0s for 24 bytes at `offset` and 1s elsewhere.
+        // A 24-byte block of 1s is `0xFFFFFF...` (24 bytes).
+        // Let's construct a mask of 1s for the 24 bytes: `not(0)` shifted appropriately?
+        // 24 bytes = 192 bits.
+        // Mask of 24 ones: `sub(shl(192, 1), 1)` -> This gives 192 ones at the LSB.
+        // We need them at the position of `offset`.
+        // Position from LSB: The 28 bytes occupy bits 255 down to 32.
+        // Byte 0 is bits 255-248.
+        // Byte `offset` starts at bit 255 - offset*8.
+        // We want to clear 192 bits starting from there.
+        // So the clear mask (0s where we clear, 1s elsewhere) can be built by:
+        // Taking the full 1s, shifting left to push zeros in?
+        // Let's try: `clearMask = not(shl(192, sub(shl(offset, 8), 1)))`? No.
+        
+        // Alternative approach:
+        // head = self & (all_ones << (256 - offset*8)) -- keeps top `offset` bytes?
+        // If offset=1, we want top 1 byte. Shift left by 248? No.
+        // Top 1 byte is bits 255-248.
+        // `~0` is all 1s.
+        // `~0 << (32 - offset) * 8`? 
+        // If offset=1, (32-1)*8 = 248. `~0 << 248` keeps top 1 byte (bits 255-248) and zeros below. Correct.
+        // But wait, `self` has zeros in the bottom 4 bytes anyway (since it's bytes28).
+        // So `head := and(self, shl(sub(256, mul(offset, 8)), not(0)))`?
+        // `shl(count, not(0))` creates `count` ones at the top? No, `shl` shifts left, pushing zeros in from right.
+        // `not(0)` is all 1s. `shl(8, not(0))` is 1s except bottom 8 bits are 0.
+        // We want to KEEP the top `offset` bytes. So we want 1s in top `offset` bytes, 0s elsewhere.
+        // That is `shl(sub(256, mul(offset, 8)), not(0))`.
+        // Example offset=1: `shl(248, not(0))` -> 1s in top 8 bits? No, 248 bits shifted left means bottom 248 are 0, top 8 are 1. Correct.
+        let headMask := shl(sub(256, mul(offset, 8)), not(0))
+        let head := and(self, headMask)
+        
+        // Tail: bytes after the 24-byte segment.
+        // Start index = offset + 24.
+        // Number of bytes = 28 - (offset + 24) = 4 - offset.
+        // We want to keep the bottom `4 - offset` bytes of the 28-byte data.
+        // In the 32-byte word, these are the bytes just above the 4 zero-padding bytes.
+        // The 28 bytes end at bit 32 (exclusive).
+        // So the tail bytes are from bit 32 up to bit 32 + (4-offset)*8.
+        // We need a mask with 1s in that range and 0s elsewhere.
+        // Or, take `self`, shift left to move the tail to the top, mask, then shift back?
+        // Let's construct a mask for the tail directly.
+        // Tail length in bits: `mul(sub(4, offset), 8)`.
+        // The tail ends at bit 32 (the boundary of the padding).
+        // So the mask should have 1s from bit 32 to bit 32 + tailLen.
+        // This is equivalent to: `(1 << tailLen) - 1` shifted left by 32.
+        // `tailMask := shl(32, sub(shl(tailLen, 1), 1))`
+        let tailLen := mul(sub(4, offset), 8)
+        let tailMask := shl(32, sub(shl(tailLen, 1), 1))
+        let tail := and(self, tailMask)
+        
+        // Combine: head | shiftedValue | tail
+        result := or(or(head, shiftedValue), tail)
+}}

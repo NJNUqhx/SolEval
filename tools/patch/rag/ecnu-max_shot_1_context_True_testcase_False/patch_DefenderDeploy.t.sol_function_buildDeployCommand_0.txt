@@ -1,0 +1,88 @@
+function buildDeployCommand(ContractInfo memory contractInfo, string memory buildInfoFile, bytes memory constructorData, DefenderOptions memory defenderOpts) internal  view returns (string[] memory) {
+string[] memory inputs = new string[](20);
+        inputs[0] = "npx";
+        inputs[1] = DEFENDER_DEPLOY_CLIENT_CLI;
+        inputs[2] = contractInfo.name;
+        inputs[3] = contractInfo.path;
+        inputs[4] = toString(block.chainid);
+        inputs[5] = buildInfoFile;
+
+        if (constructorData.length > 0) {
+            inputs[6] = toString(constructorData);
+        } else {
+            inputs[6] = "";
+        }
+
+        if (defenderOpts.skipLicenseType) {
+            if (defenderOpts.licenseType != LicenseType.NONE) {
+                revert("Cannot specify licenseType when skipLicenseType is true");
+            }
+            inputs[7] = "";
+        } else {
+            if (defenderOpts.skipVerifySourceCode && defenderOpts.licenseType != LicenseType.NONE) {
+                revert("Cannot specify licenseType when skipVerifySourceCode is true");
+            }
+            if (defenderOpts.licenseType != LicenseType.NONE) {
+                inputs[7] = toString(uint256(defenderOpts.licenseType));
+            } else {
+                inputs[7] = "";
+            }
+        }
+
+        if (defenderOpts.relayerId != address(0)) {
+            inputs[8] = toString(defenderOpts.relayerId);
+        } else {
+            inputs[8] = "";
+        }
+
+        if (defenderOpts.salt != bytes32(0)) {
+            inputs[9] = toString(defenderOpts.salt);
+        } else {
+            inputs[9] = "";
+        }
+
+        if (defenderOpts.gasLimit != 0) {
+            inputs[10] = toString(defenderOpts.gasLimit);
+        } else {
+            inputs[10] = "";
+        }
+
+        if (defenderOpts.gasPrice != 0) {
+            inputs[11] = toString(defenderOpts.gasPrice);
+        } else {
+            inputs[11] = "";
+        }
+
+        if (defenderOpts.maxFeePerGas != 0) {
+            inputs[12] = toString(defenderOpts.maxFeePerGas);
+        } else {
+            inputs[12] = "";
+        }
+
+        if (defenderOpts.maxPriorityFeePerGas != 0) {
+            inputs[13] = toString(defenderOpts.maxPriorityFeePerGas);
+        } else {
+            inputs[13] = "";
+        }
+
+        if (bytes(defenderOpts.metadata).length > 0) {
+            inputs[14] = defenderOpts.metadata;
+        } else {
+            inputs[14] = "";
+        }
+
+        uint256 actualLength = 15;
+        for (uint256 i = 15; i < inputs.length; i++) {
+            if (bytes(inputs[i]).length == 0) {
+                actualLength = i;
+                break;
+            }
+        }
+
+        string[] memory result = new string[](actualLength);
+        for (uint256 i = 0; i < actualLength; i++) {
+            result[i] = inputs[i];
+        }
+
+        return result;
+}

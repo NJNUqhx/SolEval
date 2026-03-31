@@ -1,45 +1,46 @@
 function extract_22_2(bytes22 self, uint8 offset) internal  pure returns (bytes2 result) {
-function extract_22_2(bytes22 self, uint8 offset) internal  pure returns (bytes2 result) {
 if (offset > 20) {
             revert OutOfRangeAccess();
         }
 
         assembly {
-            // Load the 22-byte value from the self parameter.
-            // In memory, `self` is a pointer to the 22-byte data.
-            // We load the 32-byte slot containing the data. Since it's 22 bytes,
-            // it fits entirely within one 32-byte word (aligned to the left or right depending on packing).
-            // However, `bytes22` as a value type in Solidity (when passed by value in internal functions)
-            // is typically stored in a 32-byte slot, left-aligned (most significant byte first).
+            // Load the 22-byte value from memory.
+            // The 'self' parameter points to the start of the bytes22 data in memory.
+            // We load 32 bytes starting from 'self', which contains our 22 bytes plus padding.
+            let val := mload(self)
+
+            // Shift left by (22 - offset - 2) * 8 to align the desired 2 bytes to the most significant position
+            // within the 22-byte window, then shift right to bring them to the least significant position.
+            // Alternatively, shift left by (offset * 8) to move the target to the MSB of the 22-byte chunk,
+            // but since we loaded 32 bytes, we need to be careful with alignment.
             
-            let val := self
+            // Correct approach for 22 bytes packed in 32 bytes:
+            // The 22 bytes occupy the first 22 bytes of the 32-byte word loaded.
+            // To extract 2 bytes at 'offset':
+            // 1. Shift left by (offset * 8) to move the target bytes to the top of the 22-byte region?
+            // No, standard extraction:
+            // Shift right by ((22 - 2 - offset) * 8) if we consider the 22 bytes as a big integer.
+            // However, in memory, the first byte is the most significant in the loaded word context if we treat it as big-endian?
+            // Actually, `mload` loads 32 bytes. The byte at `self` is the most significant byte of the 32-byte word.
+            // So, byte at `self + offset` is at bit position (256 - 8*(offset+1)) down to (256 - 8*(offset+1) + 7).
+            // We want 2 bytes starting at `offset`.
+            // Shift left by (offset * 8) moves the byte at `self+offset` to the position of the first byte (MSB).
+            // Then we need to shift right by (32 - 2) * 8 = 240 bits to get the 2 bytes to the LSB.
             
-            // Calculate the shift amount: 8 bits * offset.
-            // We need to shift LEFT to move the target bytes to the most significant position,
-            // then we can shift RIGHT or mask.
-            // Actually, standard pattern for extracting N bytes at offset O from a left-aligned M-byte value:
-            // 1. Shift left by (8 * offset) to bring the target to the top? No.
-            // If value is left-aligned (MSB at bit 255):
-            // Byte 0 is at bits 248-255.
-            // Byte `offset` is at bits (255 - 8*offset) down to (248 - 8*offset).
-            // To get 2 bytes starting at `offset`:
-            // We want bits from (255 - 8*offset) down to (248 - 8*offset - 8).
-            // Total 16 bits.
+            // Let's re-verify:
+            // Word: [B0, B1, ..., B21, 0, ..., 0] (32 bytes total)
+            // B0 is at bit 248-255. B_offset is at bit (248 - 8*offset) to (255 - 8*offset).
+            // We want B_offset and B_{offset+1}.
+            // Shift left by (8 * offset): B0 moves out, B_offset moves to bit 248-255.
+            // Now shift right by (32 - 2) * 8 = 240 bits.
+            // Result: B_offset and B_{offset+1} are at bit 8-15 and 0-7 respectively.
             
-            // Strategy:
-            // Shift left by (8 * offset). This moves the byte at `offset` to position (255 - 8*0) = 255?
-            // Let's trace:
-            // Original: [B0][B1]...[B_offset]...[B21][00]...
-            // If we shift left by (8 * offset):
-            // [B_offset][B_offset+1]... move to the front (MSB).
-            // Then we just need to shift right by (256 - 16) = 240 bits to isolate the top 2 bytes?
-            // Or simply mask the top 2 bytes.
+            let shifted := shl(mul(8, offset), val)
+            let extracted := shr(240, shifted)
             
-            // Shift left by (offset * 8)
-            let shifted := shl(mul(offset, 8), val)
-            
-            // Now the desired 2 bytes are at the most significant position (bits 255-240).
-            // Shift right by 240 (256 - 16) to move them to the least significant position (bits 15-0).
-            result := shr(240, shifted)
+            // Store the result in the return variable 'result' (which is a bytes2, occupying 2 bytes).
+            // 'result' is a memory pointer or stack variable? In Solidity, return params are stack variables initially.
+            // We assign to the stack variable 'result'.
+            result := extracted
         }
     }

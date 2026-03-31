@@ -1,0 +1,11 @@
+function replace_6_2(bytes6 self, bytes2 value, uint8 offset) internal  pure returns (bytes6 result) {
+bytes2 old = extract_6_2(self, offset);
+    assembly {
+        let v := and(value, 0xffff)
+        let o := and(offset, 0xff)
+        let shift := shl(3, sub(5, o))
+        let old_shifted := shl(shift, and(old, 0xffff))
+        let new_shifted := shl(shift, v)
+        result := xor(xor(self, old_shifted), new_shifted)
+    }
+}
