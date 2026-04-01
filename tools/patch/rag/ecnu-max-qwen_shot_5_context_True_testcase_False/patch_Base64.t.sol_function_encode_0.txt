@@ -1,0 +1,56 @@
+function encode(bytes memory data, bool fileSafe, bool noPadding) internal  pure returns (string memory result) {
+assembly {
+            let len := mload(data)
+            let encodedLen := mul(div(add(len, 2), 3), 4)
+            if noPadding {
+                encodedLen := sub(encodedLen, sub(3, mod(len, 3)))
+                if eq(mod(len, 3), 0) { encodedLen := sub(encodedLen, 3) }
+            }
+            result := mload(0x40)
+            mstore(result, encodedLen)
+            let out := add(result, 0x20)
+            let table := 0x00
+            if fileSafe {
+                mstore(table, 0x4142434445464748494a4b4c4d4e4f505152535455565758595a616263646566)
+                mstore(add(table, 0x20), 0x6768696a6b6c6d6e6f707172737475767778797a303132333435363738392d5f)
+            } else {
+                mstore(table, 0x4142434445464748494a4b4c4d4e4f505152535455565758595a616263646566)
+                mstore(add(table, 0x20), 0x6768696a6b6c6d6e6f707172737475767778797a303132333435363738392b2f)
+            }
+            let inPtr := add(data, 0x20)
+            let endPtr := add(inPtr, len)
+            let cachePtr := add(endPtr, 0x20)
+            let cache := mload(cachePtr)
+            mstore(cachePtr, 0)
+            for { } lt(inPtr, endPtr) { } {
+                inPtr := add(inPtr, 3)
+                let input := mload(inPtr)
+                mstore8(out, mload(add(table, and(shr(18, input), 0x1f))))
+                out := add(out, 1)
+                mstore8(out, mload(add(table, and(shr(12, input), 0x1f))))
+                out := add(out, 1)
+                mstore8(out, mload(add(table, and(shr(6, input), 0x1f))))
+                out := add(out, 1)
+                mstore8(out, mload(add(table, and(input, 0x1f))))
+                out := add(out, 1)
+            }
+            mstore(cachePtr, cache)
+            if noPadding {
+                let remainder := mod(len, 3)
+                if eq(remainder, 1) {
+                    out := sub(out, 2)
+                } else if eq(remainder, 2) {
+                    out := sub(out, 1)
+                }
+            } else {
+                let remainder := mod(len, 3)
+                if eq(remainder, 1) {
+                    mstore8(sub(out, 1), 0x3d)
+                    mstore8(sub(out, 2), 0x3d)
+                } else if eq(remainder, 2) {
+                    mstore8(sub(out, 1), 0x3d)
+                }
+            }
+            mstore(0x40, add(out, 0x20))
+        }
+    }

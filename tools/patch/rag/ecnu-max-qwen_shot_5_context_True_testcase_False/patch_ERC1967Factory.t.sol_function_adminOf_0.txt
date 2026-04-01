@@ -1,0 +1,6 @@
+function adminOf(address proxy) public  view returns (address admin) {
+assembly {
+            let slot := shl(96, proxy)
+            admin := sload(slot)
+        }
+    }

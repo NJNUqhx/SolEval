@@ -1,0 +1,14 @@
+function replace_24_22(bytes24 self, bytes22 value, uint8 offset) internal  pure returns (bytes24 result) {
+uint256 selfUint;
+        uint256 valueUint;
+        /// @solidity memory-safe-assembly
+        assembly {
+            selfUint := shl(32, self)
+            valueUint := shl(32, value)
+            let shift := shl(3, sub(24, add(offset, 22)))
+            let mask := shl(shift, sub(shl(176, 1), 1))
+            let oldSegment := and(selfUint, mask)
+            let newSegment := and(shl(shift, valueUint), mask)
+            result := shr(32, xor(xor(selfUint, oldSegment), newSegment))
+        }
+    }

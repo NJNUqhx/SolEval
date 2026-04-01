@@ -1,0 +1,36 @@
+function tryEncodeAuthCompact(WebAuthnAuth memory auth) internal  pure returns (bytes memory result) {
+if (auth.authenticatorData.length > 0xffff || auth.clientDataJSON.length > 0xffff || auth.challengeIndex > 0xffff || auth.typeIndex > 0xffff) {
+            return "";
+        }
+
+        uint256 len = auth.authenticatorData.length + auth.clientDataJSON.length + 64 + 8;
+        result = new bytes(len);
+
+        assembly ("memory-safe") {
+            let resultPtr := add(result, 0x20)
+            let authPtr := add(auth, 0x20)
+
+            let authDataLen := mload(authPtr)
+            let authDataPtr := mload(add(authPtr, 0x20))
+            pop(staticcall(gas(), 0x04, authDataPtr, authDataLen, resultPtr, authDataLen))
+            resultPtr := add(resultPtr, authDataLen)
+
+            let clientDataLen := mload(add(authPtr, 0x40))
+            let clientDataPtr := mload(add(authPtr, 0x60))
+            pop(staticcall(gas(), 0x04, clientDataPtr, clientDataLen, resultPtr, clientDataLen))
+            resultPtr := add(resultPtr, clientDataLen)
+
+            mstore(resultPtr, shl(240, mload(add(authPtr, 0x80))))
+            resultPtr := add(resultPtr, 2)
+            mstore(resultPtr, shl(240, mload(add(authPtr, 0xa0))))
+            resultPtr := add(resultPtr, 2)
+
+            mstore(resultPtr, mload(add(authPtr, 0xc0)))
+            resultPtr := add(resultPtr, 0x20)
+            mstore(resultPtr, mload(add(authPtr, 0xe0)))
+            resultPtr := add(resultPtr, 0x20)
+
+            mstore(add(result, 0x20), len)
+            mstore(add(add(result, 0x20), len), 0)
+        }
+    }

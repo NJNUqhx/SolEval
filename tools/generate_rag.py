@@ -16,7 +16,7 @@ from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from utils.logger import MyLogger
-from utils.retrieve import init_bert_model, query
+from utils.retrieve_qwen import init_qwen_embedding, query
 from llm_call import call
 from utils.custom_tools import fix_missing_brackets
 
@@ -24,10 +24,10 @@ from utils.custom_tools import fix_missing_brackets
 prompt_idx = 0
 prompt_list = []
 
-def few_shot_generation(args, prompt, tokenizer, model, sample):
+def few_shot_generation(args, prompt, tokenizer, model, sample, have_sample):
     output_list = []
     
-    if args.model == "ecnu-max" or args.model.startswith("test"):
+    if args.model == "ecnu-max" or args.model.startswith("test") or args.model.startswith("ecnu-max"):
         messages = [
                     {"role": "system",
                      "content": "You are a professional Solidity engineer. Please continue to generate a function based on the provided requirement and function signature, NO need to repeat the signature. End your function with // END_OF_FUNCTION. Never add any additional explanation or comments."},
@@ -50,7 +50,7 @@ def few_shot_generation(args, prompt, tokenizer, model, sample):
             logger.info_blue(output)
             logger.info_blue("--------------function(end)-----------------")
             with open(
-                    f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{idx}.txt",
+                    f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{idx + have_sample}.txt",
                     'w') as f:
                 f.write(output)
             output_list.append(output)    
@@ -101,22 +101,25 @@ if __name__ == '__main__':
     parser.add_argument('--filesize', help='测试文件数量', type=int, default=81)
     parser.add_argument('--methodsize', help='测试方法数量', type=int, default=1125)
     parser.add_argument("--overwrite", action='store_true', default=False, help='Whether to overwrite existing patch files')
+    parser.add_argument("--restrict", action='store_true', default=False, help='只测试指定项目')
     
     args = parser.parse_args()
-    embedding_list, original_document_list, func_list = init_bert_model()
+    embedding_list, original_document_list, func_list = init_qwen_embedding()
     log_file = f"log_{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}_{current_time}.txt"
     logger = MyLogger(f"logs_patch/rag/{log_file}")
     total_token = 0
     token_tries = 0
     file_size = args.filesize
     method_size = args.methodsize
-    
     tokenizer, model = None, None
+    
+    if args.restrict:
+        with open("config/projects.txt", 'r', encoding='utf-8') as f:
+        # 使用 set 提高后续查询效率
+            restricted_projects = {line.strip() for line in f if line.strip()}
 
     if not os.path.exists(f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}"):
         os.makedirs(f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}")
-
-
 
     real_path_cargo = pickle.load(open("/root/contract2solidity/SolEval/prebuilt/real_path_cargo.pkl", "rb"))
     
@@ -138,11 +141,23 @@ if __name__ == '__main__':
         
         # 构建映射关系
         pattern_to_path = {}
-        for file_path, file_content in tqdm(data.items(), colour='green'):
-            for method in tqdm(file_content, colour="red"):
+        for file_path, file_content in data.items():
+            for method in file_content:
                 identifier = method['identifier']
                 pattern = f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_*"
                 
+                pattern_to_path[pattern] = file_path
+                
+        
+        logger.info_blue("--- Pattern 到 FilePath 映射预览 (前10个) ---")
+        
+        # 使用 list(islice...) 或者简单的计数器
+        for i, (p, path) in enumerate(pattern_to_path.items()):
+            if i >= 10:
+                break
+            print(f"Pattern: {p}")
+            print(f"FilePath: {path}")
+            print("-" * 30)        
                 
         sys.exit(0)
     
@@ -152,6 +167,11 @@ if __name__ == '__main__':
     
     for file_path, file_content in tqdm(data.items(), colour='green'):
         logger.info_white("file_path:\n" + file_path)
+        
+        # 只测试给定的项目
+        if args.restrict and file_path not in restricted_projects:
+            logger.info_blue("Skip file_path: " + file_path)
+            continue
         
         # 限制测试文件数量
         file_count += 1
@@ -224,12 +244,14 @@ if __name__ == '__main__':
             while True:
                 try:
                     start_time = time.time()
-                    output_list = few_shot_generation(args, prompt, tokenizer, model, args.sample - have_sample)
+                    output_list = few_shot_generation(args, prompt, tokenizer, model, args.sample - have_sample, have_sample)
                     end_time = time.time()
                     inference_tries += args.sample - have_sample
                     total_inference_time += end_time - start_time
                     average_inference_time = total_inference_time / inference_tries
                     logger.info_green("average_inference_time: {:.2f}s".format(average_inference_time))
+                    
+                    output_list = [function_full_sig.strip('\n') + '\n' + output.strip('\n') for output in output_list]
                     break
                 except Exception as e:
                     print(e)
@@ -237,13 +259,6 @@ if __name__ == '__main__':
                         for _ in tqdm(range(120), desc="sleeping", colour="yellow"):
                             time.sleep(1)
                         # slow = True
-            output_list = [function_full_sig.strip('\n') + '\n' + output.strip('\n') for output in output_list]
-            
-            for idx, out in enumerate(output_list):
-                with open(
-                        f"patch/rag/{args.model}_shot_{args.shot}_context_{args.context}_testcase_{args.testcase}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{idx + have_sample}.txt",
-                        'w') as f:
-                    f.write(out)
             
     
     if args.model == "debug":

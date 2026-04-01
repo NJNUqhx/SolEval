@@ -1,0 +1,11 @@
+function mulWadUp(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let prod := mul(x, y)
+            if and(iszero(iszero(x)), iszero(eq(div(prod, x), y))) {
+                mstore(0x00, 0xbac65e5b00000000000000000000000000000000000000000000000000000000)
+                revert(0x1c, 0x04)
+            }
+            z := add(iszero(iszero(mod(prod, WAD))), div(prod, WAD))
+        }
+    } 

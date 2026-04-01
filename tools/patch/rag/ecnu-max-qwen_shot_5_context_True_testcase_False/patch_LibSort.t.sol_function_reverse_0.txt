@@ -1,0 +1,18 @@
+function reverse(uint256[] memory a) internal  pure {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let length := mload(a)
+            if iszero(lt(length, 2)) {
+                let start := add(a, 0x20)
+                let end := add(start, mul(sub(length, 1), 0x20))
+                for { } lt(start, end) {
+                    start := add(start, 0x20)
+                    end := sub(end, 0x20)
+                } {
+                    let temp := mload(start)
+                    mstore(start, mload(end))
+                    mstore(end, temp)
+                }
+            }
+        }
+    }

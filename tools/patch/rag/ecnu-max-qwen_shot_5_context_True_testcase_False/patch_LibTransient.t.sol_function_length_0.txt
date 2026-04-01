@@ -1,0 +1,5 @@
+function length(TBytes storage ptr) internal  view returns (uint256 result) {
+assembly {
+            result := shr(224, sload(ptr.slot))
+        }
+    }

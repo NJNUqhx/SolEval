@@ -1,0 +1,10 @@
+function replace_28_2(bytes28 self, bytes2 value, uint8 offset) internal  pure returns (bytes28 result) {
+bytes2 oldValue = extract_28_2(self, offset);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let mask := shl(mul(16, sub(14, offset)), 0xffff000000000000000000000000000000000000000000000000)
+            let shiftedOld := and(mask, oldValue)
+            let shiftedNew := and(mask, shl(mul(16, sub(14, offset)), value))
+            result := xor(xor(self, shiftedOld), shiftedNew)
+        }
+    }

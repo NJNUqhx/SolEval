@@ -1,0 +1,17 @@
+function resize(DynamicArray memory a, uint256 n) internal  pure returns (DynamicArray memory result) {
+_deallocate(result);
+        result = a;
+        reserve(result, n);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let data := mload(add(result, 0x20))
+            let oldLen := mload(data)
+            if gt(n, oldLen) {
+                let copyLen := mul(sub(n, oldLen), 0x20)
+                let src := add(data, add(0x20, mul(oldLen, 0x20)))
+                let dst := src
+                codecopy(dst, src, copyLen)
+            }
+            mstore(data, n)
+        }
+    }

@@ -1,0 +1,33 @@
+function nonReentrant()  virtual {
+if (_useTransientReentrancyGuardOnlyOnMainnet() && block.chainid == 1) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                if tload(_REENTRANCY_GUARD_SLOT) {
+                    mstore(0x00, 0xab143c06)
+                    revert(0x1c, 0x04)
+                }
+                tstore(_REENTRANCY_GUARD_SLOT, address())
+            }
+        } else {
+            /// @solidity memory-safe-assembly
+            assembly {
+                if sload(_REENTRANCY_GUARD_SLOT) {
+                    mstore(0x00, 0xab143c06)
+                    revert(0x1c, 0x04)
+                }
+                sstore(_REENTRANCY_GUARD_SLOT, address())
+            }
+        }
+        _;
+        if (_useTransientReentrancyGuardOnlyOnMainnet() && block.chainid == 1) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                tstore(_REENTRANCY_GUARD_SLOT, 0)
+            }
+        } else {
+            /// @solidity memory-safe-assembly
+            assembly {
+                sstore(_REENTRANCY_GUARD_SLOT, 0)
+            }
+        }
+    }

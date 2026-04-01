@@ -1,0 +1,32 @@
+function searchSorted(uint256[] memory a, uint256 needle) internal  pure returns (bool found, uint256 index) {
+(found, index) = _searchSorted(a, needle, 0);
+    }
+
+    function _searchSorted(uint256[] memory a, uint256 needle, uint256 start)
+        internal
+        pure
+        returns (bool found, uint256 index)
+    {
+        uint256 length = a.length;
+        if (length == 0) {
+            return (false, 0);
+        }
+
+        uint256 low = start;
+        uint256 high = length;
+
+        while (low < high) {
+            uint256 mid = (low + high) / 2;
+            uint256 value = a[mid];
+
+            if (value < needle) {
+                low = mid + 1;
+            } else if (value > needle) {
+                high = mid;
+            } else {
+                return (true, mid);
+            }
+        }
+
+        return (false, low);
+    }

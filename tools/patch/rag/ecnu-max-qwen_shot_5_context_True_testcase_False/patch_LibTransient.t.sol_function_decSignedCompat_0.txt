@@ -1,0 +1,17 @@
+function decSignedCompat(TUint256 storage ptr, int256 delta) internal   returns (uint256 newValue) {
+if (block.chainid == 1) {
+            return decSigned(ptr, delta);
+        }
+        TUint256 storage c = _compat(ptr);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let current := sload(ptr.slot)
+            let subbed := sub(current, delta)
+            let cVal := sload(c.slot)
+            if and(eq(cVal, 0), or(lt(subbed, current), gt(subbed, current))) {
+                panic(0x11)
+            }
+            sstore(ptr.slot, subbed)
+            newValue := subbed
+        }
+    }

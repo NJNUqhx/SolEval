@@ -1,0 +1,25 @@
+function rpow(uint256 x, uint256 y, uint256 b) internal  pure returns (uint256 z) {
+assembly {
+        switch x case 0 {switch iszero(y) case 1 {z := b} default {z := 0}}
+        default {
+            switch mod(y, 2) case 0 {z := b} default {z := x}
+            let half := div(b, 2)
+            for { } { } {
+                y := div(y, 2)
+                if iszero(y) { break }
+                let raw := mul(x, x)
+                let tmp := div(raw, b)
+                if iszero(eq(tmp, div(raw, b))) { revert(0, 0) }
+                x := add(tmp, lt(and(raw, half), sub(b, and(raw, half))))
+                if iszero(eq(div(x, b), x)) { revert(0, 0) }
+                if and(y, 1) {
+                    tmp := mul(z, x)
+                    z := div(tmp, b)
+                    if iszero(eq(z, div(tmp, b))) { revert(0, 0) }
+                    z := add(z, lt(and(tmp, half), sub(b, and(tmp, half))))
+                    if iszero(eq(div(z, b), z)) { revert(0, 0) }
+                }
+            }
+        }
+    }
+}

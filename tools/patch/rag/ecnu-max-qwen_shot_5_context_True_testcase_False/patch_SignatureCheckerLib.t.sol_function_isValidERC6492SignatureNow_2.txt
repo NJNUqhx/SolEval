@@ -1,0 +1,45 @@
+function isValidERC6492SignatureNow(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length == 0) {
+            return _tryVerifyECDSA(hash, signature) == signer;
+        }
+
+        bytes32 magic = 0x1626ba7e;
+        bytes memory payload = abi.encodeWithSelector(magic, hash, signature);
+
+        assembly {
+            let success := staticcall(gas(), signer, add(payload, 0x20), mload(payload), 0x00, 0x20)
+            if success {
+                if eq(mload(0x00), magic) {
+                    isValid := true
+                }
+            }
+        }
+
+        if (!isValid) {
+            address recovered = _tryVerifyECDSA(hash, signature);
+            if (recovered != address(0) && recovered == signer) {
+                isValid = true;
+            }
+        }
+    }
+
+    function _tryVerifyECDSA(bytes32 hash, bytes memory signature) internal pure returns (address) {
+        if (signature.length == 65) {
+            bytes32 r;
+            bytes32 s;
+            uint8 v;
+            assembly {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+            }
+            if (v < 27) {
+                v += 27;
+            }
+            if (v != 27 && v != 28) {
+                return address(0);
+            }
+            return ecrecover(hash, v, r, s);
+        }
+        return address(0);
+    }

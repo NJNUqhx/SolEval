@@ -1,0 +1,19 @@
+function verifySolidity(bytes32 h, bytes32 r, bytes32 s, bytes32 qx, bytes32 qy) internal  view returns (bool) {
+if (!_isProperSignature(r, s) || !isValidPublicKey(qx, qy)) {
+            return false;
+        }
+
+        uint256 _r = uint256(r);
+        uint256 _s = uint256(s);
+        uint256 _h = uint256(h);
+        uint256 _qx = uint256(qx);
+        uint256 _qy = uint256(qy);
+
+        uint256 w = invMod(_s, N);
+        uint256 u1 = mulmod(_h, w, N);
+        uint256 u2 = mulmod(_r, w, N);
+
+        (uint256 x, ) = _jacobianAdd(_jacobianMultiply(_qx, _qy, u1), _jacobianMultiply(_qx, _qy, u2));
+
+        return x % N == _r;
+    }

@@ -1,0 +1,5 @@
+function _toUints(bytes32[] memory a) private  pure returns (uint256[] memory c) {
+assembly {
+            c := a
+        }
+    }

@@ -1,0 +1,14 @@
+function initCodeHashERC1967I(address implementation) internal  pure returns (bytes32 hash) {
+function initCodeHashERC1967I(address implementation) internal  pure returns (bytes32 hash) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc)
+            mstore(add(m, 0x20), shr(96, shl(96, implementation)))
+            hash := keccak256(m, 0x34)
+            mstore(0x40, m)
+            mstore(m, 0)
+            mstore(add(m, 0x20), 0)
+        }
+    }
+}

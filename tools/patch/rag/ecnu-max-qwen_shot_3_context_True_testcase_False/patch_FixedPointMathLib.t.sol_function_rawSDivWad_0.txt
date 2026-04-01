@@ -1,0 +1,6 @@
+function rawSDivWad(int256 x, int256 y) internal  pure returns (int256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := sdiv(mul(x, WAD), y)
+        }
+    }

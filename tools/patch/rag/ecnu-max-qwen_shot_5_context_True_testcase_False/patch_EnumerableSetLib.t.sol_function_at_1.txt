@@ -1,0 +1,17 @@
+function at(AddressSet storage set, uint256 i) internal  view returns (address result) {
+AddressSet storage set,uint256 i) internal view returns (address result) {
+        uint256 len = set._values.length;
+        if (i >= len) {
+            revert("IndexOutOfBounds");
+        }
+        bytes32 root = set._values.slot;
+        assembly {
+            let slot := add(root, add(1, i))
+            let value := sload(slot)
+            result := shr(96, value)
+            if iszero(result) {
+                revert(0, 0)
+            }
+        }
+    }
+}

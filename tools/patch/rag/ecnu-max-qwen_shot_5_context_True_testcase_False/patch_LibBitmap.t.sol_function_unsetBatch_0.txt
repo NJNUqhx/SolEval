@@ -1,0 +1,25 @@
+function unsetBatch(Bitmap storage bitmap, uint256 start, uint256 amount) internal {
+uint256 shift = start & 0xff;
+        uint256 slot = bitmap.slot;
+        uint256 end = start + amount;
+        uint256 firstSlot = start >> 8;
+        uint256 lastSlot = (end - 1) >> 8;
+        assembly ("memory-safe") {
+            if eq(firstSlot, lastSlot) {
+                let s := sload(add(slot, firstSlot))
+                let mask := not(shl(shift, sub(shl(sub(end, start), 1), 1)))
+                sstore(add(slot, firstSlot), and(s, mask))
+            } else {
+                let s := sload(add(slot, firstSlot))
+                let mask := not(shl(shift, sub(shl(sub(256, shift), 1), 1)))
+                sstore(add(slot, firstSlot), and(s, mask))
+                for { let i := add(firstSlot, 1) } lt(i, lastSlot) { i := add(i, 1) } {
+                    sstore(add(slot, i), 0)
+                }
+                let s2 := sload(add(slot, lastSlot))
+                let shift2 := and(end, 0xff)
+                let mask2 := not(sub(shl(shift2, 1), 1))
+                sstore(add(slot, lastSlot), and(s2, mask2))
+            }
+        }
+    }

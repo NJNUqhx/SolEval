@@ -1,0 +1,6 @@
+function mondayTimestamp(uint256 timestamp) internal  pure returns (uint256 result) {
+require(timestamp > 345599, "Invalid timestamp");
+    uint256 days = timestamp / 86400;
+    uint256 dayOfWeek = (days + 3) % 7;
+    result = (days - dayOfWeek) * 86400;
+} 

@@ -1,0 +1,8 @@
+function malloc(uint256 n) internal  pure returns (bytes32[] memory buffer) {
+/// @solidity memory-safe-assembly
+        assembly {
+            buffer := mload(0x40)
+            mstore(buffer, n)
+            mstore(0x40, add(buffer, shl(5, add(1, n))))
+        }
+    }

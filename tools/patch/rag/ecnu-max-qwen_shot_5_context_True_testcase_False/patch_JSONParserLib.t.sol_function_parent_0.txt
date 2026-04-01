@@ -1,0 +1,12 @@
+function parent(Item memory item) internal  pure returns (Item memory result) {
+assembly {
+        result := item
+        mstore(0x40, result)
+        let data := mload(add(item, 0x20))
+        let parentPtr := shr(96, data)
+        if iszero(parentPtr) {
+            parentPtr := 0x60
+        }
+        mstore(add(result, 0x20), parentPtr)
+    }
+}

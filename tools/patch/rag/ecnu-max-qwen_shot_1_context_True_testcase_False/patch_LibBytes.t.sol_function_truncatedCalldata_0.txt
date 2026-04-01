@@ -1,0 +1,10 @@
+function truncatedCalldata(bytes calldata subject, uint256 n) internal  pure returns (bytes calldata result) {
+assembly {
+            result.offset := subject.offset
+            let len := subject.length
+            if gt(len, n) {
+                len := n
+            }
+            result.length := len
+        }
+    }

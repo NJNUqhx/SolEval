@@ -1,0 +1,88 @@
+function invMod(uint256 a, uint256 n) internal  pure returns (uint256 x) {
+if (a == 0 || n == 0) {
+            return 0;
+        }
+        a = a % n;
+        if (a == 0) {
+            return 0;
+        }
+        uint256 g = n;
+        uint256 r = a;
+        uint256 y = 0;
+        x = 1;
+        uint256 q;
+        uint256 t;
+        assembly {
+            loop:
+            if iszero(r) { break }
+            q := div(g, r)
+            t := g
+            g := r
+            r := sub(t, mul(q, r))
+            t := x
+            x := y
+            y := sub(t, mul(q, y))
+            jump(loop)
+        }
+        if (g != 1) {
+            return 0;
+        }
+        if (x >= n) {
+            x = x % n;
+        }
+        if (x > 0 && x < n) {
+            // x is already positive and within range due to modulo arithmetic in loop potentially wrapping,
+            // but Solidity uint subtraction wraps. The assembly logic above handles signs via two's complement implicitly for intermediates,
+            // however, the final 'x' from assembly might be large if it represents a negative number.
+            // Actually, standard Extended Euclidean in assembly with unsigned ints:
+            // If the mathematical result is negative, the uint representation is huge.
+            // We need to check if x > n (which implies it's a "negative" result wrapped around)
+            // But wait, the standard algorithm:
+            // x_old = 1, x_new = 0
+            // x_next = x_old - q * x_new
+            // If x becomes "negative" in signed math, it wraps to a large uint.
+            // Since we want result in [0, n-1], if x >= n, we do n - (something)?
+            // Let's re-evaluate the assembly result.
+            // If the true inverse is negative, the uint `x` will be very large (close to 2^256).
+            // However, the loop condition `r != 0` and operations are purely unsigned.
+            // Correct approach for unsigned assembly implementation:
+            // If the resulting x is greater than n, it means the value is effectively negative in signed context?
+            // No, simply: if x > n, it doesn't necessarily mean it's negative.
+            // But in Extended Euclidean, coefficients can be negative.
+            // If x represents a negative number -k, then x = 2^256 - k.
+            // This is hard to detect directly without knowing the bit depth of the coefficient growth.
+            // Alternative: Perform the check `if (x > n)` is not sufficient.
+            // Let's stick to a safer pure Solidity implementation or fix the assembly logic interpretation.
+            // Actually, a common pattern for this specific assembly snippet:
+            // If x > n, then the result is likely n - (x % n) ?? No.
+            // Let's revert to a safe pure Solidity implementation for clarity and correctness if assembly is tricky,
+            // BUT the requirement says "This function uses inline assembly".
+            // Okay, let's refine the post-processing.
+            // The variable `x` holds the coefficient. If the math resulted in a negative number,
+            // `x` is `2^256 + negative_value`.
+            // We can't easily distinguish a large positive coefficient from a wrapped negative one just by magnitude vs n.
+            // However, for modular inverse, the result must be < n.
+            // If the algorithm produces a value >= n, we can try `n - (x % n)`? No.
+            // Let's look at the standard logic:
+            // If x is the inverse, then (a * x) % n == 1.
+            // We can verify. If (a * x) % n != 1, then x is likely the wrapped negative version?
+            // Actually, if x is the wrapped negative, then (a * x) % n would still be 1 because of modulo properties?
+            // Yes, (a * (2^256 - k)) % n = (a * -k) % n. If -k is the inverse, then a*(-k) = 1 mod n?
+            // Wait, if k is the inverse, then a*k = 1. Then a*(-k) = -1.
+            // So if x is the wrapped negative, (a*x)%n should be n-1.
+            // So if (a * x) % n == 1, we are good.
+            // If (a * x) % n == n - 1, then the real inverse is n - x? No, n - (x mod n)?
+            // Let's just compute `x = x % n`. If `a * x % n != 1`, then `x = n - x`.
+            // Wait, if x was huge (negative), x % n is (-k) % n = n - (k%n).
+            // Let's try: x = x % n. If a * x % n != 1, then x = n - x.
+            // This seems robust.
+        }
+        x = x % n;
+        if (mulmod(a, x, n) != 1) {
+            x = n - x;
+        }
+        // Final sanity check to ensure it's 1, if not, return 0 (though GCD check should cover)
+        if (mulmod(a, x, n) != 1) {
+            return 0;
+        }
+    }

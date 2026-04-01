@@ -1,0 +1,6 @@
+function toInt8(int256 x) internal  pure returns (int8) {
+unchecked {
+        if (x > type(int8).max || x < type(int8).min) revert();
+        return int8(x);
+    }
+}

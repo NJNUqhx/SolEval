@@ -1,0 +1,36 @@
+function log256(uint256 x) internal  pure returns (uint256 r) {
+if (x > 0) {
+        assembly {
+            let bit := 255
+            x := x >> bit
+            let mask := 0
+            mstore(0, x)
+            if iszero(x) {
+                bit := sub(bit, 1)
+                x := mload(0)
+                x := x >> bit
+                mask := shl(bit, 1)
+                x := mload(0)
+                x := and(x, not(mask))
+                x := x >> sub(bit, 8)
+                bit := sub(bit, 8)
+                mask := shl(bit, 0xFF)
+                x := mload(0)
+                x := and(x, not(mask))
+                x := x >> sub(bit, 4)
+                bit := sub(bit, 4)
+                mask := shl(bit, 0xF)
+                x := mload(0)
+                x := and(x, not(mask))
+                x := x >> sub(bit, 2)
+                bit := sub(bit, 2)
+                mask := shl(bit, 0x3)
+                x := mload(0)
+                x := and(x, not(mask))
+                x := x >> sub(bit, 1)
+                bit := sub(bit, 1)
+            }
+            r := div(bit, 8)
+        }
+    }
+}

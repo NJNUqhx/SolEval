@@ -1,0 +1,636 @@
+[2026-03-31 10:35:59] [INFO] Current context: context_True_testcase_False
+[2026-03-31 10:35:59] [INFO] filter Over!
+[2026-03-31 10:35:59] [INFO] file_path:
+repository/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-03-31 10:35:59] [INFO] now testing function:
+function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
+
+[2026-03-31 10:35:59] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+  --> contracts/utils/Packing.sol:79:10:
+   |
+79 | function pack_1_1(bytes1 left, bytes1 right) internal  pure returns (bytes2 result) {
+   |          ^^^^^^^^
+
+
+[2026-03-31 10:35:59] [INFO] -----------------------------
+[2026-03-31 10:35:59] [INFO] pass@1: 0.0
+[2026-03-31 10:35:59] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:35:59] [INFO] compile@1: 0.0
+[2026-03-31 10:35:59] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:35:59] [INFO] now testing function:
+function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
+
+[2026-03-31 10:36:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+  --> contracts/utils/Packing.sol:95:10:
+   |
+95 | function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
+   |          ^^^^^^^^
+
+
+[2026-03-31 10:36:00] [INFO] -----------------------------
+[2026-03-31 10:36:00] [INFO] pass@1: 0.0
+[2026-03-31 10:36:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:00] [INFO] compile@1: 0.0
+[2026-03-31 10:36:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:00] [INFO] now testing function:
+function pack_2_4(bytes2 left, bytes4 right) internal  pure returns (bytes6 result) {
+
+[2026-03-31 10:36:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:111:10:
+    |
+111 | function pack_2_4(bytes2 left, bytes4 right) internal  pure returns (bytes6 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:00] [INFO] -----------------------------
+[2026-03-31 10:36:00] [INFO] pass@1: 0.0
+[2026-03-31 10:36:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:00] [INFO] compile@1: 0.0
+[2026-03-31 10:36:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:00] [INFO] now testing function:
+function pack_2_6(bytes2 left, bytes6 right) internal  pure returns (bytes8 result) {
+
+[2026-03-31 10:36:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:127:10:
+    |
+127 | function pack_2_6(bytes2 left, bytes6 right) internal  pure returns (bytes8 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:00] [INFO] -----------------------------
+[2026-03-31 10:36:00] [INFO] pass@1: 0.0
+[2026-03-31 10:36:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:00] [INFO] compile@1: 0.0
+[2026-03-31 10:36:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:00] [INFO] now testing function:
+function pack_2_8(bytes2 left, bytes8 right) internal  pure returns (bytes10 result) {
+
+[2026-03-31 10:36:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:143:10:
+    |
+143 | function pack_2_8(bytes2 left, bytes8 right) internal  pure returns (bytes10 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:00] [INFO] -----------------------------
+[2026-03-31 10:36:00] [INFO] pass@1: 0.0
+[2026-03-31 10:36:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:00] [INFO] compile@1: 0.0
+[2026-03-31 10:36:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:00] [INFO] now testing function:
+function pack_2_10(bytes2 left, bytes10 right) internal  pure returns (bytes12 result) {
+
+[2026-03-31 10:36:00] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:159:10:
+    |
+159 | function pack_2_10(bytes2 left, bytes10 right) internal  pure returns (bytes12 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:00] [INFO] -----------------------------
+[2026-03-31 10:36:00] [INFO] pass@1: 0.0
+[2026-03-31 10:36:00] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:00] [INFO] compile@1: 0.0
+[2026-03-31 10:36:00] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:00] [INFO] now testing function:
+function pack_2_20(bytes2 left, bytes20 right) internal  pure returns (bytes22 result) {
+
+[2026-03-31 10:36:01] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:175:10:
+    |
+175 | function pack_2_20(bytes2 left, bytes20 right) internal  pure returns (bytes22 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:01] [INFO] -----------------------------
+[2026-03-31 10:36:01] [INFO] pass@1: 0.0
+[2026-03-31 10:36:01] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:01] [INFO] compile@1: 0.0
+[2026-03-31 10:36:01] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:01] [INFO] now testing function:
+function pack_2_22(bytes2 left, bytes22 right) internal  pure returns (bytes24 result) {
+
+[2026-03-31 10:36:01] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:191:10:
+    |
+191 | function pack_2_22(bytes2 left, bytes22 right) internal  pure returns (bytes24 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:01] [INFO] -----------------------------
+[2026-03-31 10:36:01] [INFO] pass@1: 0.0
+[2026-03-31 10:36:01] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:01] [INFO] compile@1: 0.0
+[2026-03-31 10:36:01] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:01] [INFO] now testing function:
+function pack_4_2(bytes4 left, bytes2 right) internal  pure returns (bytes6 result) {
+
+[2026-03-31 10:36:01] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:207:10:
+    |
+207 | function pack_4_2(bytes4 left, bytes2 right) internal  pure returns (bytes6 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:01] [INFO] -----------------------------
+[2026-03-31 10:36:01] [INFO] pass@1: 0.0
+[2026-03-31 10:36:01] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:01] [INFO] compile@1: 0.0
+[2026-03-31 10:36:01] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:01] [INFO] now testing function:
+function pack_4_4(bytes4 left, bytes4 right) internal  pure returns (bytes8 result) {
+
+[2026-03-31 10:36:01] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:223:10:
+    |
+223 | function pack_4_4(bytes4 left, bytes4 right) internal  pure returns (bytes8 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:01] [INFO] -----------------------------
+[2026-03-31 10:36:01] [INFO] pass@1: 0.0
+[2026-03-31 10:36:01] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:01] [INFO] compile@1: 0.0
+[2026-03-31 10:36:01] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:01] [INFO] now testing function:
+function pack_4_6(bytes4 left, bytes6 right) internal  pure returns (bytes10 result) {
+
+[2026-03-31 10:36:02] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:239:10:
+    |
+239 | function pack_4_6(bytes4 left, bytes6 right) internal  pure returns (bytes10 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:02] [INFO] -----------------------------
+[2026-03-31 10:36:02] [INFO] pass@1: 0.0
+[2026-03-31 10:36:02] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:02] [INFO] compile@1: 0.0
+[2026-03-31 10:36:02] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:02] [INFO] now testing function:
+function pack_4_8(bytes4 left, bytes8 right) internal  pure returns (bytes12 result) {
+
+[2026-03-31 10:36:02] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:255:10:
+    |
+255 | function pack_4_8(bytes4 left, bytes8 right) internal  pure returns (bytes12 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:02] [INFO] -----------------------------
+[2026-03-31 10:36:02] [INFO] pass@1: 0.0
+[2026-03-31 10:36:02] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:02] [INFO] compile@1: 0.0
+[2026-03-31 10:36:02] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:02] [INFO] now testing function:
+function pack_4_12(bytes4 left, bytes12 right) internal  pure returns (bytes16 result) {
+
+[2026-03-31 10:36:02] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:271:10:
+    |
+271 | function pack_4_12(bytes4 left, bytes12 right) internal  pure returns (bytes16 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:02] [INFO] -----------------------------
+[2026-03-31 10:36:02] [INFO] pass@1: 0.0
+[2026-03-31 10:36:02] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:02] [INFO] compile@1: 0.0
+[2026-03-31 10:36:02] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:02] [INFO] now testing function:
+function pack_4_16(bytes4 left, bytes16 right) internal  pure returns (bytes20 result) {
+
+[2026-03-31 10:36:02] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:287:10:
+    |
+287 | function pack_4_16(bytes4 left, bytes16 right) internal  pure returns (bytes20 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:02] [INFO] -----------------------------
+[2026-03-31 10:36:02] [INFO] pass@1: 0.0
+[2026-03-31 10:36:02] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:02] [INFO] compile@1: 0.0
+[2026-03-31 10:36:02] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:02] [INFO] now testing function:
+function pack_4_20(bytes4 left, bytes20 right) internal  pure returns (bytes24 result) {
+
+[2026-03-31 10:36:03] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:303:10:
+    |
+303 | function pack_4_20(bytes4 left, bytes20 right) internal  pure returns (bytes24 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:03] [INFO] -----------------------------
+[2026-03-31 10:36:03] [INFO] pass@1: 0.0
+[2026-03-31 10:36:03] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:03] [INFO] compile@1: 0.0
+[2026-03-31 10:36:03] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:03] [INFO] now testing function:
+function pack_4_24(bytes4 left, bytes24 right) internal  pure returns (bytes28 result) {
+
+[2026-03-31 10:36:03] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:319:10:
+    |
+319 | function pack_4_24(bytes4 left, bytes24 right) internal  pure returns (bytes28 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:03] [INFO] -----------------------------
+[2026-03-31 10:36:03] [INFO] pass@1: 0.0
+[2026-03-31 10:36:03] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:03] [INFO] compile@1: 0.0
+[2026-03-31 10:36:03] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:03] [INFO] now testing function:
+function pack_4_28(bytes4 left, bytes28 right) internal  pure returns (bytes32 result) {
+
+[2026-03-31 10:36:03] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:335:10:
+    |
+335 | function pack_4_28(bytes4 left, bytes28 right) internal  pure returns (bytes32 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:03] [INFO] -----------------------------
+[2026-03-31 10:36:03] [INFO] pass@1: 0.0
+[2026-03-31 10:36:03] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:03] [INFO] compile@1: 0.0
+[2026-03-31 10:36:03] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:03] [INFO] now testing function:
+function pack_6_2(bytes6 left, bytes2 right) internal  pure returns (bytes8 result) {
+
+[2026-03-31 10:36:03] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:351:10:
+    |
+351 | function pack_6_2(bytes6 left, bytes2 right) internal  pure returns (bytes8 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:03] [INFO] -----------------------------
+[2026-03-31 10:36:03] [INFO] pass@1: 0.0
+[2026-03-31 10:36:03] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:03] [INFO] compile@1: 0.0
+[2026-03-31 10:36:03] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:03] [INFO] now testing function:
+function pack_6_4(bytes6 left, bytes4 right) internal  pure returns (bytes10 result) {
+
+[2026-03-31 10:36:04] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:367:10:
+    |
+367 | function pack_6_4(bytes6 left, bytes4 right) internal  pure returns (bytes10 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:04] [INFO] -----------------------------
+[2026-03-31 10:36:04] [INFO] pass@1: 0.0
+[2026-03-31 10:36:04] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:04] [INFO] compile@1: 0.0
+[2026-03-31 10:36:04] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:04] [INFO] now testing function:
+function pack_6_6(bytes6 left, bytes6 right) internal  pure returns (bytes12 result) {
+
+[2026-03-31 10:36:04] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:383:10:
+    |
+383 | function pack_6_6(bytes6 left, bytes6 right) internal  pure returns (bytes12 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:04] [INFO] -----------------------------
+[2026-03-31 10:36:04] [INFO] pass@1: 0.0
+[2026-03-31 10:36:04] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:04] [INFO] compile@1: 0.0
+[2026-03-31 10:36:04] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:04] [INFO] now testing function:
+function pack_6_10(bytes6 left, bytes10 right) internal  pure returns (bytes16 result) {
+
+[2026-03-31 10:36:04] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:399:10:
+    |
+399 | function pack_6_10(bytes6 left, bytes10 right) internal  pure returns (bytes16 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:04] [INFO] -----------------------------
+[2026-03-31 10:36:04] [INFO] pass@1: 0.0
+[2026-03-31 10:36:04] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:04] [INFO] compile@1: 0.0
+[2026-03-31 10:36:04] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:04] [INFO] now testing function:
+function pack_6_16(bytes6 left, bytes16 right) internal  pure returns (bytes22 result) {
+
+[2026-03-31 10:36:04] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:415:10:
+    |
+415 | function pack_6_16(bytes6 left, bytes16 right) internal  pure returns (bytes22 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:04] [INFO] -----------------------------
+[2026-03-31 10:36:04] [INFO] pass@1: 0.0
+[2026-03-31 10:36:04] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:04] [INFO] compile@1: 0.0
+[2026-03-31 10:36:04] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:04] [INFO] now testing function:
+function pack_6_22(bytes6 left, bytes22 right) internal  pure returns (bytes28 result) {
+
+[2026-03-31 10:36:05] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:431:10:
+    |
+431 | function pack_6_22(bytes6 left, bytes22 right) internal  pure returns (bytes28 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:05] [INFO] -----------------------------
+[2026-03-31 10:36:05] [INFO] pass@1: 0.0
+[2026-03-31 10:36:05] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:05] [INFO] compile@1: 0.0
+[2026-03-31 10:36:05] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:05] [INFO] now testing function:
+function pack_8_2(bytes8 left, bytes2 right) internal  pure returns (bytes10 result) {
+
+[2026-03-31 10:36:05] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:447:10:
+    |
+447 | function pack_8_2(bytes8 left, bytes2 right) internal  pure returns (bytes10 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:05] [INFO] -----------------------------
+[2026-03-31 10:36:05] [INFO] pass@1: 0.0
+[2026-03-31 10:36:05] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:05] [INFO] compile@1: 0.0
+[2026-03-31 10:36:05] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:05] [INFO] now testing function:
+function pack_8_4(bytes8 left, bytes4 right) internal  pure returns (bytes12 result) {
+
+[2026-03-31 10:36:05] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:463:10:
+    |
+463 | function pack_8_4(bytes8 left, bytes4 right) internal  pure returns (bytes12 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:05] [INFO] -----------------------------
+[2026-03-31 10:36:05] [INFO] pass@1: 0.0
+[2026-03-31 10:36:05] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:05] [INFO] compile@1: 0.0
+[2026-03-31 10:36:05] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:05] [INFO] now testing function:
+function pack_8_8(bytes8 left, bytes8 right) internal  pure returns (bytes16 result) {
+
+[2026-03-31 10:36:05] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:479:10:
+    |
+479 | function pack_8_8(bytes8 left, bytes8 right) internal  pure returns (bytes16 result) {
+    |          ^^^^^^^^
+
+
+[2026-03-31 10:36:05] [INFO] -----------------------------
+[2026-03-31 10:36:05] [INFO] pass@1: 0.0
+[2026-03-31 10:36:05] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:05] [INFO] compile@1: 0.0
+[2026-03-31 10:36:05] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:05] [INFO] now testing function:
+function pack_8_12(bytes8 left, bytes12 right) internal  pure returns (bytes20 result) {
+
+[2026-03-31 10:36:06] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:495:10:
+    |
+495 | function pack_8_12(bytes8 left, bytes12 right) internal  pure returns (bytes20 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:06] [INFO] -----------------------------
+[2026-03-31 10:36:06] [INFO] pass@1: 0.0
+[2026-03-31 10:36:06] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:06] [INFO] compile@1: 0.0
+[2026-03-31 10:36:06] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:06] [INFO] now testing function:
+function pack_8_16(bytes8 left, bytes16 right) internal  pure returns (bytes24 result) {
+
+[2026-03-31 10:36:06] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:511:10:
+    |
+511 | function pack_8_16(bytes8 left, bytes16 right) internal  pure returns (bytes24 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:06] [INFO] -----------------------------
+[2026-03-31 10:36:06] [INFO] pass@1: 0.0
+[2026-03-31 10:36:06] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:06] [INFO] compile@1: 0.0
+[2026-03-31 10:36:06] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:06] [INFO] now testing function:
+function pack_8_20(bytes8 left, bytes20 right) internal  pure returns (bytes28 result) {
+
+[2026-03-31 10:36:06] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:527:10:
+    |
+527 | function pack_8_20(bytes8 left, bytes20 right) internal  pure returns (bytes28 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:06] [INFO] -----------------------------
+[2026-03-31 10:36:06] [INFO] pass@1: 0.0
+[2026-03-31 10:36:06] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:06] [INFO] compile@1: 0.0
+[2026-03-31 10:36:06] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:06] [INFO] now testing function:
+function pack_8_24(bytes8 left, bytes24 right) internal  pure returns (bytes32 result) {
+
+[2026-03-31 10:36:06] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:543:10:
+    |
+543 | function pack_8_24(bytes8 left, bytes24 right) internal  pure returns (bytes32 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:06] [INFO] -----------------------------
+[2026-03-31 10:36:06] [INFO] pass@1: 0.0
+[2026-03-31 10:36:06] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:06] [INFO] compile@1: 0.0
+[2026-03-31 10:36:06] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:06] [INFO] now testing function:
+function pack_10_2(bytes10 left, bytes2 right) internal  pure returns (bytes12 result) {
+
+[2026-03-31 10:36:07] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:559:10:
+    |
+559 | function pack_10_2(bytes10 left, bytes2 right) internal  pure returns (bytes12 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:07] [INFO] -----------------------------
+[2026-03-31 10:36:07] [INFO] pass@1: 0.0
+[2026-03-31 10:36:07] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:07] [INFO] compile@1: 0.0
+[2026-03-31 10:36:07] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:07] [INFO] now testing function:
+function pack_10_6(bytes10 left, bytes6 right) internal  pure returns (bytes16 result) {
+
+[2026-03-31 10:36:07] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:575:10:
+    |
+575 | function pack_10_6(bytes10 left, bytes6 right) internal  pure returns (bytes16 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:07] [INFO] -----------------------------
+[2026-03-31 10:36:07] [INFO] pass@1: 0.0
+[2026-03-31 10:36:07] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:07] [INFO] compile@1: 0.0
+[2026-03-31 10:36:07] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:07] [INFO] now testing function:
+function pack_10_10(bytes10 left, bytes10 right) internal  pure returns (bytes20 result) {
+
+[2026-03-31 10:36:07] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:591:10:
+    |
+591 | function pack_10_10(bytes10 left, bytes10 right) internal  pure returns (bytes20 result) {
+    |          ^^^^^^^^^^
+
+
+[2026-03-31 10:36:07] [INFO] -----------------------------
+[2026-03-31 10:36:07] [INFO] pass@1: 0.0
+[2026-03-31 10:36:07] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:07] [INFO] compile@1: 0.0
+[2026-03-31 10:36:07] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:07] [INFO] now testing function:
+function pack_10_12(bytes10 left, bytes12 right) internal  pure returns (bytes22 result) {
+
+[2026-03-31 10:36:07] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:607:10:
+    |
+607 | function pack_10_12(bytes10 left, bytes12 right) internal  pure returns (bytes22 result) {
+    |          ^^^^^^^^^^
+
+
+[2026-03-31 10:36:07] [INFO] -----------------------------
+[2026-03-31 10:36:07] [INFO] pass@1: 0.0
+[2026-03-31 10:36:07] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:07] [INFO] compile@1: 0.0
+[2026-03-31 10:36:07] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:07] [INFO] now testing function:
+function pack_10_22(bytes10 left, bytes22 right) internal  pure returns (bytes32 result) {
+
+[2026-03-31 10:36:08] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:623:10:
+    |
+623 | function pack_10_22(bytes10 left, bytes22 right) internal  pure returns (bytes32 result) {
+    |          ^^^^^^^^^^
+
+
+[2026-03-31 10:36:08] [INFO] -----------------------------
+[2026-03-31 10:36:08] [INFO] pass@1: 0.0
+[2026-03-31 10:36:08] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:08] [INFO] compile@1: 0.0
+[2026-03-31 10:36:08] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:08] [INFO] now testing function:
+function pack_12_4(bytes12 left, bytes4 right) internal  pure returns (bytes16 result) {
+
+[2026-03-31 10:36:08] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:639:10:
+    |
+639 | function pack_12_4(bytes12 left, bytes4 right) internal  pure returns (bytes16 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:08] [INFO] -----------------------------
+[2026-03-31 10:36:08] [INFO] pass@1: 0.0
+[2026-03-31 10:36:08] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:08] [INFO] compile@1: 0.0
+[2026-03-31 10:36:08] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:08] [INFO] now testing function:
+function pack_12_8(bytes12 left, bytes8 right) internal  pure returns (bytes20 result) {
+
+[2026-03-31 10:36:08] [ERROR] captured_stdout:
+Compiler run failed:
+Error (2314): Expected '(' but got identifier
+   --> contracts/utils/Packing.sol:655:10:
+    |
+655 | function pack_12_8(bytes12 left, bytes8 right) internal  pure returns (bytes20 result) {
+    |          ^^^^^^^^^
+
+
+[2026-03-31 10:36:08] [INFO] -----------------------------
+[2026-03-31 10:36:08] [INFO] pass@1: 0.0
+[2026-03-31 10:36:08] [INFO] -*-**-*-**-*-**-*-**-*-**-*-*
+[2026-03-31 10:36:08] [INFO] compile@1: 0.0
+[2026-03-31 10:36:08] [INFO] COMPILE successful rate: 0.0
+[2026-03-31 10:36:08] [INFO] now testing function:
+function pack_12_10(bytes12 left, bytes10 right) internal  pure returns (bytes22 result) {
+

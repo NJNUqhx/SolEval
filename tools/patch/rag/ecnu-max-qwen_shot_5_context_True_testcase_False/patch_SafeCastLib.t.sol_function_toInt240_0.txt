@@ -1,0 +1,4 @@
+function toInt240(int256 x) internal  pure returns (int240) {
+require(x >= type(int240).min && x <= type(int240).max, "Overflow when converting int256 to int240");
+        return int240(x);
+    }

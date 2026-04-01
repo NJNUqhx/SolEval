@@ -1,0 +1,8 @@
+function latest(Trace224 storage self) internal  view returns (uint224) {
+uint256 pos = self._checkpoints.length;
+        if (pos == 0) {
+            return 0;
+        }
+        Checkpoint224 storage last = _unsafeAccess(self._checkpoints, pos - 1);
+        return last._value;
+    }

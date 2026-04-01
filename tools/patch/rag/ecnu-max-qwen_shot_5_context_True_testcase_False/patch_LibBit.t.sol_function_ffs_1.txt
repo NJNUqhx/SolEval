@@ -1,0 +1,11 @@
+function ffs(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+        x := and(x, sub(0, x))
+        x := mul(x, 0x03f79d71b4ca8b379a8409f281c93554c92b6d9e9846dc28b2c9921f96f2579b)
+        r := shr(251, x)
+        x := shr(r, x)
+        x := and(x, 0xff)
+        x := mul(x, 0x077d53561f6bb1c815454e67f86f2580901212541240424a484c5054585c6064)
+        r := add(r, byte(0, x))
+    }
+}

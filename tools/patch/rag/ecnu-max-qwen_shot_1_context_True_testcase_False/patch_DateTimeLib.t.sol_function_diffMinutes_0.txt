@@ -1,0 +1,4 @@
+function diffMinutes(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+require(toTimestamp >= fromTimestamp, "Timestamps must be in chronological order");
+        result = (toTimestamp - fromTimestamp) / 60;
+    }

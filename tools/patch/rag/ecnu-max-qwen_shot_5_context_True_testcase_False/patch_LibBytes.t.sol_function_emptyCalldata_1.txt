@@ -1,0 +1,5 @@
+function emptyCalldata() internal  pure returns (bytes calldata result) {
+assembly {
+            result.length := 0
+        }
+    }

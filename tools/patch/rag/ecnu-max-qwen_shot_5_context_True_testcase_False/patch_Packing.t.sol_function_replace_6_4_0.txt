@@ -1,0 +1,108 @@
+function replace_6_4(bytes6 self, bytes4 value, uint8 offset) internal  pure returns (bytes6 result) {
+bytes4 old;
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Extract the existing 4-byte value at the specified offset.
+            // The 6-byte value is left-aligned in the 32-byte slot.
+            // We shift right by (offset * 8) to bring the target 4 bytes to the least significant position,
+            // then mask with 0xFFFFFFFF to isolate them.
+            old := shr(mul(offset, 8), shl(96, self))
+            old := and(old, 0xFFFFFFFF)
+
+            // Prepare the new value: mask to 4 bytes and shift left to the target offset position.
+            let newShifted := shl(mul(offset, 8), and(value, 0xFFFFFFFF))
+
+            // Calculate result:
+            // 1. Clear the old 4-byte segment in `self` by XORing with the old value shifted to position.
+            // 2. Insert the new value by XORing with the new shifted value.
+            // Note: self is left-aligned (shifted left by 96 bits relative to the 6 bytes of data).
+            // However, our `old` extraction logic accounted for the left alignment by shifting `self` left first.
+            // To be consistent with the XOR method, we must work with the values as they sit in the slot.
+            // `self` in the slot is: [data(6 bytes)][0...0].
+            // The bit position of byte `offset` (0-indexed) from the LSB of the 6-byte data is: (5 - offset) * 8.
+            // But since the data is at the MSB of the 32-byte word, the actual shift from LSB of word is:
+            // 256 - 6*8 - offset*8 = 160 + (5-offset)*8 ? No.
+            // Let's re-evaluate the shift logic based on the provided extraction.
+            // Extraction: `shr(mul(offset, 8), shl(96, self))`
+            // `shl(96, self)` moves the 6 bytes to the top? No, `self` is already in the top 6 bytes if it's a bytes6?
+            // Actually, a `bytes6` stored in a `bytes32` slot (as a local variable) is left-aligned.
+            // Value: 0xAABBCCDDEEFF00...00
+            // If offset=0, we want AABBCCDD.
+            // `shl(96, self)` -> 0xAABBCCDDEEFF00...00 << 96 -> 0x00000000AABBCCDDEEFF0000... ??
+            // Wait, `self` as a function argument or local `bytes6` is usually right-aligned when passed, but stored left-aligned in memory slots?
+            // In Solidity, small fixed-size byte arrays are left-aligned in their 32-byte storage/memory slot.
+            // So `self` = 0xAABBCCDDEEFF000000000000000000000000000000000000000000000000.
+            // To get the first 4 bytes (offset 0): We need 0xAABBCCDD.
+            // `shl(96, self)` would shift it further left? No, that would overflow.
+            // Ah, the standard pattern for left-aligned data:
+            // To extract 4 bytes starting at `offset`:
+            // Shift LEFT by `offset * 8` to move the target bytes to the front?
+            // If self = 0xAABBCCDDEEFF00...
+            // offset=0: want AABBCCDD. It is already at the top.
+            // offset=1: want BBCCDDEE.
+            // Shift left by 8: 0xBBCCDDEEFF00...
+            // Then shift right by 224 (256-32) to get it to the bottom?
+            // Or shift right by (offset * 8) after moving to a standard position?
+            
+            // Let's look at the provided extraction logic in the prompt's style:
+            // `old := shr(mul(offset, 8), shl(96, self))`
+            // If self is left aligned: 0xAABBCCDDEEFF0000...
+            // `shl(96, self)` -> This seems wrong if self is already left aligned. 
+            // Unless `self` here is treated as right aligned? 
+            // In Solidity `bytes6` variable is left aligned.
+            // Maybe the prompt implies `self` is right aligned? 
+            // "Extract the existing 4-byte value... offset".
+            // Let's assume the standard left-aligned behavior and correct the math.
+            // Data: D0 D1 D2 D3 D4 D5 00 ...
+            // Slot: D0 D1 D2 D3 D4 D5 00 ... (Left aligned)
+            // Offset 0: D0 D1 D2 D3.
+            // Offset 1: D1 D2 D3 D4.
+            // To get Offset 0: Shift right by 224 (256 - 32).
+            // To get Offset 1: Shift left by 8, then right by 224.
+            // General: Shift left by (offset * 8), then right by 224.
+            // Equivalent to: Shift right by (224 - offset * 8).
+            
+            // Let's re-read the prompt's implied logic from the previous line:
+            // `old := shr(mul(offset, 8), shl(96, self))`
+            // If `self` was 0x00...00AABBCCDDEEFF (Right aligned), then `shl(96, self)` makes it 0xAABBCCDDEEFF00... (Left aligned).
+            // Then `shr(offset*8)` shifts it right.
+            // If offset=0: 0xAABBCCDDEEFF00... >> 0 = ... Still not 0x00000000AABBCCDD.
+            // This suggests the prompt's snippet might be assuming a specific alignment or I need to derive the correct assembly.
+            // The requirement says: "Mask the new value... XORing... shifted to the correct position".
+            
+            // Correct approach for Left-Aligned bytes6:
+            // 1. Identify the bit shift needed to align the 4-byte target to the LSB.
+            // Total bits = 256. Data starts at bit 256-48 = 208? No, 6 bytes = 48 bits.
+            // Starts at bit 208 (counting from 0 at LSB)? No, MSB is 255.
+            // Data occupies bits 255 down to 208.
+            // Byte 0 is bits 255-248.
+            // Byte `offset` starts at bit 255 - (offset * 8).
+            // We want 4 bytes (32 bits).
+            // We want to shift so that these 32 bits end up at bits 31-0.
+            // Shift amount = (255 - (offset * 8) - 31) = 224 - (offset * 8).
+            // So `old := shr(sub(224, mul(offset, 8)), self)`?
+            // Let's test offset=0: shr(224, self). 
+            // self = 0xAABBCCDDEEFF00...
+            // 0xAABBCCDDEEFF00... >> 224 = 0x00000000AABBCCDD. Correct.
+            // Test offset=1: shr(216, self).
+            // self >> 216 = 0x00000000BBCCDDEE. Correct.
+            
+            // Now for the replacement using XOR:
+            // We need to clear the old bits and set the new bits.
+            // Clear mask: We need to XOR with the `old` value shifted back to its original position.
+            // Original position shift = 224 - (offset * 8).
+            // So `clearVal := shl(sub(224, mul(offset, 8)), old)`.
+            // New value position: `newVal := shl(sub(224, mul(offset, 8)), and(value, 0xFFFFFFFF))`.
+            // Result = self ^ clearVal ^ newVal.
+            
+            let shift := sub(224, mul(offset, 8))
+            old := shr(shift, self)
+            old := and(old, 0xFFFFFFFF) // Ensure only 4 bytes, though shr should handle it if shift is correct.
+            
+            let newClean := and(value, 0xFFFFFFFF)
+            let newShifted := shl(shift, newClean)
+            let oldShifted := shl(shift, old)
+            
+            result := xor(xor(self, oldShifted), newShifted)
+        }
+    }

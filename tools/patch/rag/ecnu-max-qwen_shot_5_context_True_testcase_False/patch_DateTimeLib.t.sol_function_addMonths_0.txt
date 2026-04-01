@@ -1,0 +1,11 @@
+function addMonths(uint256 timestamp, uint256 numMonths) internal  pure returns (uint256 result) {
+(uint256 year, uint256 month, uint256 day) = epochDayToDate(timestamp / 86400);
+        uint256 totalMonths = _totalMonths(year, month + numMonths);
+        year = totalMonths / 12;
+        month = totalMonths % 12;
+        if (month == 0) {
+            month = 12;
+            year -= 1;
+        }
+        result = _offsetted(year, month, day, timestamp);
+    }

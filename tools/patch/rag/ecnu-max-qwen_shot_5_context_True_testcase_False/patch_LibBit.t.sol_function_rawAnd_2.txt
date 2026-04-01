@@ -1,0 +1,6 @@
+function rawAnd(bool x, bool y) internal  pure returns (bool z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := and(x, y)
+        }
+    }

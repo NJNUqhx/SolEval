@@ -1,0 +1,12 @@
+function length(BytesStorage storage $) internal  view returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let packed := sload($.slot)
+            let lastByte := and(packed, 0xff)
+            if eq(lastByte, 0xff) {
+                result := shr(8, packed)
+            } else {
+                result := lastByte
+            }
+        }
+    }

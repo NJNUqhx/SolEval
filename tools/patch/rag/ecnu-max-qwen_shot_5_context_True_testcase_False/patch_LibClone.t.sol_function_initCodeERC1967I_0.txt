@@ -1,0 +1,10 @@
+function initCodeERC1967I(address implementation) internal  pure returns (bytes memory c) {
+assembly {
+            c := mload(0x40)
+            mstore(c, 0x88)
+            mstore(add(c, 0x20), 0x602d3d8160093d39f3363d3d373d3d3d363d73)
+            mstore(add(c, 0x40), shl(96, implementation))
+            mstore(add(c, 0x54), 0x5af43d82803e903d91602b57fd5bf3)
+            mstore(0x40, add(c, 0x88))
+        }
+    }

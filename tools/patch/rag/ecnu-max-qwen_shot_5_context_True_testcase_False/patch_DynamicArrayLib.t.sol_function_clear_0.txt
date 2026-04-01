@@ -1,0 +1,8 @@
+function clear(DynamicArray memory a) internal  pure returns (DynamicArray memory result) {
+_deallocate(result);
+        result = a;
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(result, 0)
+        }
+    }

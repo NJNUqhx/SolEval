@@ -1,0 +1,166 @@
+function decodeString(string memory s) internal  pure returns (string memory result) {
+function decodeString(string memory s) internal  pure returns (string memory result) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        let sPtr := add(s, 0x20)
+        let sLen := mload(s)
+        let end := add(sPtr, sLen)
+
+        if lt(sLen, 2) {
+            mstore(0x00, shl(224, 0x08c379a0))
+            mstore(0x20, 0x20)
+            mstore(0x40, 0x1b)
+            mstore(0x60, 0x496e76616c696420696e70757420737472696e67206c656e6774680000000000)
+            revert(0x1c, 0x24)
+        }
+
+        let firstChar := and(mload(sPtr), 0xff)
+        let lastChar := and(mload(sub(end, 1)), 0xff)
+        if or(iszero(eq(firstChar, 0x22)), iszero(eq(lastChar, 0x22))) {
+            mstore(0x00, shl(224, 0x08c379a0))
+            mstore(0x20, 0x20)
+            mstore(0x40, 0x15)
+            mstore(0x60, 0x537472696e67206d75737420626520646f75626c652d71756f74656400000000)
+            revert(0x1c, 0x24)
+        }
+
+        sPtr := add(sPtr, 1)
+        end := sub(end, 1)
+        let rPtr := add(mload(0x40), 0x20)
+        let rStart := rPtr
+
+        let hexTable := 0x30313233343536373839616263646566
+        mstore(0x00, hexTable)
+        mstore(0x10, hexTable)
+
+        for {} lt(sPtr, end) {} {
+            let char := and(mload(sPtr), 0xff)
+            sPtr := add(sPtr, 1)
+
+            if eq(char, 0x5c) {
+                if iszero(lt(sPtr, end)) {
+                    mstore(0x00, shl(224, 0x08c379a0))
+                    mstore(0x20, 0x20)
+                    mstore(0x40, 0x12)
+                    mstore(0x60, 0x556e657870656374656420657363617065000000000000000000000000000000)
+                    revert(0x1c, 0x24)
+                }
+                let next := and(mload(sPtr), 0xff)
+                sPtr := add(sPtr, 1)
+
+                if eq(next, 0x22) { mstore8(rPtr, 0x22) }
+                else if eq(next, 0x5c) { mstore8(rPtr, 0x5c) }
+                else if eq(next, 0x2f) { mstore8(rPtr, 0x2f) }
+                else if eq(next, 0x62) { mstore8(rPtr, 0x08) }
+                else if eq(next, 0x66) { mstore8(rPtr, 0x0c) }
+                else if eq(next, 0x6e) { mstore8(rPtr, 0x0a) }
+                else if eq(next, 0x72) { mstore8(rPtr, 0x0d) }
+                else if eq(next, 0x74) { mstore8(rPtr, 0x09) }
+                else if eq(next, 0x75) {
+                    if gt(add(sPtr, 4), end) {
+                        mstore(0x00, shl(224, 0x08c379a0))
+                        mstore(0x20, 0x20)
+                        mstore(0x40, 0x16)
+                        mstore(0x60, 0x496e76616c696420756e69636f64652065736361706500000000000000000000)
+                        revert(0x1c, 0x24)
+                    }
+                    let code := 0
+                    for { let i := 0 } lt(i, 4) { i := add(i, 1) } {
+                        let c := and(mload(add(sPtr, i)), 0xff)
+                        let val := sub(c, 0x30)
+                        if gt(c, 0x40) { val := sub(sub(c, 0x41), 0xffffffffffffffea) }
+                        if gt(val, 15) {
+                            mstore(0x00, shl(224, 0x08c379a0))
+                            mstore(0x20, 0x20)
+                            mstore(0x40, 0x12)
+                            mstore(0x60, 0x496e76616c696420686578206469676974000000000000000000000000000000)
+                            revert(0x1c, 0x24)
+                        }
+                        code := or(shl(4, code), val)
+                    }
+                    sPtr := add(sPtr, 4)
+
+                    if and(gt(code, 0xd7ff), lt(code, 0xe000)) {
+                        if gt(add(sPtr, 6), end) {
+                            mstore(0x00, shl(224, 0x08c379a0))
+                            mstore(0x20, 0x20)
+                            mstore(0x40, 0x17)
+                            mstore(0x60, 0x496e76616c696420737572726f67617465207061697200000000000000000000)
+                            revert(0x1c, 0x24)
+                        }
+                        let nextEsc := and(mload(sPtr), 0xff)
+                        let nextU := and(mload(add(sPtr, 1)), 0xff)
+                        if or(iszero(eq(nextEsc, 0x5c)), iszero(eq(nextU, 0x75))) {
+                            mstore(0x00, shl(224, 0x08c379a0))
+                            mstore(0x20, 0x20)
+                            mstore(0x40, 0x17)
+                            mstore(0x60, 0x496e76616c696420737572726f67617465207061697200000000000000000000)
+                            revert(0x1c, 0x24)
+                        }
+                        sPtr := add(sPtr, 2)
+                        let low := 0
+                        for { let i := 0 } lt(i, 4) { i := add(i, 1) } {
+                            let c := and(mload(add(sPtr, i)), 0xff)
+                            let val := sub(c, 0x30)
+                            if gt(c, 0x40) { val := sub(sub(c, 0x41), 0xffffffffffffffea) }
+                            if gt(val, 15) {
+                                mstore(0x00, shl(224, 0x08c379a0))
+                                mstore(0x20, 0x20)
+                                mstore(0x40, 0x12)
+                                mstore(0x60, 0x496e76616c696420686578206469676974000000000000000000000000000000)
+                                revert(0x1c, 0x24)
+                            }
+                            low := or(shl(4, low), val)
+                        }
+                        sPtr := add(sPtr, 4)
+                        if or(lt(low, 0xdc00), gt(low, 0xdfff)) {
+                            mstore(0x00, shl(224, 0x08c379a0))
+                            mstore(0x20, 0x20)
+                            mstore(0x40, 0x17)
+                            mstore(0x60, 0x496e76616c696420737572726f67617465207061697200000000000000000000)
+                            revert(0x1c, 0x24)
+                        }
+                        code := add(0x10000, add(shl(10, sub(code, 0xd800)), sub(low, 0xdc00)))
+                    }
+
+                    if lt(code, 0x80) {
+                        mstore8(rPtr, code)
+                        rPtr := add(rPtr, 1)
+                    } else if lt(code, 0x800) {
+                        mstore8(rPtr, or(0xc0, shr(6, code)))
+                        mstore8(add(rPtr, 1), or(0x80, and(code, 0x3f)))
+                        rPtr := add(rPtr, 2)
+                    } else if lt(code, 0x10000) {
+                        mstore8(rPtr, or(0xe0, shr(12, code)))
+                        mstore8(add(rPtr, 1), or(0x80, and(shr(6, code), 0x3f)))
+                        mstore8(add(rPtr, 2), or(0x80, and(code, 0x3f)))
+                        rPtr := add(rPtr, 3)
+                    } else {
+                        mstore8(rPtr, or(0xf0, shr(18, code)))
+                        mstore8(add(rPtr, 1), or(0x80, and(shr(12, code), 0x3f)))
+                        mstore8(add(rPtr, 2), or(0x80, and(shr(6, code), 0x3f)))
+                        mstore8(add(rPtr, 3), or(0x80, and(code, 0x3f)))
+                        rPtr := add(rPtr, 4)
+                    }
+                    continue
+                } else {
+                    mstore(0x00, shl(224, 0x08c379a0))
+                    mstore(0x20, 0x20)
+                    mstore(0x40, 0x12)
+                    mstore(0x60, 0x496e76616c696420657363617065206368617200000000000000000000000000)
+                    revert(0x1c, 0x24)
+                }
+            } else {
+                mstore8(rPtr, char)
+            }
+            rPtr := add(rPtr, 1)
+        }
+
+        let len := sub(rPtr, rStart)
+        mstore(sub(rStart, 0x20), len)
+        mstore(rPtr, 0)
+        mstore(0x40, add(rPtr, 0x20))
+        result := sub(rStart, 0x20)
+    }
+}
+}

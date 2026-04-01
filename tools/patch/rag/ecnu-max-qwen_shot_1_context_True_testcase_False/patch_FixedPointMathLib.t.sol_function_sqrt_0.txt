@@ -1,0 +1,40 @@
+function sqrt(uint256 x) internal  pure returns (uint256 z) {
+assembly {
+        z := 181
+        let r := shr(128, x)
+        if iszero(r) {
+            r := shr(64, x)
+        }
+        if iszero(r) {
+            r := shr(32, x)
+        }
+        if iszero(r) {
+            r := shr(16, x)
+        }
+        if iszero(r) {
+            r := shr(8, x)
+        }
+        if iszero(r) {
+            r := shr(4, x)
+        }
+        if iszero(r) {
+            r := shr(2, x)
+        }
+        if iszero(r) {
+            r := shr(1, x)
+        }
+        z := shr(r, z)
+        z := add(z, 1)
+        z := div(add(div(x, z), z), 2)
+        z := div(add(div(x, z), z), 2)
+        z := div(add(div(x, z), z), 2)
+        z := div(add(div(x, z), z), 2)
+        z := div(add(div(x, z), z), 2)
+        z := div(add(div(x, z), z), 2)
+        z := div(add(div(x, z), z), 2)
+        let t := div(x, z)
+        if gt(z, t) {
+            z := t
+        }
+    }
+}

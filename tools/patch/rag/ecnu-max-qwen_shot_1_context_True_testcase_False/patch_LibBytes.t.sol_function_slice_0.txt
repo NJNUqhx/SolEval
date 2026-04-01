@@ -1,0 +1,42 @@
+function slice(bytes memory subject, uint256 start, uint256 end) internal  pure returns (bytes memory result) {
+uint256 length = subject.length;
+        if (end > length) {
+            end = length;
+        }
+        if (start > length) {
+            start = length;
+        }
+        if (start < end) {
+            uint256 n = end - start;
+            uint256 dest;
+            uint256 src;
+            assembly {
+                dest := add(0x20, mload(0x40))
+                mstore(0x40, add(dest, and(add(n, 0x1f), not(0x1f))))
+                mstore(dest, n)
+                src := add(subject, add(0x20, start))
+            }
+            for (uint256 i = n; i >= 0x20; i -= 0x20) {
+                assembly {
+                    mstore(add(dest, i), mload(add(src, i)))
+                }
+            }
+            assembly {
+                let mask := shl(mul(sub(0x20, mod(n, 0x20)), 3), 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+                mstore(add(dest, mod(n, 0x20)), and(mload(add(src, mod(n, 0x20))), mask))
+            }
+            assembly {
+                mstore(add(dest, n), 0)
+            }
+            assembly {
+                result := dest
+            }
+        } else {
+            assembly {
+                result := mload(0x40)
+                mstore(0x40, add(result, 0x20))
+                mstore(result, 0)
+            }
+        }
+        return result;
+    }

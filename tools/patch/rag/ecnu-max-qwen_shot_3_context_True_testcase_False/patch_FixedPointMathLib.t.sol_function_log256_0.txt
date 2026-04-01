@@ -1,0 +1,28 @@
+function log256(uint256 x) internal  pure returns (uint256 r) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if gt(x, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) {
+                r := 32
+                x := shr(256, x)
+            }
+            if gt(x, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) {
+                r := add(r, 16)
+                x := shr(128, x)
+            }
+            if gt(x, 0xFFFFFFFFFFFFFFFF) {
+                r := add(r, 8)
+                x := shr(64, x)
+            }
+            if gt(x, 0xFFFFFFFF) {
+                r := add(r, 4)
+                x := shr(32, x)
+            }
+            if gt(x, 0xFFFF) {
+                r := add(r, 2)
+                x := shr(16, x)
+            }
+            if gt(x, 0xFF) {
+                r := add(r, 1)
+            }
+        }
+    }

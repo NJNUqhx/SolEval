@@ -1,0 +1,33 @@
+function implementationOf(address instance) internal  view returns (address result) {
+function implementationOf(address instance) internal  view returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let size := extcodesize(instance)
+            if iszero(size) { revert(0, 0) }
+            
+            mstore(0x00, size)
+            extcodecopy(instance, 0x20, 0, size)
+            
+            let ptr := 0x20
+            let end := add(ptr, size)
+            
+            for { let i := ptr } lt(i, end) { i := add(i, 1) } {
+                if eq(mload(i), 0x363d3d373d3d3d363d73000000000000000000000000) {
+                    result := shr(96, mload(add(i, 20)))
+                    break
+                }
+                if eq(mload(i), 0x363d3d373d3d3d363d7f000000000000000000000000) {
+                    result := shr(96, mload(add(i, 20)))
+                    break
+                }
+                if eq(mload(i), 0x5af43d5f5f3e6029573d5ffd5b3d5ff30000000000) {
+                    result := shr(96, mload(add(i, 10)))
+                    break
+                }
+            }
+            
+            mstore(0x00, 0)
+            mstore(0x20, 0)
+        }
+    }
+}

@@ -1,0 +1,11 @@
+function dateToEpochDay(uint256 year, uint256 month, uint256 day) internal  pure returns (uint256 epochDay) {
+if (month <= 2) {
+    year -= 1;
+    month += 12;
+}
+uint256 yoe = year % 400;
+uint256 doe = (yoe * 365) + (yoe / 4) - (yoe / 100) + ((153 * (month - 3) + 2) / 5) + day - 1;
+uint256 era = year / 400;
+uint256 doy = (153 * (month - 3) + 2) / 5 + day - 1;
+epochDay = era * 146097 + doe - 719468;
+    }

@@ -1,0 +1,4 @@
+function toInt80(int256 x) internal  pure returns (int80) {
+if (x < type(int80).min || x > type(int80).max) revert();
+        return int80(x);
+    }

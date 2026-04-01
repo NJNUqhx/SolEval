@@ -1,0 +1,27 @@
+function contains(AddressSet storage set, address value) internal  view returns (bool result) {
+bytes32 slot = set._inner._slot;
+    assembly {
+        let encoded := shl(96, value)
+        if iszero(encoded) {
+            encoded := 0x0000000000000000000000000000000000000000000000000000000000000001
+        }
+        let root := sload(slot)
+        if and(root, 0x3) {
+            let key := keccak256(0x00, 0x20)
+            mstore(0x00, encoded)
+            mstore(0x20, slot)
+            key := keccak256(0x00, 0x40)
+            result := sload(key)
+        } else {
+            if eq(root, encoded) {
+                result := 1
+            } else {
+                let key := keccak256(0x00, 0x20)
+                mstore(0x00, encoded)
+                mstore(0x20, slot)
+                key := keccak256(0x00, 0x40)
+                result := sload(key)
+            }
+        }
+    }
+}

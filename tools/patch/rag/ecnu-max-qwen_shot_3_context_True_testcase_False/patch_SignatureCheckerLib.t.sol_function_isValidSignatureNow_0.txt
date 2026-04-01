@@ -1,0 +1,61 @@
+function isValidSignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+        /// @solidity memory-safe-assembly
+        assembly {
+            let length := mload(signature)
+            let v := 0
+            let r := 0
+            let s := 0
+            if eq(length, 64) {
+                r := mload(add(signature, 0x20))
+                let vs := mload(add(signature, 0x40))
+                v := add(shr(255, vs), 27)
+                s := and(vs, 0x7fffffffffffffffffffffffffffffff7fffffffffffffffffffffffffffffff)
+            } else if eq(length, 65) {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+            } else {
+                v := 0
+            }
+
+            if gt(v, 1) {
+                isValid := 0
+            } else {
+                let recovered := staticcall(gas(), 0x01, mload(0x40), 0x80, mload(0x40), 0x20)
+                if eq(recovered, 0) {
+                    isValid := 0
+                } else {
+                    isValid := eq(signer, mload(mload(0x40)))
+                }
+            }
+
+            if iszero(isValid) {
+                if eq(extcodesize(signer), 0) {
+                    isValid := 0
+                } else {
+                    let originalMemory := mload(0x40)
+                    let freePtr := add(originalMemory, 0x60)
+                    mstore(freePtr, hash)
+                    mstore(add(freePtr, 0x20), 0x20)
+                    mstore(add(freePtr, 0x40), 0x20)
+                    mstore(add(freePtr, 0x60), add(length, 0x20))
+                    mstore(add(freePtr, 0x80), signature)
+                    mstore(add(freePtr, 0xa0), length)
+                    
+                    let success := staticcall(gas(), signer, add(freePtr, 0x1c), 0xa4, freePtr, 0x20)
+                    
+                    if and(success, eq(mload(freePtr), 0x1626ba7e00000000000000000000000000000000000000000000000000000000)) {
+                        isValid := 1
+                    } else {
+                        isValid := 0
+                    }
+                    
+                    mstore(0x40, originalMemory)
+                    mstore(0x00, 0)
+                }
+            }
+        }
+    }

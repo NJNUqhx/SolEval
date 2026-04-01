@@ -1,0 +1,17 @@
+function toString(uint256 value) internal  pure returns (string memory) {
+if (value == 0) {
+            return "0";
+        }
+        uint256 len = log10(value) + 1;
+        string memory result = new string(len);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let ptr := add(result, add(len, 0x20))
+            for { } gt(value, 0) { } {
+                ptr := sub(ptr, 1)
+                mstore8(ptr, add(48, mod(value, 10)))
+                value := div(value, 10)
+            }
+        }
+        return result;
+    }

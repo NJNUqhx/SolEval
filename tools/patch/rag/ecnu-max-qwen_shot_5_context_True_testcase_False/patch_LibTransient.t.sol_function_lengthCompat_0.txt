@@ -1,0 +1,13 @@
+function lengthCompat(TBytes storage ptr) internal  view returns (uint256 result) {
+if (block.chainid == 1) {
+            return length(ptr);
+        }
+        TBytes storage compatiblePtr = _compat(ptr);
+        assembly {
+            let packed := sload(compatiblePtr.slot)
+            result := shr(8, packed)
+            if iszero(eq(or(packed, 0xff), packed)) {
+                result := and(0xff, packed)
+            }
+        }
+    }

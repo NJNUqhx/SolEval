@@ -1,0 +1,6 @@
+function weekday(uint256 timestamp) internal  pure returns (uint256 result) {
+uint256 days = timestamp / 86400;
+        unchecked {
+            result = ((days + 3) % 7) + 1;
+        }
+    }

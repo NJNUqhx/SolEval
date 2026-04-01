@@ -1,0 +1,21 @@
+function sMulWad(int256 x, int256 y) internal  pure returns (int256 z) {
+assembly {
+    let xx := x
+    let yy := y
+    let product := mul(xx, yy)
+    if and(eq(xx, 0), iszero(eq(div(product, xx), yy))) {
+        revert(0, 0)
+    }
+    if and(eq(xx, -1), eq(yy, 0x8000000000000000000000000000000000000000000000000000000000000000)) {
+        revert(0, 0)
+    }
+    z := sdiv(product, 1000000000000000000)
+}
+if (x != 0 && (product / x != y)) {
+    revert SMulWadFailed();
+}
+if (x == -1 && y == type(int256).min) {
+    revert SMulWadFailed();
+}
+z = (x * y) / 1e18;
+}

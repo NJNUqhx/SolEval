@@ -1,0 +1,6 @@
+function isLeapYear(uint256 year) internal  pure returns (bool leap) {
+assembly {
+            let mask := shr(250, shl(mul(3, mod(year, 25)), 0x842108421084210842108421084210842108421084210842108421084210842))
+            leap := and(mask, 1)
+        }
+    }

@@ -1,0 +1,8 @@
+function tryMul(uint256 a, uint256 b) internal  pure returns (bool success, uint256 result) {
+if (a == 0) return (true, 0);
+        unchecked {
+            uint256 c = a * b;
+            if (c / a != b) return (false, 0);
+            return (true, c);
+        }
+    }

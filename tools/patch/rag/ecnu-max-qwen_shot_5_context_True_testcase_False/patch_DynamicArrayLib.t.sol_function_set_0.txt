@@ -1,0 +1,6 @@
+function set(uint256[] memory a, uint256 i, uint256 data) internal  pure returns (uint256[] memory result) {
+        result = a;
+        assembly ("memory-safe") {
+            mstore(add(result, add(0x20, shl(5, i))), data)
+        }
+    }

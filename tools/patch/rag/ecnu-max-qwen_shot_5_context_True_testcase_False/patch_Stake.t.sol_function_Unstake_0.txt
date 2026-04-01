@@ -1,0 +1,7 @@
+function Unstake(uint256 amount) public   returns (bool) {
+require(stakedBalances[msg.sender] >= amount, "Insufficient staked balance");
+        stakedBalances[msg.sender] -= amount;
+        totalStaked -= amount;
+        (bool success, ) = msg.sender.call(abi.encodeWithSignature("transfer(address,uint256)", msg.sender, amount));
+        return success;
+    } 

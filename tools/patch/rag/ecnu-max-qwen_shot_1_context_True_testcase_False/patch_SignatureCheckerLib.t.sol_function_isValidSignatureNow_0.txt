@@ -1,0 +1,41 @@
+function isValidSignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        assembly {
+            let length := mload(signature)
+            if eq(length, 64) {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, xor(s, shr(255, s)))
+                s := and(s, 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+            } else if eq(length, 65) {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+            } else {
+                revert(0, 0)
+            }
+        }
+
+        address recovered = ecrecover(hash, v, r, s);
+        if (recovered != address(0) && recovered == signer) {
+            return true;
+        }
+
+        bytes4 selector = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
+        (bool success, bytes memory result) = signer.staticcall(
+            abi.encodeWithSelector(selector, hash, signature)
+        );
+
+        if (success && result.length == 32) {
+            return abi.decode(result, (bytes4)) == selector;
+        }
+
+        return false;
+    }

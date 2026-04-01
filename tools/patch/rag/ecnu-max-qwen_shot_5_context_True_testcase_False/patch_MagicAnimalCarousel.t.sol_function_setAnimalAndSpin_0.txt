@@ -1,0 +1,10 @@
+function setAnimalAndSpin(string calldata animal) external {
+uint256 encoded = uint256(bytes32(abi.encodePacked(animal))) >> 160;
+        uint256 nextCrateId = _getNextCrateId();
+        if (encoded > type(uint80).max) revert AnimalNameTooLong();
+        uint256 mask = uint256(type(uint80).max) << 176;
+        _carouselState[nextCrateId] = (_carouselState[nextCrateId] & ~mask) | (encoded << 176);
+        _carouselState[nextCrateId] = (_carouselState[nextCrateId] & ~(uint256(type(uint16).max) << 160)) | ((nextCrateId + 1) % MAX_CAPACITY << 160);
+        _carouselState[nextCrateId] = (_carouselState[nextCrateId] & ~uint256(type(uint160).max)) | uint256(uint160(msg.sender));
+        currentCrateId = nextCrateId;
+    }

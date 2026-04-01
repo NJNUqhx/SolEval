@@ -1,0 +1,10 @@
+function packSci(uint256 x) internal  pure returns (uint256 packed) {
+(uint256 mantissa, int256 exponent) = sci(x);
+        assembly {
+            if gt(mantissa, 0x1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) {
+                mstore(0x00, 0x4e61b2c700000000000000000000000000000000000000000000000000000000)
+                revert(0x1c, 0x04)
+            }
+            packed := or(shl(7, mantissa), and(exponent, 0x7f))
+        }
+    }

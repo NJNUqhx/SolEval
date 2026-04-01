@@ -1,0 +1,14 @@
+function sha2Calldata(bytes calldata b, uint256 start, uint256 end) internal  view returns (bytes32 result) {
+end := xor(end, mul(xor(end, b.length), lt(b.length, end)))
+        start := xor(start, mul(xor(start, end), lt(end, start)))
+        let n := sub(end, start)
+        calldatacopy(0x00, add(b.offset, start), n)
+        mstore(n, n)
+        let success := staticcall(gas(), 0x02, n, add(n, 0x20), 0x00, 0x20)
+        if iszero(success) {
+            if iszero(returndatasize()) { revert(0x00, 0x00) }
+            returndatacopy(0x00, 0x00, returndatasize())
+            revert(0x00, returndatasize())
+        }
+        result := mload(0x00)
+    }

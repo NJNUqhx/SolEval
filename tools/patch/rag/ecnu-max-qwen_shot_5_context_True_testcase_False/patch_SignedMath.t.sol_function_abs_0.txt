@@ -1,0 +1,6 @@
+function abs(int256 n) internal  pure returns (uint256) {
+unchecked {
+        int256 mask = n >> 255;
+        return uint256((n + mask) ^ mask);
+    }
+}

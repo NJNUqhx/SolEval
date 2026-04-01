@@ -1,0 +1,19 @@
+function deployERC1967BeaconProxy(uint256 value, address beacon) internal   returns (address instance) {
+function deployERC1967BeaconProxy(uint256 value, address beacon) internal   returns (address instance) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, 0x602d5f8160095f39f35f5f365f5f37365f73)
+            mstore(add(m, 0x09), beacon)
+            mstore(add(m, 0x1d), 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            mstore(add(m, 0x2d), 0x0000000000000000000000000000000000000000000000000000000000000000)
+            instance := create(value, add(m, 0x0e), 0x36)
+            if iszero(instance) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+            mstore(0x40, m)
+            mstore(add(m, 0x2d), 0)
+        }
+    }
+}

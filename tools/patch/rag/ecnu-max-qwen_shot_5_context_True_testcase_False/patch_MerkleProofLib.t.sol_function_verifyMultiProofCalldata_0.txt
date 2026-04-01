@@ -1,0 +1,147 @@
+function verifyMultiProofCalldata(bytes32[] calldata proof, bytes32 root, bytes32[] calldata leaves, bool[] calldata flags) internal  pure returns (bool isValid) {
+if (leaves.length + proof.length != flags.length + 1) {
+            return false;
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let proofPtr := proof.offset
+            let leavesPtr := leaves.offset
+            let flagsPtr := flags.offset
+            let proofLen := proof.length
+            let leavesLen := leaves.length
+            let flagsLen := flags.length
+
+            // If there are no flags, handle the single leaf or proof case
+            if iszero(flagsLen) {
+                if eq(leavesLen, 1) {
+                    isValid := eq(mload(leavesPtr), root)
+                } else if eq(proofLen, 1) {
+                    isValid := eq(mload(proofPtr), root)
+                }
+                leave
+            }
+
+            // Initialize queue with leaves
+            let queuePtr := mload(0x40)
+            let queueEnd := queuePtr
+            for { let i := 0 } lt(i, leavesLen) { i := add(i, 1) } {
+                mstore(queueEnd, calldataload(add(leavesPtr, mul(i, 32))))
+                queueEnd := add(queueEnd, 32)
+            }
+
+            let proofIndex := 0
+            let flagsIndex := 0
+
+            // Process flags
+            for {} lt(flagsIndex, flagsLen) { flagsIndex := add(flagsIndex, 1) } {
+                // Pop two elements from the queue
+                queueEnd := sub(queueEnd, 32)
+                let b := mload(queueEnd)
+                queueEnd := sub(queueEnd, 32)
+                let a := mload(queueEnd)
+
+                let c
+                // Check flag: false -> use proof, true -> use queue
+                if iszero(calldataload(add(flagsPtr, mul(flagsIndex, 1)))) {
+                    c := calldataload(add(proofPtr, mul(proofIndex, 32)))
+                    proofIndex := add(proofIndex, 1)
+                } else {
+                    queueEnd := sub(queueEnd, 32)
+                    c := mload(queueEnd)
+                }
+
+                // Hash a and b (or a and c depending on order, standard is sort)
+                // Standard Merkle proof: sort before hashing
+                if gt(a, b) {
+                    mstore(0, b)
+                    mstore(32, a)
+                } else {
+                    mstore(0, a)
+                    mstore(32, b)
+                }
+                
+                // If we used a third element c from flag logic, we actually need to hash (a, b) then result with c?
+                // Wait, the algorithm description says: "Pop two elements... If flag false use proof element, else use queue element"
+                // This implies we are building a tree. Usually we pop 2, hash them. 
+                // The flag determines if the second operand comes from the proof or the queue.
+                // Let's re-read carefully: "Pop two elements from the queue. If the flag is false, use the next proof element; otherwise, use the next queue element."
+                // This phrasing is slightly ambiguous. Standard multi-proof:
+                // We have a queue of hashes. We iterate flags.
+                // If flag is 0 (false): Take next from proof, combine with head of queue?
+                // Actually, typical implementation:
+                // Queue starts with leaves.
+                // For each flag:
+                //   Pop A from queue.
+                //   If flag is 0: Pop B from proof.
+                //   If flag is 1: Pop B from queue.
+                //   Push hash(sort(A, B)) to queue.
+                
+                // Let's adjust assembly to match this standard logic which fits the "pop two" description if we consider the proof as an external source.
+                // But the prompt says "Pop two elements from the queue". This suggests the proof element is injected differently or the description implies:
+                // Pop A, Pop B. If flag false, B was actually from proof? No, that doesn't make sense if B is popped from queue.
+                
+                // Re-interpreting based on common efficient implementations (like OpenZeppelin's):
+                // Queue contains current level nodes.
+                // Iterate flags.
+                // Pop A from queue.
+                // If flag is false: B = next proof element.
+                // If flag is true: B = next queue element.
+                // Hash(A, B) push to queue.
+                
+                // Let's rewrite the loop logic to match this robust pattern.
+                leave // Break out to rewrite cleanly
+            }
+            
+            // Rewriting the loop properly
+            queuePtr := mload(0x40)
+            queueEnd := queuePtr
+            // Load leaves
+            for { let i := 0 } lt(i, leavesLen) { i := add(i, 1) } {
+                mstore(queueEnd, calldataload(add(leavesPtr, mul(i, 32))))
+                queueEnd := add(queueEnd, 32)
+            }
+            
+            proofIndex := 0
+            flagsIndex := 0
+            
+            for {} lt(flagsIndex, flagsLen) { flagsIndex := add(flagsIndex, 1) } {
+                // Pop A
+                queueEnd := sub(queueEnd, 32)
+                let a := mload(queueEnd)
+                
+                let b
+                // Check flag
+                if iszero(calldataload(add(flagsPtr, mul(flagsIndex, 1)))) {
+                    // Flag false: take from proof
+                    b := calldataload(add(proofPtr, mul(proofIndex, 32)))
+                    proofIndex := add(proofIndex, 1)
+                } else {
+                    // Flag true: take from queue
+                    queueEnd := sub(queueEnd, 32)
+                    b := mload(queueEnd)
+                }
+                
+                // Sort and Hash
+                if gt(a, b) {
+                    mstore(0, b)
+                    mstore(32, a)
+                } else {
+                    mstore(0, a)
+                    mstore(32, b)
+                }
+                let hash := keccak256(0, 64)
+                
+                // Push result
+                mstore(queueEnd, hash)
+                queueEnd := add(queueEnd, 32)
+            }
+            
+            // Final check: Queue should have 1 element equal to root, and all proof used
+            if and(eq(sub(queueEnd, queuePtr), 32), eq(proofIndex, proofLen)) {
+                isValid := eq(mload(queuePtr), root)
+            } else {
+                isValid := 0
+            }
+        }
+    }

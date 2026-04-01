@@ -1,0 +1,8 @@
+function pack_12_10(bytes12 left, bytes10 right) internal  pure returns (bytes22 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Mask left to 12 bytes (96 bits) and right to 10 bytes (80 bits)
+            // Shift right by 96 bits to align with left, then OR them together
+            result := or(shl(80, and(left, 0xffffffffffffffffffffffff)), and(right, 0xffffffffff))
+        }
+    }

@@ -1,0 +1,10 @@
+function log10Up(uint256 x) internal  pure returns (uint256 r) {
+r = log10(x);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let p := exp(10, r)
+            if lt(p, x) {
+                r := add(r, 1)
+            }
+        }
+    }

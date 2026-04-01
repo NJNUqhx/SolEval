@@ -1,0 +1,27 @@
+function readString(address target, bytes memory data, uint256 limit) internal  view returns (string memory) {
+return _string(target, data, limit, 20000);
+    }
+
+    function _string(address target, bytes memory data, uint256 limit, uint256 gasStipend)
+        private
+        view
+        returns (string memory result)
+    {
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := mload(0x40)
+            let success := staticcall(gasStipend, target, add(data, 0x20), mload(data), codesize(), 0x00)
+            if iszero(success) {
+                returndatacopy(result, 0x00, returndatasize())
+                revert(result, returndatasize())
+            }
+            let n := returndatasize()
+            if gt(n, limit) {
+                n := limit
+            }
+            mstore(result, n)
+            let o := add(result, 0x20)
+            returndatacopy(o, 0x00, n)
+            mstore(0x40, add(o, n))
+        }
+    }

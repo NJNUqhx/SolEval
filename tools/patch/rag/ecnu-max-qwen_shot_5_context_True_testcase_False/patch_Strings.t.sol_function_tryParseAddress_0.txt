@@ -1,0 +1,21 @@
+function tryParseAddress(string memory input, uint256 begin, uint256 end) internal  pure returns (bool success, address value) {
+if (end > bytes(input).length || begin > end) return (false, address(0));
+        bytes memory buffer = bytes(input);
+        uint256 len = end - begin;
+        bool hasPrefix = false;
+        if (len >= 2) {
+            bytes1 c1 = buffer[begin];
+            bytes1 c2 = buffer[begin + 1];
+            if ((c1 == '0' || c1 == '0x00') && (c2 == 'x' || c2 == 'X')) {
+                hasPrefix = true;
+            }
+        }
+        uint256 expectedLen = hasPrefix ? 42 : 40;
+        if (len != expectedLen) return (false, address(0));
+        uint256 offset = hasPrefix ? 2 : 0;
+        (bool s, uint256 v) = tryParseUint(input, begin + offset, end);
+        if (s) {
+            return (true, address(uint160(v)));
+        }
+        return (false, address(0));
+    }

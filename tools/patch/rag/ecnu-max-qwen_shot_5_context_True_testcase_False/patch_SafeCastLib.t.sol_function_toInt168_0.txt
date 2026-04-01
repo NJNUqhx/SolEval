@@ -1,0 +1,4 @@
+function toInt168(int256 x) internal  pure returns (int168) {
+if (x < type(int168).min || x > type(int168).max) revert();
+        return int168(x);
+    }

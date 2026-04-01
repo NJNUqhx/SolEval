@@ -1,0 +1,6 @@
+function set(TUint256 storage ptr, uint256 value) internal {
+/// @solidity memory-safe-assembly
+        assembly {
+            tstore(ptr.slot, value)
+        }
+    }

@@ -1,0 +1,12 @@
+function requestDonation() external   returns (bool enoughBalance) {
+try wallet.donate10(msg.sender) {
+            enoughBalance = true;
+        } catch (bytes memory reason) {
+            if (keccak256(reason) == keccak256("NotEnoughBalance()")) {
+                wallet.transferRemainder(msg.sender);
+                enoughBalance = false;
+            } else {
+                revert();
+            }
+        }
+    }

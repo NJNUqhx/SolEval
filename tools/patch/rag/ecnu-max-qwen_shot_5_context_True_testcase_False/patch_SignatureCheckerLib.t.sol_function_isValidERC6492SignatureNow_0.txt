@@ -1,0 +1,20 @@
+function isValidERC6492SignatureNow(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length == 0) {
+            address recovered = ECDSA.recover(hash, signature);
+            return recovered == signer;
+        }
+
+        bytes32 magic = 0x52629c97;
+        bytes32 selector = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, selector)
+            mstore(add(m, 0x20), hash)
+            mstore(add(m, 0x40), 0x40)
+            mstore(add(m, 0x60), mload(add(signature, 0x20)))
+            pop(staticcall(gas(), signer, add(m, 0x1c), add(0x64, mload(add(signature, 0x20))), m, 0x20))
+            isValid := eq(mload(m), magic)
+        }
+    }

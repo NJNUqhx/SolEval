@@ -1,0 +1,13 @@
+function toG2(Fp2 memory element) internal  view returns (G2Point memory result) {
+assembly ("memory-safe") {
+            if iszero(
+                and(
+                    eq(returndatasize(), 0x100),
+                    staticcall(gas(), BLS12_MAP_FP2_TO_G2, element, 0x80, result, 0x100)
+                )
+            ) {
+                mstore(0x00, 0x8c379a01) // `MapFp2ToG2Failed()`.
+                revert(0x1c, 0x04)
+            }
+        }
+    }

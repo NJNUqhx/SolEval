@@ -1,0 +1,19 @@
+function log2(uint256 x) internal  pure returns (uint256 r) {
+if (x == 0) {
+        return 0;
+    }
+    /// @solidity memory-safe-assembly
+    assembly {
+        let temp := x
+        let shift := 0
+        if gt(temp, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) { temp := shr(128, temp); shift := 128 }
+        if gt(temp, 0xFFFFFFFFFFFFFFFF) { temp := shr(64, temp); shift := add(shift, 64) }
+        if gt(temp, 0xFFFFFFFF) { temp := shr(32, temp); shift := add(shift, 32) }
+        if gt(temp, 0xFFFF) { temp := shr(16, temp); shift := add(shift, 16) }
+        if gt(temp, 0xFF) { temp := shr(8, temp); shift := add(shift, 8) }
+        if gt(temp, 0xF) { temp := shr(4, temp); shift := add(shift, 4) }
+        if gt(temp, 0x3) { temp := shr(2, temp); shift := add(shift, 2) }
+        if gt(temp, 0x1) { shift := add(shift, 1) }
+        r := shift
+    }
+} 

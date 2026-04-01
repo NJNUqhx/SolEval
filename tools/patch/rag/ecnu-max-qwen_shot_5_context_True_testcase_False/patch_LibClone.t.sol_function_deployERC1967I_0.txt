@@ -1,0 +1,16 @@
+function deployERC1967I(uint256 value, address implementation) internal   returns (address instance) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(add(m, 0x34), shl(96, implementation))
+            mstore(m, 0x602d5f8160095f39f35f5f365f5f37365f73)
+            mstore(add(m, 0x15), shl(96, implementation))
+            instance := create(value, add(m, 0x0b), 0x3e)
+            if iszero(instance) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+            mstore(0x40, m)
+            mstore(0x00, 0)
+        }
+    }

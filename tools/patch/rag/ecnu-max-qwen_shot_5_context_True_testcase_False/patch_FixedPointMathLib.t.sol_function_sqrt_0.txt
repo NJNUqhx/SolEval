@@ -1,0 +1,21 @@
+function sqrt(uint256 x) internal  pure returns (uint256 z) {
+if (x > 3) {
+        z = x;
+        uint256 r = add(181, shr(2, log2(x)));
+        z = shr(r, z);
+        z = shr(1, add(z, div(x, z)));
+        z = shr(1, add(z, div(x, z)));
+        z = shr(1, add(z, div(x, z)));
+        z = shr(1, add(z, div(x, z)));
+        z = shr(1, add(z, div(x, z)));
+        z = shr(1, add(z, div(x, z)));
+        z = shr(1, add(z, div(x, z)));
+        if (z > 1) {
+            if (gt(mul(z, z), x)) {
+                z = sub(z, 1);
+            }
+        }
+    } else if (x != 0) {
+        z = 1;
+    }
+}

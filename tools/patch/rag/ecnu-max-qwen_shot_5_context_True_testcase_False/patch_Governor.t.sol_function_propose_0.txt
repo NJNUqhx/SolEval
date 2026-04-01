@@ -1,0 +1,15 @@
+function propose(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description) public virtual  returns (uint256) {
+address proposer = _msgSender();
+        uint48 timepoint = clock();
+        if (!_canPropose(proposer, description)) {
+            revert GovernorRestrictedProposer();
+        }
+        uint256 threshold = proposalThreshold();
+        if (threshold > 0) {
+            uint256 votes = getVotes(proposer, timepoint - 1);
+            if (votes < threshold) {
+                revert GovernorInsufficientProposerVotes();
+            }
+        }
+        return _propose(targets, values, calldatas, description);
+    }

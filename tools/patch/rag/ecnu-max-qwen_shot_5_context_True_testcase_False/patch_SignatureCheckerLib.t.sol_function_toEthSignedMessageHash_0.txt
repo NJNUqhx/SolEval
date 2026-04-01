@@ -1,0 +1,8 @@
+function toEthSignedMessageHash(bytes32 hash) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x20, hash)
+            mstore(0x00, 0x19457468657265756d205369676e6564204d6573736167653a0a333200000000)
+            result := keccak256(0x04, 0x3c)
+        }
+    }

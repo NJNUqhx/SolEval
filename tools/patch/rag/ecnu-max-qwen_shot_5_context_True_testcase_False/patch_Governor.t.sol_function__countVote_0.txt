@@ -1,0 +1,4 @@
+function _countVote(uint256 proposalId, address account, uint8 support, uint256 totalWeight, bytes memory params) internal virtual  returns (uint256) {
+require(support <= 2, "Governor: invalid vote type");
+        return totalWeight;
+    }

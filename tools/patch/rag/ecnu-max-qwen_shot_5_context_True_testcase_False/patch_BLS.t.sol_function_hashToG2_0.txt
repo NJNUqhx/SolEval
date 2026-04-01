@@ -1,0 +1,51 @@
+function hashToG2(bytes memory message) internal  view returns (G2Point memory result) {
+assembly ("memory-safe") {
+            let mPtr := mload(0x40)
+            let mLen := mload(message)
+            let dataPtr := add(message, 0x20)
+
+            mcopy(mPtr, dataPtr, mLen)
+
+            let dstPtr := add(mPtr, mLen)
+            let dstLen := 0x0a
+            mstore(dstPtr, 0x424c5331323338314732584d443a20)
+            mstore(add(dstPtr, 0x10), 0x3a203930310000000000000000000000)
+
+            let hashInputLen := add(mLen, dstLen)
+            let hashInputPtr := mPtr
+
+            let h0 := sha256(hashInputPtr, hashInputLen)
+
+            let u0Ptr := add(mPtr, 0x400)
+            let u1Ptr := add(u0Ptr, 0x40)
+            
+            mstore(u0Ptr, h0)
+            
+            let counter := 1
+            let ok := staticcall(gas(), 0x02, u0Ptr, 0x40, u0Ptr, 0x20)
+            if iszero(ok) { revert(0, 0) }
+
+            mstore(add(u0Ptr, 0x20), counter)
+            counter := add(counter, 1)
+            ok := staticcall(gas(), 0x02, u0Ptr, 0x40, u1Ptr, 0x20)
+            if iszero(ok) { revert(0, 0) }
+
+            let x0Ptr := add(mPtr, 0x200)
+            let x1Ptr := add(x0Ptr, 0x20)
+            
+            ok := staticcall(gas(), 0x05, u0Ptr, 0x20, x0Ptr, 0x20)
+            if iszero(ok) { revert(0, 0) }
+            
+            ok := staticcall(gas(), 0x05, u1Ptr, 0x20, x1Ptr, 0x20)
+            if iszero(ok) { revert(0, 0) }
+
+            let g2InputPtr := add(mPtr, 0x300)
+            mcopy(g2InputPtr, x0Ptr, 0x40)
+            
+            ok := staticcall(gas(), BLS12_MAP_FP2_TO_G2, g2InputPtr, 0x40, result, 0x100)
+            if iszero(ok) {
+                mstore(0x00, 0xe3dc5425)
+                revert(0x1c, 0x04)
+            }
+        }
+    }

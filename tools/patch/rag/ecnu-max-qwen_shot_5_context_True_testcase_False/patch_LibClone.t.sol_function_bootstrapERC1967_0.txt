@@ -1,0 +1,13 @@
+function bootstrapERC1967(address instance, address implementation) internal {
+assembly {
+            mstore(0x00, implementation)
+            if iszero(call(gas(), instance, 0, 0x00, 0x20, 0, 0)) {
+                if iszero(returndatasize()) {
+                    mstore(0x00, 0x32103127)
+                    revert(0x1c, 0x04)
+                }
+                returndatacopy(0x00, 0x00, returndatasize())
+                revert(0x00, returndatasize())
+            }
+        }
+    }

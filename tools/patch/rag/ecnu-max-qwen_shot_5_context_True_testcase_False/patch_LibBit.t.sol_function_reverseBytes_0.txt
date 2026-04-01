@@ -1,0 +1,15 @@
+function reverseBytes(uint256 x) internal  pure returns (uint256 r) {
+uint256 m0 = 0x00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff;
+    uint256 m1 = m0 ^ (m0 << 16);
+    uint256 m2 = m1 ^ (m1 << 8);
+    unchecked {
+        r = x;
+        r = ((r & m2) << 8) | ((r >> 8) & m2);
+        r = ((r & m1) << 16) | ((r >> 16) & m1);
+        r = (r << 24) | (r >> 24);
+        uint256 m3 = 0x00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        r = ((r & m3) << 32) | ((r >> 32) & m3);
+        r = (r << 64) | (r >> 64);
+        r = (r << 128) | (r >> 128);
+    }
+}

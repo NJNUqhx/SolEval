@@ -1,0 +1,24 @@
+function nthWeekdayInMonthOfYearTimestamp(uint256 year, uint256 month, uint256 n, uint256 wd) internal  pure returns (uint256 result) {
+uint256 epochDay = dateToEpochDay(year, month, 1);
+        uint256 daysInMonthVal = daysInMonth(year, month);
+        uint256 firstDayWeekday = (epochDay + 1) % 7; // 1970-01-01 was Thursday (4), but standard logic often adjusts. Assuming epochDay 0 = Thursday.
+        // Correct calculation for weekday of epochDay 0 (Jan 1, 1970) is Thursday (4).
+        // So weekday = (epochDay + 4) % 7. Let's assume standard 0=Sunday.
+        // Jan 1 1970 was Thursday. If 0=Sunday, Thursday=4.
+        uint256 currentWeekday = (epochDay + 4) % 7;
+        
+        uint256 offset;
+        if (wd >= currentWeekday) {
+            offset = wd - currentWeekday;
+        } else {
+            offset = 7 - (currentWeekday - wd);
+        }
+        
+        uint256 dayOfMonth = offset + 1 + (n - 1) * 7;
+        
+        if (dayOfMonth > daysInMonthVal) {
+            return 0;
+        }
+        
+        result = (epochDay + dayOfMonth - 1) * 86400;
+    }

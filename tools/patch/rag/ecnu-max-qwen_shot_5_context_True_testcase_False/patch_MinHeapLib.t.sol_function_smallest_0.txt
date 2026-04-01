@@ -1,0 +1,119 @@
+function smallest(Heap storage heap, uint256 k) internal  view returns (uint256[] memory a) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Helper to get the index of the element at position `i` in the priority queue.
+            function pIndex(h, i) -> idx {
+                idx := mload(add(h, mul(i, 0x40)))
+            }
+            // Helper to get the value of the element at position `i` in the priority queue.
+            function pValue(h, i) -> val {
+                val := mload(add(h, add(mul(i, 0x40), 0x20)))
+            }
+            // Helper to set the index and value of the element at position `i` in the priority queue.
+            function pSet(h, i, idx, val) {
+                mstore(add(h, mul(i, 0x40)), idx)
+                mstore(add(h, add(mul(i, 0x40), 0x20)), val)
+            }
+            // Sift down operation for the priority queue.
+            function pSiftdown(h, len, i) {
+                let idx := pIndex(h, i)
+                let val := pValue(h, i)
+                for {} 1 {} {
+                    let child := add(add(i, i), 1)
+                    if iszero(lt(child, len)) { break }
+                    let cIdx := pIndex(h, child)
+                    let cVal := pValue(h, child)
+                    let right := add(child, 1)
+                    if lt(right, len) {
+                        let rIdx := pIndex(h, right)
+                        let rVal := pValue(h, right)
+                        if lt(rVal, cVal) {
+                            child := right
+                            cIdx := rIdx
+                            cVal := rVal
+                        }
+                    }
+                    if iszero(lt(cVal, val)) { break }
+                    pSet(h, i, cIdx, cVal)
+                    i := child
+                }
+                pSet(h, i, idx, val)
+            }
+            // Sift up operation for the priority queue.
+            function pSiftup(h, i) {
+                let idx := pIndex(h, i)
+                let val := pValue(h, i)
+                for {} gt(i, 0) {} {
+                    let parent := shr(1, sub(i, 1))
+                    let pIdx := pIndex(h, parent)
+                    let pVal := pValue(h, parent)
+                    if iszero(lt(val, pVal)) { break }
+                    pSet(h, i, pIdx, pVal)
+                    i := parent
+                }
+                pSet(h, i, idx, val)
+            }
+
+            // Allocate memory for the result array.
+            a := mload(0x40)
+            let o := add(a, 0x20)
+            
+            // Calculate storage offset for the heap array.
+            mstore(0, heap.slot)
+            let sOffset := keccak256(0, 0x20)
+            
+            // Get heap size.
+            let n := sload(heap.slot)
+            
+            // Determine number of elements to retrieve.
+            let m := k
+            if gt(m, n) { m := n }
+            
+            // Allocate memory for the priority queue (each element takes 0x40 bytes: index + value).
+            let h := mload(0x40)
+            mstore(0x40, add(h, mul(m, 0x40)))
+            
+            let hLen := 0
+            if gt(n, 0) {
+                // Push root of the main heap into the priority queue.
+                let rootVal := sload(sOffset)
+                pSet(h, 0, 0, rootVal)
+                hLen := 1
+            }
+            
+            for { let i := 0 } lt(i, m) { i := add(i, 1) } {
+                // Extract min from priority queue.
+                let idx := pIndex(h, 0)
+                let val := pValue(h, 0)
+                mstore(add(o, mul(i, 0x20)), val)
+                
+                // Remove root from priority queue by swapping with last and sifting down.
+                hLen := sub(hLen, 1)
+                if gt(hLen, 0) {
+                    let lastIdx := pIndex(h, hLen)
+                    let lastVal := pValue(h, hLen)
+                    pSet(h, 0, lastIdx, lastVal)
+                    pSiftdown(h, hLen, 0)
+                }
+                
+                // Add children of the extracted node to the priority queue.
+                let left := add(add(idx, idx), 1)
+                if lt(left, n) {
+                    let lVal := sload(add(sOffset, left))
+                    pSet(h, hLen, left, lVal)
+                    pSiftup(h, hLen)
+                    hLen := add(hLen, 1)
+                }
+                let right := add(left, 1)
+                if lt(right, n) {
+                    let rVal := sload(add(sOffset, right))
+                    pSet(h, hLen, right, rVal)
+                    pSiftup(h, hLen)
+                    hLen := add(hLen, 1)
+                }
+            }
+            
+            mstore(a, m)
+            mstore(0x40, add(add(o, mul(m, 0x20)), 0x20))
+        }
+    }

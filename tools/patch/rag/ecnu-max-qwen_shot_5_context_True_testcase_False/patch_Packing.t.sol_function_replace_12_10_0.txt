@@ -1,0 +1,10 @@
+function replace_12_10(bytes12 self, bytes10 value, uint8 offset) internal  pure returns (bytes12 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let selfShifted := shl(shl(3, sub(2, offset)), self)
+            let mask := shr(16, not(0))
+            let oldValue := and(shr(shl(3, offset), selfShifted), mask)
+            let newValue := and(shl(shl(3, offset), and(value, mask)), selfShifted)
+            result := xor(xor(self, shl(shl(3, offset), oldValue)), newValue)
+        }
+    }

@@ -1,0 +1,5 @@
+function isSupportedTimestamp(uint256 timestamp) internal  pure returns (bool result) {
+unchecked {
+        result = timestamp <= MAX_SUPPORTED_TIMESTAMP;
+    }
+} 

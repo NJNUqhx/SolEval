@@ -1,0 +1,62 @@
+function values(AddressSet storage set) internal  view returns (address[] memory result) {
+        bytes32 root = set._inner._slot;
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Load the packed value from the root slot.
+            // The packed value contains the number of elements in the lower bits
+            // and the first element (if any) in the upper bits.
+            let packed := sload(root)
+
+            // Extract the number of elements (n) from the lower 128 bits.
+            // The layout is: [element_0 (128 bits)] [n (128 bits)] for the first slot
+            // Actually, EnumerableSet stores: [values.length] at root + 1 (for bytes32 sets)
+            // But for AddressSet in OpenZeppelin, the layout in _inner is:
+            // slot 0: values.length (uint256)
+            // slot 1..n: values[i]
+            // Wait, the standard OpenZeppelin EnumerableSet layout for _inner (Bytes32Set) is:
+            // _inner._slot points to the start.
+            // sload(_inner._slot) contains the length of the array.
+            // The values are stored in slots starting from _inner._slot + 1.
+            
+            // Let's re-verify the standard OZ EnumerableSet storage layout.
+            // struct Bytes32Set { Bytes32Array _inner; }
+            // struct Bytes32Array { bytes32[] _values; uint256 _length; }
+            // Mapping storage:
+            // _values is at slot p, _length is at slot p+1? No.
+            // Dynamic array _values: slot p holds length. Data starts at keccak256(p).
+            // uint256 _length: slot p+1.
+            // So _inner._slot is the slot of the struct Bytes32Array.
+            // sload(_inner._slot) -> length of _values array.
+            // The actual values are stored starting at keccak256(_inner._slot).
+            
+            // Correction based on typical OZ implementation:
+            // _inner._slot is the slot where the struct starts.
+            // The dynamic array `_values` is the first member. Its length is stored at `_inner._slot`.
+            // The data for `_values` starts at `keccak256(_inner._slot)`.
+            // The second member `_length` (redundant length for O(1) checks) is at `_inner._slot + 1`.
+            
+            // So:
+            let len := sload(root)
+            
+            // Allocate memory for the result array: 32 bytes for length + len * 32 bytes for data.
+            result := mload(0x40)
+            let dataPtr := add(result, 0x20)
+            mstore(result, len)
+            mstore(0x40, add(dataPtr, mul(len, 0x20)))
+
+            // Calculate the base slot for the array data.
+            let dataSlot := keccak256(root, 0x20)
+
+            // Loop through the length and load each address.
+            let i := 0
+            for {} lt(i, len) { i := add(i, 1) } {
+                // Calculate the storage slot for the i-th element.
+                let slot := add(dataSlot, i)
+                // Load the value (which is a bytes32, but we only care about the lower 20 bits for address).
+                let val := sload(slot)
+                // Store the lower 20 bits as an address in the result array.
+                mstore(dataPtr, shr(96, val))
+                dataPtr := add(dataPtr, 0x20)
+            }
+        }
+    }

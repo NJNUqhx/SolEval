@@ -1,0 +1,6 @@
+function toInt184(int256 x) internal  pure returns (int184) {
+int256 y = x;
+        int184 z = int184(y);
+        if (y != int256(z)) revert Overflow();
+        return z;
+    } 

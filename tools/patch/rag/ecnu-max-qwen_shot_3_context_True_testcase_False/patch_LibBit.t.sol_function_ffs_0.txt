@@ -1,0 +1,12 @@
+function ffs(uint256 x) internal  pure returns (uint256 r) {
+if (x == 0) return 0;
+    uint256 isolated = x & (~x + 1);
+    uint256 upper3 = (isolated * 0x2f2f2f2f2f2f2f2f) >> 253;
+    uint256 lower5 = (isolated * 0x03f79d71b4cb0a89b532f4a23426b5d7) >> 251;
+    uint256[8] memory upperLookup = [0, 8, 16, 24, 32, 40, 48, 56];
+    uint256[32] memory lowerLookup = [
+        0, 1, 2, 24, 3, 19, 25, 29, 4, 12, 20, 28, 26, 30, 11, 23,
+        5, 17, 13, 22, 21, 27, 18, 10, 6, 16, 14, 9, 7, 15, 8, 31
+    ];
+    r = upperLookup[upper3] + lowerLookup[lower5];
+}

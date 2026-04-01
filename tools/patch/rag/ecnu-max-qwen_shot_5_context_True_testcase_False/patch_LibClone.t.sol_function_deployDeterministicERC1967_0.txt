@@ -1,0 +1,3 @@
+function deployDeterministicERC1967(address implementation, bytes32 salt) internal   returns (address instance) {
+instance = deployDeterministicERC1967(0, implementation, salt);
+    } 

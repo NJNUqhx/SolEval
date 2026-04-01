@@ -1,0 +1,8 @@
+function sort(uint256[] memory array, function(uint256, uint256) pure returns (bool) comp) internal  pure returns (uint256[] memory) {
+uint256 len = array.length;
+        if (len < 2) return array;
+        uint256 begin = add(array, 0x20);
+        uint256 end = add(begin, mul(len, 0x20));
+        _quickSort(begin, end, comp);
+        return array;
+    }

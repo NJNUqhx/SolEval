@@ -1,0 +1,18 @@
+function flip(bool _guess) public   returns (bool) {
+function flip(bool _guess) public   returns (bool) {
+        uint256 blockValue = uint256(blockhash(block.number - 1));
+        require(lastHash != blockValue, "Replay attack detected");
+        lastHash = blockValue;
+
+        uint256 coinFlip = blockValue / FACTOR;
+        bool side = coinFlip % 2 == 0;
+
+        if (side == _guess) {
+            consecutiveWins++;
+            return true;
+        } else {
+            consecutiveWins = 0;
+            return false;
+        }
+    }
+}

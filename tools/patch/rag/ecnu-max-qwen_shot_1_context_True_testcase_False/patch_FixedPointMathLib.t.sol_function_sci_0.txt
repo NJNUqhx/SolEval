@@ -1,0 +1,35 @@
+function sci(uint256 x) internal  pure returns (uint256 mantissa, uint256 exponent) {
+function sci(uint256 x) internal  pure returns (uint256 mantissa, uint256 exponent) {
+        mantissa = x;
+        if (mantissa != 0) {
+            if (mantissa % 10000000000000000000000000000000000 == 0) {
+                mantissa /= 10000000000000000000000000000000000;
+                exponent = 33;
+            }
+            if (mantissa % 10000000000000000000 == 0) {
+                mantissa /= 10000000000000000000;
+                exponent += 19;
+            }
+            if (mantissa % 1000000000000 == 0) {
+                mantissa /= 1000000000000;
+                exponent += 12;
+            }
+            if (mantissa % 1000000 == 0) {
+                mantissa /= 1000000;
+                exponent += 6;
+            }
+            if (mantissa % 10000 == 0) {
+                mantissa /= 10000;
+                exponent += 4;
+            }
+            if (mantissa % 100 == 0) {
+                mantissa /= 100;
+                exponent += 2;
+            }
+            if (mantissa % 10 == 0) {
+                mantissa /= 10;
+                exponent += 1;
+            }
+        }
+    }
+}

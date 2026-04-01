@@ -1,0 +1,7 @@
+function malloc(uint256 n) internal  pure returns (uint256[] memory result) {
+result := mload(0x40)
+        assembly ("memory-safe") {
+            mstore(result, n)
+            mstore(0x40, add(add(result, 0x20), shl(5, n)))
+        }
+    }

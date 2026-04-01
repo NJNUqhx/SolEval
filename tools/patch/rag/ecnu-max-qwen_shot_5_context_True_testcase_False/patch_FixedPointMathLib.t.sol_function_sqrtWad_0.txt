@@ -1,0 +1,11 @@
+function sqrtWad(uint256 x) internal  pure returns (uint256 z) {
+if (x < 10**36) {
+            z = Math.sqrt(x * 10**18);
+        } else {
+            z = Math.sqrt(x) * 10**9;
+            z = fullMulDivUnchecked(z + 10**18, z, 2 * 10**9);
+            assembly {
+                z := sub(z, iszero(lt(mul(z, z), x)))
+            }
+        }
+    }

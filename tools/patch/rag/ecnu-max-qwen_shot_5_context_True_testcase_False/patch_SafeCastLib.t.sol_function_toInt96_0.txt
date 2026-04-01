@@ -1,0 +1,6 @@
+function toInt96(int256 x) internal  pure returns (int96) {
+if (x < type(int96).min || x > type(int96).max) {
+            revert("Overflow when converting int256 to int96");
+        }
+        return int96(x);
+    }

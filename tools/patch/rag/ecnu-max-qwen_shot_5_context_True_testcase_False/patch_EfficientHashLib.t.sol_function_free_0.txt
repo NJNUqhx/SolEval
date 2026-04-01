@@ -1,0 +1,10 @@
+function free(bytes32[] memory buffer) internal  pure {
+uint256 len = buffer.length;
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(or(iszero(len), eq(add(buffer, 0x20), mload(0x40)))) {
+                revert(0x00, 0x00)
+            }
+            mstore(0x40, buffer)
+        }
+    }

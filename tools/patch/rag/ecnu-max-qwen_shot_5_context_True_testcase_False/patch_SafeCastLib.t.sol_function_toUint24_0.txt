@@ -1,0 +1,4 @@
+function toUint24(uint256 x) internal  pure returns (uint24) {
+require(x < (1 << 24), "Value exceeds uint24 range");
+        return uint24(x);
+    }

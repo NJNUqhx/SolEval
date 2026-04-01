@@ -1,0 +1,15 @@
+function timestampToDateTime(uint256 timestamp) internal  pure returns (
+            uint256 year,
+            uint256 month,
+            uint256 day,
+            uint256 hour,
+            uint256 minute,
+            uint256 second
+        ) {
+uint256 days = timestamp / 86400;
+        (year, month, day) = epochDayToDate(days);
+        uint256 remainingSeconds = timestamp % 86400;
+        hour = remainingSeconds / 3600;
+        minute = (remainingSeconds % 3600) / 60;
+        second = remainingSeconds % 60;
+    } 

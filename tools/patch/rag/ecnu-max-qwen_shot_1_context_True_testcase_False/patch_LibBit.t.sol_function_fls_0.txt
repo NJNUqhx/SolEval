@@ -1,0 +1,16 @@
+function fls(uint256 x) internal  pure returns (uint256 r) {
+require(x > 0, "fls: zero input");
+    assembly {
+        let msb := 0
+        let temp := x
+        if gt(temp, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) { msb := 128; temp := shr(128, temp) }
+        if gt(temp, 0xFFFFFFFFFFFFFFFF) { msb := add(msb, 64); temp := shr(64, temp) }
+        if gt(temp, 0xFFFFFFFF) { msb := add(msb, 32); temp := shr(32, temp) }
+        if gt(temp, 0xFFFF) { msb := add(msb, 16); temp := shr(16, temp) }
+        if gt(temp, 0xFF) { msb := add(msb, 8); temp := shr(8, temp) }
+        if gt(temp, 0xF) { msb := add(msb, 4); temp := shr(4, temp) }
+        if gt(temp, 0x3) { msb := add(msb, 2); temp := shr(2, temp) }
+        if gt(temp, 0x1) { msb := add(msb, 1) }
+        r := msb
+    }
+}

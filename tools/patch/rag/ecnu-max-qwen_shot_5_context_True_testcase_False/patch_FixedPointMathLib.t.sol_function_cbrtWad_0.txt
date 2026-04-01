@@ -1,0 +1,25 @@
+function cbrtWad(uint256 x) internal  pure returns (uint256 z) {
+if (x <= type(uint256).max / 1e36) {
+            unchecked {
+                z = _cbrt(x * 1e36);
+            }
+        } else {
+            uint256 shiftedX = x >> 128;
+            unchecked {
+                z = _cbrt(shiftedX * 1e36) << 42;
+                z = (z + _cbrt(x * 1e36 / (z * z))) / 2;
+            }
+        }
+    }
+
+    function _cbrt(uint256 x) private pure returns (uint256 z) {
+        uint256 shiftedX = x >> 128;
+        unchecked {
+            if (shiftedX == 0) {
+                z = 0;
+            } else {
+                z = _cbrt(shiftedX) << 42;
+                z = (2 * z + x / (z * z)) / 3;
+            }
+        }
+    }

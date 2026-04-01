@@ -1,0 +1,7 @@
+constructor (IERC20 asset_) {
+bool ok;
+        uint8 decimals_;
+        (ok, decimals_) = _tryGetAssetDecimals(asset_);
+        _underlyingDecimals = ok ? decimals_ : 18;
+        _asset = asset_;
+    }

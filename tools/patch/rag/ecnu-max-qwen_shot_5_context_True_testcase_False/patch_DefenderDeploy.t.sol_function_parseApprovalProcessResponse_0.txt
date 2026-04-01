@@ -1,0 +1,62 @@
+function parseApprovalProcessResponse(string memory stdout) internal  pure returns (ApprovalProcessResponse memory) {
+Vm vm = Vm(CHEATCODE_ADDRESS);
+        ApprovalProcessResponse memory response;
+
+        response.id = parseString(stdout, "Approval process ID");
+
+        string memory via = parseString(stdout, "Via");
+        if (bytes(via).length > 0) {
+            response.via = vm.parseAddress(via);
+        }
+
+        response.viaType = parseString(stdout, "Via type");
+
+        return response;
+    }
+
+    function parseString(string memory input, string memory key) private pure returns (string memory) {
+        bytes memory inputBytes = bytes(input);
+        bytes memory keyBytes = bytes(key);
+        uint256 keyStart = 0;
+        bool found = false;
+
+        for (uint256 i = 0; i <= inputBytes.length - keyBytes.length; i++) {
+            bool match = true;
+            for (uint256 j = 0; j < keyBytes.length; j++) {
+                if (inputBytes[i + j] != keyBytes[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                keyStart = i + keyBytes.length;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            return "";
+        }
+
+        uint256 valueStart = keyStart;
+        while (valueStart < inputBytes.length && (inputBytes[valueStart] == ' ' || inputBytes[valueStart] == ':')) {
+            valueStart++;
+        }
+
+        uint256 valueEnd = valueStart;
+        while (valueEnd < inputBytes.length && inputBytes[valueEnd] != '\n' && inputBytes[valueEnd] != '\r') {
+            valueEnd++;
+        }
+
+        if (valueEnd <= valueStart) {
+            return "";
+        }
+
+        bytes memory resultBytes = new bytes(valueEnd - valueStart);
+        for (uint256 i = 0; i < valueEnd - valueStart; i++) {
+            resultBytes[i] = inputBytes[valueStart + i];
+        }
+
+        return string(resultBytes);
+    }

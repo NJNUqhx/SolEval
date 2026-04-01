@@ -1,0 +1,12 @@
+function isSupportedDate(uint256 year, uint256 month, uint256 day) internal  pure returns (bool result) {
+uint256 dm = daysInMonth(year, month);
+        assembly {
+            result := and(
+                and(
+                    and(gt(year, 1969), lt(year, 100000)),
+                    and(gt(month, 0), le(month, 12))
+                ),
+                and(gt(day, 0), le(day, dm))
+            )
+        }
+    } 

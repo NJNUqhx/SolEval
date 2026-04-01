@@ -1,0 +1,54 @@
+function add(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 slot = set._inner._slots;
+    assembly {
+        // Ensure the address is not the zero sentinel value.
+        if iszero(value) {
+            mstore(0x00, 0x8a36c973) // `ValueIsZeroSentinel()`.
+            revert(0x1c, 0x04)
+        }
+        // Replace zero address with zero sentinel if needed (though we revert above, this handles logic consistency).
+        let val := value
+        if iszero(val) { val := 0x0000000000000000000000000000000000000000000000000000000000000001 }
+        
+        // Load the packed root value (length || first_element).
+        let root := sload(slot)
+        let len := shr(128, root)
+        let first := and(root, 0xffffffffffffffffffffffffffffffffffffffff)
+        
+        // Check if the set is empty.
+        if iszero(len) {
+            // Set length to 1 and store the value.
+            sstore(slot, or(shl(128, 1), val))
+            result := true
+        } else {
+            // Check if the first element matches.
+            if eq(first, val) {
+                result := false
+            } else {
+                // Calculate the storage slot for the array elements: keccak256(slot)
+                let dataSlot := keccak256(slot, 0x20)
+                let found := false
+                let i := 0
+                
+                // Iterate through existing elements to check for duplicates.
+                for { } lt(i, len) { i := add(i, 1) } {
+                    let elem := sload(add(dataSlot, i))
+                    if eq(elem, val) {
+                        found := true
+                        break
+                    }
+                }
+                
+                if found {
+                    result := false
+                } else {
+                    // Add the new element at the end.
+                    sstore(add(dataSlot, len), val)
+                    // Update the root with new length.
+                    sstore(slot, or(shl(128, add(len, 1)), first))
+                    result := true
+                }
+            }
+        }
+    }
+}

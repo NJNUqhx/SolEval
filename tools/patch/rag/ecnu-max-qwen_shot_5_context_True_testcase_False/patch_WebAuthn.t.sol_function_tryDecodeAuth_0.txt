@@ -1,0 +1,33 @@
+function tryDecodeAuth(bytes memory encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+function tryDecodeAuth(bytes memory encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let o := add(encodedAuth, 0x20)
+            let e := add(o, mload(encodedAuth))
+            let p := o
+            for { let continueLoop := 1 } continueLoop { continueLoop := 0 } {
+                if iszero(lt(p, e)) { break }
+                let authDataOffset := mload(add(p, 0x20))
+                let authDataLength := mload(add(p, 0x40))
+                let clientDataOffset := mload(add(p, 0x60))
+                let clientDataLength := mload(add(p, 0x80))
+                let challengeIndex := mload(add(p, 0xa0))
+                let typeIndex := mload(add(p, 0xc0))
+                let r := mload(add(p, 0xe0))
+                let s := mload(add(p, 0x100))
+
+                if or(lt(authDataOffset, 0x20), gt(add(authDataOffset, authDataLength), sub(e, o))) { break }
+                if or(lt(clientDataOffset, 0x20), gt(add(clientDataOffset, clientDataLength), sub(e, o))) { break }
+
+                mstore(add(decoded, 0x20), authDataOffset)
+                mstore(add(decoded, 0x40), authDataLength)
+                mstore(add(decoded, 0x60), clientDataOffset)
+                mstore(add(decoded, 0x80), clientDataLength)
+                mstore(add(decoded, 0xa0), challengeIndex)
+                mstore(add(decoded, 0xc0), typeIndex)
+                mstore(add(decoded, 0xe0), r)
+                mstore(add(decoded, 0x100), s)
+            }
+        }
+    }
+}

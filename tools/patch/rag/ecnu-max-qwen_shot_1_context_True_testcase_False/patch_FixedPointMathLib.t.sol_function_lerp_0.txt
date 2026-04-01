@@ -1,0 +1,19 @@
+function lerp(uint256 a, uint256 b, uint256 t, uint256 begin, uint256 end) internal  pure returns (uint256) {
+if (begin > end) {
+            t = begin + end - t;
+            uint256 temp = begin;
+            begin = end;
+            end = temp;
+        }
+        if (t <= begin) return a;
+        if (t >= end) return b;
+
+        uint256 range = end - begin;
+        uint256 offset = t - begin;
+
+        if (b >= a) {
+            return a + fullMulDiv(b - a, offset, range);
+        } else {
+            return a - fullMulDiv(a - b, offset, range);
+        }
+    }

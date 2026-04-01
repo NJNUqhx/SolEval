@@ -1,0 +1,9 @@
+function isSupportedDateTime(uint256 year, uint256 month, uint256 day, uint256 hour, uint256 minute, uint256 second) internal  pure returns (bool result) {
+if (!isSupportedDate(year, month, day)) {
+            return false;
+        }
+
+        assembly {
+            result := and(lt(hour, 24), and(lt(minute, 60), lt(second, 60)))
+        }
+    }

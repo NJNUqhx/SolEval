@@ -1,0 +1,62 @@
+function flzDecompress(bytes memory data) internal  pure returns (bytes memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := mload(0x40)
+            let op := add(result, 0x20)
+            let ip := add(data, 0x20)
+            let end := add(ip, mload(data))
+            let outLen := 0
+            for {} lt(ip, end) {} {
+                let token := byte(0, mload(ip))
+                ip := add(ip, 1)
+                let control := and(token, 0x07)
+                let length := shr(3, token)
+                if eq(control, 0) {
+                    if eq(length, 0) {
+                        length := byte(0, mload(ip))
+                        ip := add(ip, 1)
+                        if eq(length, 0) { break }
+                        length := add(length, 15)
+                    }
+                    for {} gt(length, 0) {} {
+                        mstore8(op, byte(0, mload(ip)))
+                        op := add(op, 1)
+                        ip := add(ip, 1)
+                        length := sub(length, 1)
+                    }
+                    outLen := add(outLen, add(length, 15))
+                    continue
+                }
+                let offset := byte(0, mload(ip))
+                ip := add(ip, 1)
+                if eq(control, 7) {
+                    offset := add(shl(8, offset), byte(0, mload(ip)))
+                    ip := add(ip, 1)
+                    if iszero(offset) { break }
+                    length := add(length, shr(3, byte(0, mload(sub(ip, 1)))))
+                    if eq(length, 29) {
+                        length := 0
+                        for {} 1 {} {
+                            let b := byte(0, mload(ip))
+                            ip := add(ip, 1)
+                            length := add(length, b)
+                            if lt(b, 0xff) { break }
+                        }
+                        length := add(length, 29)
+                    }
+                }
+                offset := add(offset, shl(3, control))
+                let copySrc := sub(op, offset)
+                for {} gt(length, 0) {} {
+                    mstore8(op, mload(copySrc))
+                    op := add(op, 1)
+                    copySrc := add(copySrc, 1)
+                    length := sub(length, 1)
+                }
+                outLen := add(outLen, add(length, shr(3, control)))
+            }
+            mstore(result, sub(op, add(result, 0x20)))
+            mstore(op, 0)
+            mstore(0x40, add(op, 0x20))
+        }
+    }

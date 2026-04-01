@@ -1,0 +1,7 @@
+function registerTreasury(uint8) public {
+/// @solidity memory-safe-assembly
+        assembly {
+            let addr := calldataload(4)
+            sstore(treasury_slot(), addr)
+        }
+    }

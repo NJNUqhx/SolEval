@@ -1,0 +1,4 @@
+function toUint104(uint256 x) internal  pure returns (uint104) {
+require(x <= type(uint104).max, "Overflow: value exceeds uint104 max");
+        return uint104(x);
+    }

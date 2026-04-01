@@ -1,0 +1,11 @@
+function initCodeHash(address implementation) internal  pure returns (bytes32 hash) {
+assembly {
+            let f := mload(0x40)
+            mstore(f, 0x3d602d80600a3d3981f3)
+            mstore(add(f, 0x0a), 0x363d3d373d3d3d363d73)
+            mstore(add(f, 0x14), shl(0x60, implementation))
+            mstore(add(f, 0x28), 0x5af43d82803e903d91602b57fd5bf3)
+            hash := keccak256(f, 0x37)
+            mstore(0x40, f)
+        }
+    }

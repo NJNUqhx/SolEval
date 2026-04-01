@@ -1,0 +1,8 @@
+function length(AddressSet storage set) internal  view returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let root := set._inner._slot
+            let packed := sload(root)
+            result := shr(128, packed)
+        }
+    }

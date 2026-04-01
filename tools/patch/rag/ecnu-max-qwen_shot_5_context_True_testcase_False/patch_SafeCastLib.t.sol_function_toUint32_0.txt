@@ -1,0 +1,4 @@
+function toUint32(uint256 x) internal  pure returns (uint32) {
+if (x > type(uint32).max) revert();
+        return uint32(x);
+    }

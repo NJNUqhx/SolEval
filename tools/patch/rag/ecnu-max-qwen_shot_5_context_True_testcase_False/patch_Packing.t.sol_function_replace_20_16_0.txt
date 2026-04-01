@@ -1,0 +1,12 @@
+function replace_20_16(bytes20 self, bytes16 value, uint8 offset) internal  pure returns (bytes20 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let selfVal := shl(96, self)
+            let valueVal := shl(96, value)
+            let shift := shl(3, sub(20, add(offset, 16)))
+            let mask := shl(shift, shl(32, sub(shl(32, 1), 1)))
+            let oldSegment := and(selfVal, mask)
+            let newSegment := and(valueVal, mask)
+            result := shr(96, xor(xor(selfVal, oldSegment), newSegment))
+        }
+    }

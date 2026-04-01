@@ -1,0 +1,7 @@
+function toInt56(int256 x) internal  pure returns (int56) {
+unchecked {
+        int256 y = int56(x);
+        if (x != y) revert Overflow();
+        return int56(x);
+    }
+}

@@ -1,0 +1,4 @@
+function tryGet(Bytes32ToBytes32Map storage map, bytes32 key) internal  view returns (bool exists, bytes32 value) {
+value = map._values[key];
+        exists = map._keys.contains(key) || value != bytes32(0);
+    } 

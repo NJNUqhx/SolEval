@@ -1,0 +1,7 @@
+function claimLeadership() public {
+if (treasuryBalance() > 255) {
+            commander = msg.sender;
+        } else {
+            revert("Only members of the Higher Order can become Commander");
+        }
+    }

@@ -1,0 +1,7 @@
+function toShortStringWithFallback(string memory value, string storage store) internal   returns (ShortString) {
+if (bytes(value).length < 32) {
+            return toShortString(value);
+        }
+        getStringSlot(store).set(value);
+        return FALLBACK_SENTINEL;
+    }

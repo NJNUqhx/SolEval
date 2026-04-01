@@ -1,0 +1,4 @@
+function toInt112(int256 x) internal  pure returns (int112) {
+if (x < type(int112).min || x > type(int112).max) revert();
+        return int112(x);
+    }

@@ -1,0 +1,20 @@
+function upperLookupRecent(Trace224 storage self, uint32 key) internal  view returns (uint224) {
+uint256 length = self._checkpoints.length;
+if (length == 0) return 0;
+
+uint256 low = 0;
+uint256 high = length;
+
+if (length > 5) {
+    uint256 mid = Math.sqrt(length);
+    if (key >= _unsafeAccess(self._checkpoints, mid)._key) {
+        low = mid;
+    } else {
+        high = mid;
+    }
+}
+
+uint256 pos = _upperBinaryLookup(self._checkpoints, key, low, high);
+
+return pos == 0 ? 0 : _unsafeAccess(self._checkpoints, pos - 1)._value;
+}

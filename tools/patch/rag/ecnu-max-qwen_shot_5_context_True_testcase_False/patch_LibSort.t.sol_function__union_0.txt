@@ -1,0 +1,63 @@
+function _union(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let aLen := mload(a)
+            let bLen := mload(b)
+            let aPtr := add(a, 0x20)
+            let bPtr := add(b, 0x20)
+            let aEnd := add(aPtr, mul(aLen, 0x20))
+            let bEnd := add(bPtr, mul(bLen, 0x20))
+            
+            c := mload(0x40)
+            let cPtr := add(c, 0x20)
+            let cLen := 0
+            
+            let i := 0
+            let j := 0
+            
+            for {} and(lt(i, aLen), lt(j, bLen)) {} {
+                let valA := mload(add(aPtr, mul(i, 0x20)))
+                let valB := mload(add(bPtr, mul(j, 0x20)))
+                
+                let less := 0
+                if signed {
+                    less := slt(valA, valB)
+                } else {
+                    less := lt(valA, valB)
+                }
+                
+                if eq(valA, valB) {
+                    mstore(add(cPtr, mul(cLen, 0x20)), valA)
+                    cLen := add(cLen, 1)
+                    i := add(i, 1)
+                    j := add(j, 1)
+                } else {
+                    if less {
+                        mstore(add(cPtr, mul(cLen, 0x20)), valA)
+                        i := add(i, 1)
+                    } else {
+                        mstore(add(cPtr, mul(cLen, 0x20)), valB)
+                        j := add(j, 1)
+                    }
+                    cLen := add(cLen, 1)
+                }
+            }
+            
+            for {} lt(i, aLen) {
+                i := add(i, 1)
+                cLen := add(cLen, 1)
+            } {
+                mstore(add(cPtr, mul(cLen, 0x20)), mload(add(aPtr, mul(i, 0x20))))
+            }
+            
+            for {} lt(j, bLen) {
+                j := add(j, 1)
+                cLen := add(cLen, 1)
+            } {
+                mstore(add(cPtr, mul(cLen, 0x20)), mload(add(bPtr, mul(j, 0x20))))
+            }
+            
+            mstore(c, cLen)
+            mstore(0x40, add(cPtr, mul(cLen, 0x20)))
+        }
+    }

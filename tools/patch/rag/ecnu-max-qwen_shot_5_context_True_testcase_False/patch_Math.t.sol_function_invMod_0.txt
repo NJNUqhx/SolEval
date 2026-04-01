@@ -1,0 +1,32 @@
+function invMod(uint256 a, uint256 n) internal  pure returns (uint256) {
+if (n == 0) return 0;
+    int256 gcd = int256(n);
+    int256 x = 0;
+    int256 y = 1;
+    int256 remainder = int256(a % n);
+    int256 x1 = 1;
+    int256 y1 = 0;
+
+    while (remainder != 0) {
+        int256 quotient = gcd / remainder;
+        int256 temp = remainder;
+        remainder = gcd - quotient * remainder;
+        gcd = temp;
+
+        temp = x1;
+        x1 = x - quotient * x1;
+        x = temp;
+
+        temp = y1;
+        y1 = y - quotient * y1;
+        y = temp;
+    }
+
+    if (gcd != 1) return 0;
+
+    if (x < 0) {
+        x += int256(n);
+    }
+
+    return uint256(x);
+}

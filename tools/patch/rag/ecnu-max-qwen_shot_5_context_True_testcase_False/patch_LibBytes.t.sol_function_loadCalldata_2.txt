@@ -1,0 +1,6 @@
+function loadCalldata(bytes calldata a, uint256 offset) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := calldataload(add(a.offset, offset))
+        }
+    }

@@ -1,0 +1,11 @@
+function get(Bitmap storage bitmap, uint256 index) internal  view returns (bool isSet) {
+uint256 byteIndex = index >> 3;
+        uint256 bitIndex = index & 7;
+        uint256 bitMask = 1 << bitIndex;
+        /// @solidity memory-safe-assembly
+        assembly {
+            let slot := add(bitmap.slot, byteIndex)
+            let value := sload(slot)
+            isSet := and(shr(bitIndex, value), 1)
+        }
+    }

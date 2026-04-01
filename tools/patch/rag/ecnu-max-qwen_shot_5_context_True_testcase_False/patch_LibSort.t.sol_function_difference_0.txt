@@ -1,0 +1,26 @@
+function difference(uint256[] memory a, uint256[] memory b) internal  pure returns (uint256[] memory c) {
+        uint256 index = 0;
+        for (uint256 i = 0; i < a.length; i++) {
+            bool found = false;
+            for (uint256 j = 0; j < b.length; j++) {
+                if (a[i] == b[j]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                if (index >= c.length) {
+                    uint256[] memory newC = new uint256[](index + 1);
+                    for (uint256 k = 0; k < index; k++) {
+                        newC[k] = c[k];
+                    }
+                    c = newC;
+                }
+                c[index] = a[i];
+                index++;
+            }
+        }
+        assembly {
+            mstore(c, index)
+        }
+    }

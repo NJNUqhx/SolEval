@@ -1,0 +1,22 @@
+function computeAddress(address deployer, uint256 nonce) internal  pure returns (address deployed) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if lt(nonce, 0x80) {
+                mstore(0x00, shl(96, deployer))
+                mstore(0x14, 0x94d6)
+                mstore8(0x16, nonce)
+                deployed := shr(96, keccak256(0x0e, 0x09))
+            } else {
+                let n := nonce
+                let len := 0
+                for { } n { } {
+                    n := shr(8, n)
+                    len := add(len, 1)
+                }
+                mstore(0x00, shl(96, deployer))
+                mstore8(0x15, add(0x80, len))
+                mstore(0x16, shl(shl(3, sub(32, len)), nonce))
+                deployed := shr(96, keccak256(0x0d, add(0x17, len)))
+            }
+        }
+    }

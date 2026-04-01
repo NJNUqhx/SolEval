@@ -1,0 +1,38 @@
+function lambertW0Wad(int256 x) internal  pure returns (int256 w) {
+if (x < -1160654201826991766) revert OutOfDomain();
+    int256 wad = int256(WAD);
+    int256 p = x;
+    uint256 i;
+    if (x >= 0) {
+        i = uint256(31 - _findMostSignificantBit(uint256(x)));
+    } else {
+        i = uint256(_findMostSignificantBit(uint256(-x)));
+    }
+    if (i > 127) i = 127;
+    w = x;
+    if (x > 0) {
+        if (x > 56668688819155600000000000000000000000) {
+            w = lnWad(x) - lnWad(lnWad(x));
+            for (uint256 j = 0; j < i; j++) {
+                int256 t = w + lnWad(w) - lnWad(x);
+                w = w - (t * w) / (w + wad - (t * (wad + wad)) / (w + wad + wad));
+            }
+        } else {
+            for (uint256 j = 0; j < i; j++) {
+                int256 t = w + lnWad(w) - lnWad(x);
+                w = w - (t * w) / (w + wad - (t * (wad + wad)) / (w + wad + wad));
+            }
+        }
+    } else {
+        if (x < -1160654201826991760) {
+            w = -wad;
+        } else {
+            w = x;
+            for (uint256 j = 0; j < i; j++) {
+                int256 t = w + lnWad(-w) - lnWad(-x);
+                w = w - (t * w) / (w + wad - (t * (wad + wad)) / (w + wad + wad));
+            }
+        }
+    }
+    return w;
+}

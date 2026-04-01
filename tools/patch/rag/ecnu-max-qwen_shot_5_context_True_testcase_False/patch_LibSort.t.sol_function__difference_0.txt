@@ -1,0 +1,64 @@
+function _difference(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+function _difference(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+        assembly {
+            let aLen := mload(a)
+            let bLen := mload(b)
+            let aPtr := add(a, 0x20)
+            let bPtr := add(b, 0x20)
+            let aEnd := add(aPtr, mul(aLen, 0x20))
+            let bEnd := add(bPtr, mul(bLen, 0x20))
+            
+            let cPtr := mload(0x40)
+            let cData := add(cPtr, 0x20)
+            let cCount := 0
+            
+            for {} and lt(aPtr, aEnd) lt(bPtr, bEnd) {} {
+                let valA := mload(aPtr)
+                let valB := mload(bPtr)
+                
+                let isEqual := eq(valA, valB)
+                let isAGreater := 0
+                
+                if iszero(isEqual) {
+                    if signed {
+                        let diff := sub(valA, valB)
+                        if shr(255, diff) {
+                            isAGreater := 0
+                        } else {
+                            isAGreater := 1
+                        }
+                    } else {
+                        if gt(valA, valB) {
+                            isAGreater := 1
+                        }
+                    }
+                }
+                
+                if isEqual {
+                    aPtr := add(aPtr, 0x20)
+                    bPtr := add(bPtr, 0x20)
+                } else {
+                    if isAGreater {
+                        bPtr := add(bPtr, 0x20)
+                    } else {
+                        mstore(cData, valA)
+                        cData := add(cData, 0x20)
+                        cCount := add(cCount, 1)
+                        aPtr := add(aPtr, 0x20)
+                    }
+                }
+            }
+            
+            for {} lt(aPtr, aEnd) {} {
+                mstore(cData, mload(aPtr))
+                cData := add(cData, 0x20)
+                cCount := add(cCount, 1)
+                aPtr := add(aPtr, 0x20)
+            }
+            
+            mstore(cPtr, cCount)
+            mstore(0x40, add(cData, 0x20))
+            c := cPtr
+        }
+    }
+}

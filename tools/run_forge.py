@@ -16,7 +16,8 @@ from tqdm import tqdm
 from extract_function_from_solidity_project import serialize
 from utils.logger import MyLogger
 from utils.replacements import cwd_dir_cargo, retrieve_id, generate_replaced_paths, single_replacements, replacements
-
+from utils.custom_tools import build_pattern_mapping, get_original_path_by_patch, export_execution_metrics
+from collections import defaultdict
 
 def estimate_pass_at_k(
         num_samples: Union[int, List[int], np.ndarray],
@@ -53,7 +54,8 @@ def set_seed(seed: int):
     torch.backends.cudnn.deterministic = True
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':    
+    
     with open('/root/contract2solidity/SolEval/data/raw_data.json', 'r') as file:
         data = json.load(file)
     if not os.path.exists("patch/"):
@@ -71,7 +73,14 @@ if __name__ == '__main__':
     parser.add_argument("--rag", type=str, default="true")
     parser.add_argument("--shot", type=int, default=1)
     parser.add_argument("--model", type=str, default="CodeLlama_7b")
+    parser.add_argument("--restrict", action='store_true', default=False, help='只测试指定项目')
     args = parser.parse_args()
+    
+    if args.restrict:
+        with open("config/projects.txt", 'r', encoding='utf-8') as f:
+        # 使用 set 提高后续查询效率
+            restricted_projects = {line.strip() for line in f if line.strip()}
+    
     context_or_not = args.context
     if context_or_not == "y":
         context = "context_True_testcase_False"
@@ -91,6 +100,7 @@ if __name__ == '__main__':
     else:
         raise NotImplementedError("Invalid input for rag_or_random!!!")
     filename = f'results/{rag_path}/results_{args.model}_shot_{args.shot}_{context}_{current_time}.jsonl'
+    project_status_filename = f'results/summary/{args.model}_shot_{args.shot}_{context}_{current_time}.csv'
     log_file = f"log_{args.model}_shot_{args.shot}_{context}_{current_time}.txt"
     if not os.path.exists("logs/"):
         os.makedirs("logs/")
@@ -124,6 +134,7 @@ if __name__ == '__main__':
             for real_file_path in real_file_path_list:
                 # print("real_file_path:", real_file_path)
                 real_path_cargo[real_file_path] = file_path
+                
     logger.info("filter Over!")
     number_total = 0
     number_pass = 0
@@ -134,6 +145,11 @@ if __name__ == '__main__':
     task_correct = defaultdict(int)
     task_compiled_correct = defaultdict(int)
     task_id = 0
+    
+    # 统计每个项目的编译通过率
+    pattern_to_path = build_pattern_mapping(args)
+    project_status = defaultdict(lambda: {"compile": 0, "pass": 0, "total": 0})
+    
     for file_path, file_content in tqdm(data.items(), colour='green'):
         file_path = file_path.replace("/root/", "repository/")
         if file_path not in real_path_cargo.keys():
@@ -178,6 +194,16 @@ if __name__ == '__main__':
             PASS = False
             COMPILE_PASS = False
             jump_flag = False
+            
+            # 获取所在的原项目路径
+            current_patch_path = f"patch/{rag_path}/{args.model}_shot_{args.shot}_{context}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_"
+            project_path = get_original_path_by_patch(current_patch_path, pattern_to_path)
+            # 跳过不在指定项目列表中的项目
+            if args.restrict and project_path not in restricted_projects:
+                logger.info_blue("Skip project_path: {}" .format(project_path))
+                continue
+            
+            
             for idx in tqdm(range(num_return_sequences), colour='yellow'):
                 mu = None
                 tilde = None
@@ -191,7 +217,7 @@ if __name__ == '__main__':
                             f"patch/{rag_path}/{args.model}_shot_{args.shot}_{context}/patch_{real_path_cargo[file_path].split('/')[-1]}_function_{identifier}_{idx}.txt",
                             'r') as f:
                         patch_st = f.read()
-
+                        
                 except Exception as e:
                     logger.error("Error: " + str(e))
                     continue
@@ -209,7 +235,7 @@ if __name__ == '__main__':
                         original_data = f.read()
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(original_data)    
-                
+                                   
                 with open(f"{file_path_bk}", 'w') as f:
                     f.write(source_bk)
                 with open(f"{file_path}", 'w') as f:
@@ -345,6 +371,7 @@ if __name__ == '__main__':
                                    / number_compiled_total if number_compiled_total > 0 else 0.0
             logger.info(f"COMPILE successful rate: {compile_success_rate}")
             
+            
             with open(compile_pass_output_filename, "w", encoding="utf-8") as f:
                 f.write("-----------------------------\n")
                 for key, value in pass_at_k_values.items():
@@ -355,3 +382,17 @@ if __name__ == '__main__':
                     f.write(f"{key}: {value}\n")
                     
                 f.write(f"COMPILE successful rate: {compile_success_rate}\n")
+                
+            # 统计每个项目的编译和通过率
+            if project_path not in project_status:
+                project_status[project_path] = {"compile": 0, "pass": 0, "total": 0}
+            project_status[project_path]["total"] += 1
+            if COMPILE_PASS:
+                project_status[project_path]["compile"] += 1
+            if PASS:
+                project_status[project_path]["pass"] += 1
+                
+    # 将每个项目的编译和通过率计算后写入文件
+
+    export_execution_metrics(project_status, output_file=project_status_filename)
+            

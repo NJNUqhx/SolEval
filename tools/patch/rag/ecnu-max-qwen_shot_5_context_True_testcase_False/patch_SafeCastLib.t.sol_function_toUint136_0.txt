@@ -1,0 +1,4 @@
+function toUint136(uint256 x) internal  pure returns (uint136) {
+if (x >= (1 << 136)) revert();
+        return uint136(x);
+    }

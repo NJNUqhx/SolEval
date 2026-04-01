@@ -1,0 +1,111 @@
+function reserve(DynamicArray memory a, uint256 minimum) internal  pure returns (DynamicArray memory result) {
+_deallocate(result);
+        result = a;
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Ensure `minimum` is less than 0xffffffff.
+            if iszero(lt(minimum, 0xffffffff)) {
+                mstore(0x00, 0xb33a17e6)
+                revert(0x1c, 0x04)
+            }
+
+            let data := add(result, 0x20)
+            let m := mload(data)
+
+            // If the data pointer is zero, the array is uninitialized.
+            if iszero(m) {
+                // Calculate new capacity: max(4, minimum).
+                let newCapacity := 4
+                if gt(minimum, newCapacity) { newCapacity := minimum }
+
+                // Allocate memory: 32 bytes for capacity + 32 * newCapacity for data.
+                let mem := mload(0x40)
+                let end := add(add(mem, 0x20), shl(5, newCapacity))
+                mstore(0x40, end)
+
+                // Store capacity with prime marker (0x02) at the beginning of the allocated block.
+                // Capacity is stored as (newCapacity << 5) | 0x02 to indicate it's a dynamic array.
+                mstore(mem, or(shl(5, newCapacity), 0x02))
+                
+                // Store length (0) after capacity.
+                mstore(add(mem, 0x20), 0)
+                
+                // Update data pointer in result struct.
+                mstore(data, add(mem, 0x40))
+                
+                // Break out as allocation is done.
+                mstore(0x40, end) // Ensure free memory pointer is correctly set.
+            } else {
+                // Array is initialized. Calculate current capacity from the stored value.
+                // The stored value is (capacity << 5) | 0x02. We need to extract capacity.
+                let capacitySlot := sub(m, 0x40)
+                let stored := mload(capacitySlot)
+                
+                // Check if it's marked as dynamic array (lowest 5 bits should be 0x02? No, logic varies).
+                // Based on typical implementations, we assume the lower bits encode type/flags.
+                // Here we assume the pattern: stored = (capacity << 5) | 0x02.
+                // Extract capacity: (stored - 0x02) >> 5.
+                let currentCapacity := shr(5, sub(stored, 0x02))
+
+                // If current capacity is already sufficient, do nothing.
+                if ge(currentCapacity, minimum) {
+                    // No action needed.
+                } else {
+                    // Need to expand.
+                    let newCapacity := 4
+                    if gt(minimum, newCapacity) { newCapacity := minimum }
+                    
+                    // Try to expand contiguously if possible.
+                    let end := add(add(capacitySlot, 0x20), shl(5, currentCapacity))
+                    if eq(end, mload(0x40)) {
+                        // Contiguous expansion possible.
+                        let newEnd := add(add(capacitySlot, 0x20), shl(5, newCapacity))
+                        mstore(0x40, newEnd)
+                        mstore(capacitySlot, or(shl(5, newCapacity), 0x02))
+                    } else {
+                        // Reallocation needed.
+                        let newMem := mload(0x40)
+                        let newData := add(newMem, 0x40)
+                        let copySize := shl(5, mload(add(capacitySlot, 0x20))) // Copy existing length * 32
+                        
+                        // Copy old data to new location.
+                        // Source: m (current data start)
+                        // Dest: newData
+                        if copySize {
+                            mcopy(newData, m, copySize)
+                        }
+                        
+                        // Update free memory pointer.
+                        let finalEnd := add(newData, shl(5, newCapacity))
+                        mstore(0x40, finalEnd)
+                        
+                        // Store new capacity in the new slot.
+                        mstore(newMem, or(shl(5, newCapacity), 0x02))
+                        // Length remains the same, already copied or needs explicit set if not covered by mcopy range carefully.
+                        // The length is at offset 0x20 in the header.
+                        // It was copied if copySize >= 32. If array was empty, length is 0.
+                        // Let's ensure length is correctly set just in case.
+                        // Actually, mcopy copies `length * 32` bytes of data. The length variable itself is at capacitySlot + 0x20.
+                        // We need to copy the length value too.
+                        // Header layout: [Capacity|Flags][Length][Data...]
+                        // Total header size = 64 bytes. Data starts at +64.
+                        // Previous logic: m = data pointer. Header is at m - 64.
+                        // Let's re-align copying to include header.
+                        
+                        let oldHeader := sub(m, 0x40)
+                        let newHeader := newMem
+                        
+                        // Copy entire used region: Header (64) + Data (length * 32)
+                        let totalCopy := add(0x40, shl(5, mload(add(oldHeader, 0x20))))
+                        mcopy(newHeader, oldHeader, totalCopy)
+                        
+                        // Update capacity in new header.
+                        mstore(newHeader, or(shl(5, newCapacity), 0x02))
+                        
+                        // Update data pointer in result.
+                        mstore(data, add(newHeader, 0x40))
+                    }
+                }
+            }
+        }
+    }

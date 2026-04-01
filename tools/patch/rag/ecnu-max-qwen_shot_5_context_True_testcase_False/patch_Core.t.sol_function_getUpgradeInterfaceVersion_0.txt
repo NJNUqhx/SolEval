@@ -1,0 +1,12 @@
+function getUpgradeInterfaceVersion(address addr) internal  view returns (string memory) {
+bytes4 selector = bytes4(keccak256("UPGRADE_INTERFACE_VERSION()"));
+        (bool success, bytes memory result) = addr.staticcall(abi.encodeWithSelector(selector));
+        if (success && result.length > 32) {
+            string memory version;
+            assembly {
+                version := add(result, 32)
+            }
+            return version;
+        }
+        return "";
+    }

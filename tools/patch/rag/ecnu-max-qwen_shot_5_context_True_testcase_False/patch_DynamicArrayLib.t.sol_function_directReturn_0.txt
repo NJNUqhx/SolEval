@@ -1,0 +1,8 @@
+function directReturn(uint256[] memory a) internal  pure {
+assembly {
+            let retStart := sub(a, 0x20)
+            let retUnpaddedSize := add(mload(a), 0x40)
+            mstore(retStart, 0x20)
+            return(retStart, and(not(0x1f), add(0x1f, retUnpaddedSize)))
+        }
+    }

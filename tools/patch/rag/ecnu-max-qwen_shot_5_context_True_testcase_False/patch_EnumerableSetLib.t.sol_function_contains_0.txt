@@ -1,0 +1,31 @@
+function contains(AddressSet storage set, address value) internal  view returns (bool result) {
+bytes32 root = set._inner._slot;
+    assembly ("memory-safe") {
+        let value_shifted := shl(96, value)
+        if iszero(value_shifted) { revert(0, 0) }
+        if iszero(value) { value_shifted := 1 }
+
+        let packed := sload(root)
+        let first_three := and(packed, 0xffffffffffffffffffffffff000000000000000000000000000000000000000000000000)
+        if eq(first_three, value_shifted) {
+            result := true
+            leave
+        }
+        let second_three := and(packed, 0x000000000000000000000000ffffffffffffffffffffffff00000000000000000000000000000000)
+        if eq(second_three, shl(96, value_shifted)) {
+            result := true
+            leave
+        }
+        let third_three := and(packed, 0x0000000000000000000000000000000000000000ffffffffffffffffffffffff)
+        if eq(third_three, shr(96, value_shifted)) {
+            result := true
+            leave
+        }
+
+        let slot := keccak256(root, 0x20)
+        let val := sload(slot)
+        if eq(val, value_shifted) {
+            result := true
+        }
+    }
+}

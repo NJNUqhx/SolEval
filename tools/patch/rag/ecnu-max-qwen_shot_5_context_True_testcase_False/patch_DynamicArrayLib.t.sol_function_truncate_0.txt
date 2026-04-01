@@ -1,0 +1,8 @@
+function truncate(uint256[] memory a, uint256 n) internal  pure returns (uint256[] memory result) {
+result = a;
+        assembly ("memory-safe") {
+            if lt(n, mload(result)) {
+                mstore(result, n)
+            }
+        }
+    }

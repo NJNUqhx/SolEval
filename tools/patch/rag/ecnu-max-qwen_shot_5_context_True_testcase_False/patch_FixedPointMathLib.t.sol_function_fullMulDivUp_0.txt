@@ -1,0 +1,20 @@
+function fullMulDivUp(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+z := mul(x, y)
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(d) {
+                mstore(0x00, 0x65244e4e) // `DivFailed()`.
+                revert(0x1c, 0x04)
+            }
+            let temp := div(z, d)
+            let rem := mod(z, d)
+            if gt(rem, 0) {
+                temp := add(temp, 1)
+                if iszero(temp) {
+                    mstore(0x00, 0x8d1b99df) // `FullMulDivFailed()`.
+                    revert(0x1c, 0x04)
+                }
+            }
+            z := temp
+        }
+    }

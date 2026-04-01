@@ -1,0 +1,7 @@
+function size(Item memory item) internal  pure returns (uint256 result) {
+bytes32 input = _toInput(item);
+        bytes32 data = _query(input, 3);
+        assembly {
+            result := mload(add(data, 0x20))
+        }
+    }

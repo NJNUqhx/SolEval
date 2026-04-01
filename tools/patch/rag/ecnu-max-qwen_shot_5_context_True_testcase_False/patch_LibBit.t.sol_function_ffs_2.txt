@@ -1,0 +1,33 @@
+function ffs(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+            let mask := shl(7, 1)
+            mask := sub(mask, 1)
+            let isolated := and(x, sub(0, x))
+            let upper := shr(251, isolated)
+            let lower := shr(219, and(isolated, mask))
+            let lookupUpper := 0x0000000000000000000000000000000000000000000000000000000000000001
+            lookupUpper := shl(1, lookupUpper)
+            lookupUpper := add(lookupUpper, shl(2, lookupUpper))
+            lookupUpper := add(lookupUpper, shl(4, lookupUpper))
+            lookupUpper := add(lookupUpper, shl(8, lookupUpper))
+            lookupUpper := add(lookupUpper, shl(16, lookupUpper))
+            lookupUpper := add(lookupUpper, shl(32, lookupUpper))
+            lookupUpper := add(lookupUpper, shl(64, lookupUpper))
+            lookupUpper := add(lookupUpper, shl(128, lookupUpper))
+            let posUpper := mul(upper, 0x07EDD5E59A4E28C2)
+            posUpper := shr(61, posUpper)
+            posUpper := and(lookupUpper, shl(posUpper, 1))
+            posUpper := log2(posUpper)
+            let lookupLower := 0x0000000000000000000000000000000000000000000000000000000000000001
+            lookupLower := shl(1, lookupLower)
+            lookupLower := add(lookupLower, shl(2, lookupLower))
+            lookupLower := add(lookupLower, shl(4, lookupLower))
+            lookupLower := add(lookupLower, shl(8, lookupLower))
+            lookupLower := add(lookupLower, shl(16, lookupLower))
+            let posLower := mul(lower, 0x07C4ACDD)
+            posLower := shr(27, posLower)
+            posLower := and(lookupLower, shl(posLower, 1))
+            posLower := log2(posLower)
+            r := add(shl(5, posUpper), posLower)
+        }
+    }

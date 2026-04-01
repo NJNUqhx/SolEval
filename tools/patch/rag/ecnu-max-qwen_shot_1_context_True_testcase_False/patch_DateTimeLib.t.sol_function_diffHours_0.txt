@@ -1,0 +1,4 @@
+function diffHours(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+uint256 diff = toTimestamp - fromTimestamp;
+        result = diff / 3600;
+    }

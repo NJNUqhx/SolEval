@@ -1,0 +1,10 @@
+function daysInMonth(uint256 year, uint256 month) internal  pure returns (uint256 result) {
+bool leap = isLeapYear(year);
+        assembly {
+            let days := shl(224, or(0x1F, shl(5, or(0x1C, shl(5, or(0x1F, shl(5, or(0x1E, shl(5, or(0x1F, shl(5, or(0x1E, shl(5, or(0x1F, shl(5, or(0x1F, shl(5, or(0x1E, shl(5, or(0x1F, shl(5, or(0x1E, or(0x1F, mload(add(0x20, daysInMonth))))))))))))))))))))
+            result := and(shr(mul(sub(month, 1), 5), days), 0x1F)
+            if and(leap, eq(month, 2)) {
+                result := add(result, 1)
+            }
+        }
+    }

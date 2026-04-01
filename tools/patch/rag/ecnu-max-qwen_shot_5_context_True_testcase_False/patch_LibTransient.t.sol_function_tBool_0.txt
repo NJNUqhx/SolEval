@@ -1,0 +1,5 @@
+function tBool(bytes32 tSlot) internal  pure returns (TBool storage ptr) {
+assembly {
+            ptr.slot := tSlot
+        }
+    }

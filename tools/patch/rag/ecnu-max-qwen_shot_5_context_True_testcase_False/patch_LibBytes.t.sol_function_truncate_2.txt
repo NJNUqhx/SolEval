@@ -1,0 +1,8 @@
+function truncate(bytes memory subject, uint256 n) internal  pure returns (bytes memory result) {
+result = subject;
+        assembly ("memory-safe") {
+            if lt(n, mload(subject)) {
+                mstore(subject, n)
+            }
+        }
+    }

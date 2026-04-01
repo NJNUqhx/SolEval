@@ -1,0 +1,3 @@
+function push(Trace224 storage self, uint32 key, uint224 value) internal   returns (uint224 oldValue, uint224 newValue) {
+return _insert(self._checkpoints, key, value);
+    }

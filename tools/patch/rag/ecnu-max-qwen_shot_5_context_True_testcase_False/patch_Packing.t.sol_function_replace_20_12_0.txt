@@ -1,0 +1,11 @@
+function replace_20_12(bytes20 self, bytes12 value, uint8 offset) internal  pure returns (bytes20 result) {
+assembly {
+            let selfVal := shr(96, shl(96, self))
+            let valueVal := shr(96, shl(96, value))
+            let shift := shl(2, sub(20, add(offset, 12)))
+            let mask := shl(mul(shift, 8), sub(shl(96, 1), 1))
+            let oldSegment := and(selfVal, mask)
+            let newSegment := shl(mul(shift, 8), and(valueVal, shr(96, sub(shl(96, 1), 1))))
+            result := or(and(selfVal, not(mask)), newSegment)
+        }
+    }

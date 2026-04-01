@@ -1,0 +1,8 @@
+function max(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let diff := sub(x, y)
+            let mask := shr(255, diff)
+            z := xor(x, mul(diff, mask))
+        }
+    }

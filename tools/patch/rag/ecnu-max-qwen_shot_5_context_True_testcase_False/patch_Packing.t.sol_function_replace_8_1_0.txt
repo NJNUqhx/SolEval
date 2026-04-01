@@ -1,0 +1,9 @@
+function replace_8_1(bytes8 self, bytes1 value, uint8 offset) internal  pure returns (bytes8 result) {
+bytes8 mask = bytes8(uint8(0xff) << (8 * (7 - offset)));
+        bytes8 oldValue = self & mask;
+        bytes8 newValue = (bytes8(value) << (8 * (7 - offset))) & mask;
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := xor(xor(self, oldValue), newValue)
+        }
+    }

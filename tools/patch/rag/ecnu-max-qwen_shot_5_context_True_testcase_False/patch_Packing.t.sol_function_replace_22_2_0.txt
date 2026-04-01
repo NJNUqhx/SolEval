@@ -1,0 +1,10 @@
+function replace_22_2(bytes22 self, bytes2 value, uint8 offset) internal  pure returns (bytes22 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let old := shr(shl(3, sub(22, add(offset, 2))), shl(shl(3, offset), self))
+            old := and(old, 0xFFFF)
+            let new := and(value, 0xFFFF)
+            let shift := shl(3, sub(22, add(offset, 2)))
+            result := xor(self, shl(shift, xor(old, new)))
+        }
+    }

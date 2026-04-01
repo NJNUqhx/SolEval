@@ -1,0 +1,16 @@
+function fullMulDiv(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let p0 := mul(x, y)
+            let p1 := add(iszero(iszero(mod(p0, d))), div(p0, d))
+            if iszero(d) {
+                mstore(0x00, 0x65244e4e)
+                revert(0x1c, 0x04)
+            }
+            if gt(p1, p0) {
+                mstore(0x00, 0x65244e4e)
+                revert(0x1c, 0x04)
+            }
+            z := p1
+        }
+    }

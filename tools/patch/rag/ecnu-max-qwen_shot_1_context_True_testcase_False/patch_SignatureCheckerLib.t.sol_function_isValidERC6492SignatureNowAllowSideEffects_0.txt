@@ -1,0 +1,29 @@
+function isValidERC6492SignatureNowAllowSideEffects(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length == 0) {
+        if (signature.length == 64) {
+            bytes32 r;
+            bytes32 vs;
+            assembly {
+                r := mload(add(signature, 0x20))
+                vs := mload(add(signature, 0x40))
+            }
+            signer = ECDSA.tryRecover(hash, r, vs).recoveree;
+        } else if (signature.length == 65) {
+            bytes32 r;
+            bytes32 s;
+            uint8 v;
+            assembly {
+                r := mload(add(signature, 0x20))
+                s := mload(add(signature, 0x40))
+                v := byte(0, mload(add(signature, 0x60)))
+            }
+            signer = ECDSA.tryRecover(hash, v, r, s).recoveree;
+        } else {
+            return false;
+        }
+        return signer != address(0);
+    } else {
+        bytes4 magicValue = IERC1271(signer).isValidSignature(hash, signature);
+        return magicValue == IERC1271.isValidSignature.selector;
+    }
+} 

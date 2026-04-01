@@ -1,0 +1,68 @@
+function cdCompress(bytes memory data) internal  pure returns (bytes memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := mload(0x40)
+            let r := add(result, 0x20)
+            let d := add(data, 0x20)
+            let end := add(d, mload(data))
+            let z := 0
+            let y := 0
+            for { } lt(d, end) { d := add(d, 1) } {
+                let b := and(mload(d), 0xff)
+                if iszero(b) {
+                    z := add(z, 1)
+                    if eq(y, 0) { continue }
+                    mstore8(r, 0xff)
+                    r := add(r, 1)
+                    mstore8(r, y)
+                    r := add(r, 1)
+                    y := 0
+                    continue
+                }
+                if eq(b, 0xff) {
+                    y := add(y, 1)
+                    if eq(z, 0) { continue }
+                    mstore8(r, 0x00)
+                    r := add(r, 1)
+                    mstore8(r, z)
+                    r := add(r, 1)
+                    z := 0
+                    continue
+                }
+                if gt(z, 0) {
+                    mstore8(r, 0x00)
+                    r := add(r, 1)
+                    mstore8(r, z)
+                    r := add(r, 1)
+                    z := 0
+                }
+                if gt(y, 0) {
+                    mstore8(r, 0xff)
+                    r := add(r, 1)
+                    mstore8(r, y)
+                    r := add(r, 1)
+                    y := 0
+                }
+                mstore8(r, b)
+                r := add(r, 1)
+            }
+            if gt(z, 0) {
+                mstore8(r, 0x00)
+                r := add(r, 1)
+                mstore8(r, z)
+                r := add(r, 1)
+            }
+            if gt(y, 0) {
+                mstore8(r, 0xff)
+                r := add(r, 1)
+                mstore8(r, y)
+                r := add(r, 1)
+            }
+            let len := sub(r, add(result, 0x20))
+            mstore(result, len)
+            mstore(add(r, 0x20), 0)
+            mstore(0x40, add(r, 0x40))
+            let first := mload(add(result, 0x20))
+            mstore(add(result, 0x20), not(first))
+        }
+    }

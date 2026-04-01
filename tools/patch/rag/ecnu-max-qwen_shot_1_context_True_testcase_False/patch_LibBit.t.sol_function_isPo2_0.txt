@@ -1,0 +1,6 @@
+function isPo2(uint256 x) internal  pure returns (bool result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := and(iszero(iszero(x)), iszero(and(x, sub(x, 1))))
+        }
+    }

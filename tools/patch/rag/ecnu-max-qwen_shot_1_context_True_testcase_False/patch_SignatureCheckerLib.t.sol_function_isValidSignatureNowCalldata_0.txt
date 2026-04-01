@@ -1,0 +1,45 @@
+function isValidSignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        assembly {
+            let sigLen := signature.length
+            let sigPtr := signature.offset
+
+            if or(eq(sigLen, 64), eq(sigLen, 65)) {
+                let r := mload(add(sigPtr, 32))
+                let s := mload(add(sigPtr, 64))
+                let v := 27
+                if eq(sigLen, 65) {
+                    v := byte(0, mload(add(sigPtr, 96)))
+                }
+                if lt(v, 27) {
+                    v := add(v, 27)
+                }
+                if or(gt(v, 28), eq(v, 27)) {
+                     if eq(ecrecover(hash, v, r, s), signer) {
+                         isValid := 1
+                     }
+                }
+            }
+        }
+
+        if (!isValid) {
+            (bool success, bytes memory result) = signer.staticcall(
+                abi.encodeWithSelector(
+                    IERC1271.isValidSignature.selector,
+                    hash,
+                    signature
+                )
+            );
+            if (success && result.length == 32) {
+                bytes32 returnValue = abi.decode(result, (bytes32));
+                if (returnValue == IERC1271.isValidSignature.selector) {
+                    isValid = true;
+                }
+            }
+        }
+
+        return isValid;
+    }

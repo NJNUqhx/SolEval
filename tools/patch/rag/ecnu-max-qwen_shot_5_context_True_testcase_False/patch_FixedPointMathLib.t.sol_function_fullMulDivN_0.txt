@@ -1,0 +1,25 @@
+function fullMulDivN(uint256 x, uint256 y, uint8 n) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Get the lower 256 bits of the product.
+            z := mul(x, y)
+            // Check if the multiplication overflowed.
+            if iszero(eq(div(z, x), y)) {
+                // If overflowed, get the upper 256 bits of the product.
+                let p1 := mulmod(x, y, not(0))
+                // Shift the upper bits right by n.
+                p1 := shr(n, p1)
+                // Shift the lower bits right by n.
+                z := shr(n, z)
+                // Add the shifted upper bits to the shifted lower bits.
+                // Check for overflow in the addition (if p1 > 0 and z > max - p1).
+                if gt(p1, sub(not(0), z)) {
+                    revert(0, 0)
+                }
+                z := add(z, p1)
+            } else {
+                // If no overflow, just shift the result.
+                z := shr(n, z)
+            }
+        }
+    }

@@ -1,0 +1,10 @@
+constructor () {
+constructor () {
+        address deployer = _lifebuoyDefaultDeployer();
+        assembly {
+            mstore(0x00, address())
+            mstore(0x20, deployer)
+            sstore(_lifebuoyDeployerHash.slot, keccak256(0x00, 0x40))
+        }
+    }
+}

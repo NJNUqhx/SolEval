@@ -1,0 +1,4 @@
+function toUint80(uint256 x) internal  pure returns (uint80) {
+if (x > type(uint80).max) revert Overflow();
+        return uint80(x);
+    }

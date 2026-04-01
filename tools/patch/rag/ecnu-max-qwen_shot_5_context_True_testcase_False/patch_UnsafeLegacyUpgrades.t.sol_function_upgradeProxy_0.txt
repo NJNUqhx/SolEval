@@ -1,0 +1,4 @@
+function upgradeProxy(address proxy, string memory contractName, bytes memory data) internal {
+Options memory opts;
+        upgradeProxy(proxy, contractName, data, opts);
+    }

@@ -1,0 +1,28 @@
+function add(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 rootSlot = set._root.slot;
+    assembly ("memory-safe") {
+        if iszero(value) {
+            mstore(0x00, 0x6a4e8c8d)
+            revert(0x1c, 0x04)
+        }
+        let packed := sload(rootSlot)
+        let length := and(packed, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+        let exists := false
+        for { let i := 0 } lt(i, length) { i := add(i, 1) } {
+            let elementSlot := add(rootSlot, add(1, i))
+            let element := sload(elementSlot)
+            if eq(element, value) {
+                exists := true
+                break
+            }
+        }
+        if iszero(exists) {
+            let newLength := add(length, 1)
+            let newPacked := or(and(packed, not(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)), newLength)
+            sstore(rootSlot, newPacked)
+            let newElementSlot := add(rootSlot, add(1, length))
+            sstore(newElementSlot, value)
+            result := true
+        }
+    }
+}

@@ -1,0 +1,11 @@
+function sDivWad(int256 x, int256 y) internal  pure returns (int256 z) {
+if (y == 0) revert SDivWadFailed();
+    /// @solidity memory-safe-assembly
+    assembly {
+        let xx := mul(x, WAD)
+        if xor(eq(sdiv(xx, WAD), x), iszero(eq(smul(x, WAD), xx))) {
+            revert(0, 0)
+        }
+        z := sdiv(xx, y)
+    }
+} 

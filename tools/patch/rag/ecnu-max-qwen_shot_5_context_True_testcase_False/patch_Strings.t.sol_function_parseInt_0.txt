@@ -1,0 +1,5 @@
+function parseInt(string memory input, uint256 begin, uint256 end) internal  pure returns (int256) {
+(bool success, int256 value) = tryParseInt(input, begin, end);
+        if (!success) revert("StringsInvalidChar");
+        return value;
+    }

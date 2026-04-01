@@ -1,0 +1,3 @@
+function readUint(address target, bytes memory data, uint256 gasStipend) internal  view returns (uint256) {
+result = _uint(target, mload(add(data, 0x20)), gasStipend);
+    }

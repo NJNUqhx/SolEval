@@ -1,0 +1,11 @@
+function length(AddressSet storage set) internal  view returns (uint256 result) {
+assembly {
+            let root := set.slot
+            let packed := sload(root)
+            result := and(packed, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+            if eq(result, 0) {
+                let n := shr(248, packed)
+                result := n
+            }
+        }
+    }

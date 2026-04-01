@@ -1,0 +1,80 @@
+function verifyMultiProof(bytes32[] memory proof, bytes32 root, bytes32[] memory leaves, bool[] memory flags) internal  pure returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let proofLength := mload(proof)
+            let leavesLength := mload(leaves)
+            let flagsLength := mload(flags)
+
+            // Move pointers to the actual data
+            proof := add(proof, 0x20)
+            leaves := add(leaves, 0x20)
+            flags := add(flags, 0x20)
+
+            // Check flag count consistency: flagsLength == proofLength + leavesLength - 1
+            // If leavesLength is 0, proofLength must be 0 and flagsLength 0 (handled by logic below or revert)
+            // Standard check: flagsLength + 1 == proofLength + leavesLength
+            if iszero(eq(add(flagsLength, 1), add(proofLength, leavesLength))) {
+                isValid := 0
+                leave
+            }
+
+            let hashQueuePtr := mload(0x40)
+            let hashQueueEnd := add(hashQueuePtr, mul(leavesLength, 0x20))
+            
+            // Copy leaves to queue
+            if leavesLength {
+                pop(staticcall(gas(), 0x04, leaves, mul(leavesLength, 0x20), hashQueuePtr, mul(leavesLength, 0x20)))
+            }
+
+            let proofPtr := proof
+            let flagsPtr := flags
+            let queueReadPtr := hashQueuePtr
+            let queueWritePtr := hashQueueEnd
+
+            for { let i := 0 } lt(i, flagsLength) { i := add(i, 1) } {
+                let flag := and(mload(flagsPtr), 1)
+                flagsPtr := add(flagsPtr, 0x20)
+
+                let a
+                let b
+
+                if flag {
+                    // Pop from queue
+                    a := mload(queueReadPtr)
+                    queueReadPtr := add(queueReadPtr, 0x20)
+                    b := mload(queueReadPtr)
+                    queueReadPtr := add(queueReadPtr, 0x20)
+                } else {
+                    // Pop from queue and proof
+                    a := mload(queueReadPtr)
+                    queueReadPtr := add(queueReadPtr, 0x20)
+                    b := mload(proofPtr)
+                    proofPtr := add(proofPtr, 0x20)
+                }
+
+                mstore(0x00, a)
+                mstore(0x20, b)
+                let hash := keccak256(0x00, 0x40)
+                mstore(queueWritePtr, hash)
+                queueWritePtr := add(queueWritePtr, 0x20)
+            }
+
+            // Validate final result
+            // The queue should have exactly one element left which must equal the root
+            // And we must have consumed all proofs
+            isValid := and(
+                eq(queueReadPtr, queueWritePtr), // Queue empty after popping final? No, queueWritePtr is next write.
+                // Actually, after loop, queueReadPtr should point to the single remaining element.
+                // queueWritePtr points to where the next element would be written.
+                // So queueWritePtr - queueReadPtr should be 0x20.
+                eq(sub(queueWritePtr, queueReadPtr), 0x20),
+                eq(mload(queueReadPtr), root),
+                eq(proofPtr, add(proof, mul(proofLength, 0x20)))
+            )
+            
+            // Update free memory pointer if we used memory
+            if gt(hashQueueEnd, mload(0x40)) {
+                mstore(0x40, hashQueueEnd)
+            }
+        }
+    }

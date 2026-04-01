@@ -1,0 +1,9 @@
+function toString(ShortString sstr) internal  pure returns (string memory) {
+uint256 len = byteLength(sstr);
+        string memory str = new string(len);
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(add(str, 0x20), sstr)
+        }
+        return str;
+    }

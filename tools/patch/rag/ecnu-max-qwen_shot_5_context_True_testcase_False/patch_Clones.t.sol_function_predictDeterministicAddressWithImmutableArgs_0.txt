@@ -1,0 +1,5 @@
+function predictDeterministicAddressWithImmutableArgs(address implementation, bytes memory args, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+bytes memory bytecode = _cloneCodeWithImmutableArgs(implementation, args);
+        bytes32 bytecodeHash = keccak256(bytecode);
+        predicted = computeAddress(salt, bytecodeHash, deployer);
+    } 

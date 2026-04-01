@@ -1,0 +1,10 @@
+function sqrt(uint256 a) internal  pure returns (uint256) {
+if (a == 0 || a == 1) return a;
+    uint256 x = a;
+    uint256 y = add(div(a, 2), 1);
+    while (lt(y, x)) {
+        x = y;
+        y = div(add(div(a, x), x), 2);
+    }
+    return x;
+} 

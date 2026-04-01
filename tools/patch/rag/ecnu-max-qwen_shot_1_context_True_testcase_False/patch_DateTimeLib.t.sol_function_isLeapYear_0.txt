@@ -1,0 +1,8 @@
+function isLeapYear(uint256 year) internal  pure returns (bool leap) {
+assembly {
+            let isDivBy4 := iszero(mod(year, 4))
+            let isDivBy100 := iszero(mod(year, 100))
+            let isDivBy400 := iszero(mod(year, 400))
+            leap := and(isDivBy4, or(isnot(isDivBy100), isDivBy400))
+        }
+    }

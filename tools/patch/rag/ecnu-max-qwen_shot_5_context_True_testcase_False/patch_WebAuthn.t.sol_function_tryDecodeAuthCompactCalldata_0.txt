@@ -1,0 +1,34 @@
+function tryDecodeAuthCompactCalldata(bytes calldata encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+assembly {
+            if lt(encodedAuth.length, 0x46) {
+                return(0, 0)
+            }
+            let end := add(encodedAuth.offset, encodedAuth.length)
+            let authDataStart := add(encodedAuth.offset, 0x02)
+            let authDataLen := shr(240, calldataload(encodedAuth.offset))
+            let clientDataStart := add(authDataStart, authDataLen)
+            let challengeIndexStart := add(clientDataStart, 0x02)
+            let clientDataLen := shr(240, calldataload(clientDataStart))
+            if lt(add(clientDataStart, clientDataLen), challengeIndexStart) {
+                return(0, 0)
+            }
+            let typeIndexStart := add(challengeIndexStart, 0x02)
+            let rStart := add(typeIndexStart, 0x02)
+            let sStart := add(rStart, 0x20)
+            
+            decoded.authenticatorData := mload(0x40)
+            let authDataMem := decoded.authenticatorData
+            mstore(authDataMem, authDataLen)
+            calldatacopy(add(authDataMem, 0x20), authDataStart, authDataLen)
+            
+            decoded.clientDataJSON := mload(0x40)
+            let clientDataMem := decoded.clientDataJSON
+            mstore(clientDataMem, clientDataLen)
+            calldatacopy(add(clientDataMem, 0x20), clientDataStart, clientDataLen)
+            
+            decoded.challengeIndex := shr(240, calldataload(challengeIndexStart))
+            decoded.typeIndex := shr(240, calldataload(typeIndexStart))
+            decoded.r := calldataload(rStart)
+            decoded.s := calldataload(sStart)
+        }
+    }

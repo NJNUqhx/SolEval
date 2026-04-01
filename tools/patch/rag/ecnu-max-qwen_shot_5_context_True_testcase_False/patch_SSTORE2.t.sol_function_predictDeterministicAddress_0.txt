@@ -1,0 +1,22 @@
+function predictDeterministicAddress(bytes32 salt, address deployer) internal  pure returns (address pointer) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Cache the free memory pointer.
+            let m := mload(0x40)
+            // Store `_DEPLOYER_SALT_INITCODE_HASH` into memory.
+            mstore(add(m, 0x34), 0x21c35dbe1b344a2488cf3321d6ce542f8e9f305544ff09e4993a62319a497c1f)
+            mstore(add(m, 0x14), salt)
+            mstore8(m, 0xff)
+            mstore(add(m, 0x01), and(deployer, 0xffffffffffffffffffffffffffffffffffffffff))
+            // Compute the address of the CREATE3 proxy.
+            pointer := keccak256(m, 0x55)
+            // Prepare the RLP-encoded data for the deterministic address calculation.
+            mstore(0x00, 0xd694)
+            mstore(add(0x02, 0x14), and(pointer, 0xffffffffffffffffffffffffffffffffffffffff))
+            mstore8(add(0x16, 0x14), 0x01)
+            // Compute the deterministic address.
+            pointer := keccak256(0x0d, 0x18)
+            // Restore the free memory pointer.
+            mstore(0x40, m)
+        }
+    }

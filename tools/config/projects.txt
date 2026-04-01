@@ -1,0 +1,7 @@
+/root/solady/lib/solady/src/utils/DynamicBufferLib.sol
+/root/solady/lib/solady/src/utils/SignatureCheckerLib.sol
+/root/solady/lib/solady/src/utils/EnumerableSetLib.sol
+/root/solady/lib/solady/src/utils/FixedPointMathLib.sol
+/root/solady/lib/solady/src/utils/LibBytes.sol
+/root/solady/lib/solady/src/utils/DateTimeLib.sol
+/root/solady/lib/solady/src/utils/LibBit.sol

@@ -1,0 +1,6 @@
+function _toUints(bytes32[] memory a) private  pure returns (uint256[] memory c) {
+/// @solidity memory-safe-assembly
+        assembly {
+            c := a
+        }
+    }

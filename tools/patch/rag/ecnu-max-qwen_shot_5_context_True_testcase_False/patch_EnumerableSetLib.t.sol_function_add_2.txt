@@ -1,0 +1,62 @@
+function add(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 root = set._root;
+    assembly ("memory-safe") {
+        // Load the packed root value from storage.
+        let packed := sload(root)
+        // Extract the length (upper 128 bits) and the first element (lower 128 bits).
+        let length := shr(128, packed)
+        let first := and(packed, 0xffffffffffffffffffffffffffffffff)
+
+        // Ensure the address is not the zero sentinel value.
+        if eq(value, 0) {
+            mstore(0x00, 0x3b88ebef) // `ValueIsZeroSentinel()` selector.
+            revert(0x1c, 0x04)
+        }
+
+        // Check if the set is empty or if the first element matches.
+        let found := 0
+        if eq(length, 0) {
+            // Set is empty, will add below.
+        } else {
+            // Check the first element.
+            if eq(first, value) {
+                found := 1
+            } else if eq(length, 1) {
+                // Only one element and it's not the value, so not found.
+            } else {
+                // Iterate through the rest of the elements starting from slot root + 1.
+                let slot := add(root, 1)
+                let end := add(slot, sub(length, 1))
+                for {} lt(slot, end) {
+                    slot := add(slot, 1)
+                } {
+                    let elem := sload(slot)
+                    if eq(elem, value) {
+                        found := 1
+                        break
+                    }
+                }
+            }
+        }
+
+        if eq(found, 0) {
+            // Address not found, add it.
+            if eq(length, 0) {
+                // First element goes into the packed root.
+                packed := or(shl(128, 1), value)
+                sstore(root, packed)
+            } else if eq(length, 1) {
+                // Second element goes into root + 1, update root with new length.
+                sstore(add(root, 1), value)
+                packed := or(shl(128, 2), first)
+                sstore(root, packed)
+            } else {
+                // Add to root + length.
+                sstore(add(root, length), value)
+                // Update length in root.
+                sstore(root, or(shl(128, add(length, 1)), first))
+            }
+            result := 1
+        }
+    }
+}

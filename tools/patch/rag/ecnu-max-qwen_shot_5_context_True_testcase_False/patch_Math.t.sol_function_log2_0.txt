@@ -1,0 +1,13 @@
+function log2(uint256 x) internal  pure returns (uint256 r) {
+/// @solidity memory-safe-assembly
+        assembly {
+            r := shl(7, gt(x, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
+            r := or(r, shl(6, gt(x, shr(r, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))))
+            r := or(r, shl(5, gt(x, shr(r, 0xFFFFFFFFFFFFFFFFFFFFFFFF))))
+            r := or(r, shl(4, gt(x, shr(r, 0xFFFFFFFFFFFFFFFF))))
+            r := or(r, shl(3, gt(x, shr(r, 0xFFFFFFFF))))
+            r := or(r, shl(2, gt(x, shr(r, 0xFFFF))))
+            r := or(r, shl(1, gt(x, shr(r, 0xFF))))
+            r := or(r, byte(shr(r, x), 0x8081828283838383848484848484848485858585858585858585858586868686))
+        }
+    }

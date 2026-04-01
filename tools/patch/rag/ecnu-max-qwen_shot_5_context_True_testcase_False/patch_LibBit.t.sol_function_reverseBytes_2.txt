@@ -1,0 +1,18 @@
+function reverseBytes(uint256 x) internal  pure returns (uint256 r) {
+uint256 m0 = 0x00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF;
+        uint256 m1 = 0x0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF;
+        uint256 m2 = 0x00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF;
+        uint256 m3 = 0x0000000000000000FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF;
+        assembly {
+            let t := x
+            t := xor(t, shl(8, and(t, m0)))
+            t := xor(t, shl(16, and(t, m1)))
+            t := xor(t, shl(32, and(t, m2)))
+            t := xor(t, shl(64, and(t, m3)))
+            t := xor(t, shr(8, and(t, m0)))
+            t := xor(t, shr(16, and(t, m1)))
+            t := xor(t, shr(32, and(t, m2)))
+            t := xor(t, shr(64, and(t, m3)))
+            r := t
+        }
+    }

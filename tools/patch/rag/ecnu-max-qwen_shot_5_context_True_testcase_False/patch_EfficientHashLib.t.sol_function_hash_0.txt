@@ -1,0 +1,7 @@
+function hash(bytes32 v0) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, v0)
+            result := keccak256(0x00, 0x20)
+        }
+    }

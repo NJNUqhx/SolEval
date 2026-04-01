@@ -1,0 +1,13 @@
+function factorial(uint256 x) internal  pure returns (uint256 z) {
+assembly {
+        if gt(x, 57) {
+            mstore(0x00, 0x4e487b71)
+            mstore(0x20, 0x11)
+            revert(0x1c, 0x24)
+        }
+        z := 1
+        for { let i := x } gt(i, 0) { i := sub(i, 1) } {
+            z := mul(z, i)
+        }
+    }
+}

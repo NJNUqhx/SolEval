@@ -1,0 +1,8 @@
+function replace_24_16(bytes24 self, bytes16 value, uint8 offset) internal  pure returns (bytes24 result) {
+assembly {
+            let selfVal := shl(shl(7, sub(3, div(offset, 16))), self)
+            let mask := shl(shl(7, sub(3, div(offset, 16))), 0xffffffffffffffffffffffffffffffff00000000000000000000000000000000)
+            let valShifted := shl(shl(7, sub(3, div(offset, 16))), and(value, 0xffffffffffffffffffffffffffffffff))
+            result := xor(xor(self, and(self, mask)), valShifted)
+        }
+    }

@@ -1,0 +1,4 @@
+function toUint72(uint256 x) internal  pure returns (uint72) {
+if (x > type(uint72).max) revert();
+        return uint72(x);
+    }

@@ -1,0 +1,64 @@
+function sort(uint256[] memory a) internal  pure {
+uint256 len = a.length;
+        if (len < 2) return;
+
+        assembly ("memory-safe") {
+            function swap(x, y) -> temp {
+                temp := x
+                x := y
+                y := temp
+            }
+
+            function mswap(pos1, pos2) {
+                let val1 := mload(pos1)
+                let val2 := mload(pos2)
+                mstore(pos1, val2)
+                mstore(pos2, val1)
+            }
+
+            function sortInner(begin, end) {
+                let size := sub(end, begin)
+                if lt(size, 0x40) {
+                    // Insertion sort for small arrays
+                    for { let i := add(begin, 0x20) } lt(i, end) { i := add(i, 0x20) } {
+                        let key := mload(i)
+                        let j := sub(i, 0x20)
+                        for { } and(gt(j, sub(begin, 0x20)), gt(mload(j), key)) { j := sub(j, 0x20) } {
+                            mstore(add(j, 0x20), mload(j))
+                        }
+                        mstore(add(j, 0x20), key)
+                    }
+                    leave
+                }
+
+                // Median-of-three pivot selection
+                let mid := add(begin, shr(1, sub(end, begin)))
+                let a_val := mload(begin)
+                let b_val := mload(mid)
+                let c_val := mload(sub(end, 0x20))
+
+                if gt(a_val, b_val) { mswap(begin, mid) }
+                if gt(a_val, c_val) { mswap(begin, sub(end, 0x20)) }
+                if gt(b_val, c_val) { mswap(mid, sub(end, 0x20)) }
+
+                let pivot := mload(sub(end, 0x20))
+                let i := begin
+                let j := sub(end, 0x20)
+
+                for { } lt(i, j) { } {
+                    for { } lt(mload(i), pivot) { i := add(i, 0x20) } {}
+                    j := sub(j, 0x20)
+                    for { } gt(mload(j), pivot) { j := sub(j, 0x20) } {}
+                    if lt(i, j) {
+                        mswap(i, j)
+                        i := add(i, 0x20)
+                    }
+                }
+
+                sortInner(begin, i)
+                sortInner(i, end)
+            }
+
+            sortInner(add(a, 0x20), add(add(a, 0x20), mul(len, 0x20)))
+        }
+    }

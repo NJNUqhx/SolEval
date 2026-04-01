@@ -1,0 +1,12 @@
+function mondayTimestamp(uint256 timestamp) internal  pure returns (uint256 result) {
+if (timestamp <= 345599) {
+            return 0;
+        }
+        /// @solidity memory-safe-assembly
+        assembly {
+            let days := div(timestamp, 86400)
+            let dayOfWeek := mod(add(days, 3), 7)
+            let mondayDays := sub(days, dayOfWeek)
+            result := mul(mondayDays, 86400)
+        }
+    }

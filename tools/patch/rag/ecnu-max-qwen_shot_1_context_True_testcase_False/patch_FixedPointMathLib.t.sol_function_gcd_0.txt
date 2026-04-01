@@ -1,0 +1,13 @@
+function gcd(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+assembly {
+        z := x
+        for {
+            let t := y
+        } t {
+            t := y
+        } {
+            y := mod(z, y)
+            z := t
+        }
+    }
+}

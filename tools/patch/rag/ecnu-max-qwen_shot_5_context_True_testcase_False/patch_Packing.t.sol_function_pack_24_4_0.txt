@@ -1,0 +1,6 @@
+function pack_24_4(bytes24 left, bytes4 right) internal  pure returns (bytes28 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := or(and(left, not(shl(32, 0))), shl(192, and(right, 0xffffffff)))
+        }
+    }

@@ -1,0 +1,19 @@
+function uniquifySorted(uint256[] memory a) internal  pure {
+uint256 len = a.length;
+        if (len > 1) {
+            assembly ("memory-safe") {
+                let x := add(a, 0x20)
+                let y := add(x, 0x20)
+                let end := add(a, mul(len, 0x20))
+
+                for {} lt(y, end) {} {
+                    if xor(mload(x), mload(y)) {
+                        x := add(x, 0x20)
+                        mstore(x, mload(y))
+                    }
+                    y := add(y, 0x20)
+                }
+                mstore(a, div(sub(sub(x, add(a, 0x20)), 0x20), 0x20))
+            }
+        }
+    }

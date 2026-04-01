@@ -1,0 +1,6 @@
+function extract_28_10(bytes28 self, uint8 offset) internal  pure returns (bytes10 result) {
+if (offset > 18) revert OutOfRangeAccess();
+        assembly {
+            result := shr(mul(8, sub(28, add(offset, 10))), shl(mul(8, offset), self))
+        }
+    }

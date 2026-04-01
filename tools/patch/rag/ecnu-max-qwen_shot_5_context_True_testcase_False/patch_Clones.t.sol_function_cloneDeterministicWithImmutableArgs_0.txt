@@ -1,0 +1,3 @@
+function cloneDeterministicWithImmutableArgs(address implementation, bytes memory args, bytes32 salt) internal   returns (address instance) {
+instance = cloneDeterministicWithImmutableArgs(0, implementation, args, salt);
+    }

@@ -1,0 +1,20 @@
+function insertionSort(uint256[] memory a) internal  pure {
+uint256 n = a.length;
+        if (n < 2) return;
+
+        assembly {
+            let h := add(a, mul(n, 0x20))
+            let i := add(a, 0x20)
+            for {} lt(i, h) { i := add(i, 0x20) } {
+                let k := mload(i)
+                let j := i
+                for {} gt(j, a) { } {
+                    let v := mload(sub(j, 0x20))
+                    if iszero(gt(v, k)) { break }
+                    mstore(j, v)
+                    j := sub(j, 0x20)
+                }
+                mstore(j, k)
+            }
+        }
+    }

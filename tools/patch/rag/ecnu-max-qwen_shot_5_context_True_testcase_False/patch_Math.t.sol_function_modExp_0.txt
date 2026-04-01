@@ -1,0 +1,7 @@
+function modExp(uint256 b, uint256 e, uint256 m) internal  view returns (uint256) {
+(bool success, uint256 result) = tryModExp(b, e, m);
+        if (!success) {
+            panic(DIVISION_BY_ZERO);
+        }
+        return result;
+    }

@@ -1,0 +1,16 @@
+function fls(uint256 x) internal  pure returns (uint256 r) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if x {
+                let s := shr(128, x)
+                let l := add(lt(s, 1), shl(7, lt(shr(64, s), 1)))
+                l := add(l, shl(6, lt(shr(32, shr(l, x)), 1)))
+                l := add(l, shl(5, lt(shr(16, shr(l, x)), 1)))
+                l := add(l, shl(4, lt(shr(8, shr(l, x)), 1)))
+                l := add(l, shl(3, lt(shr(4, shr(l, x)), 1)))
+                l := add(l, shl(2, lt(shr(2, shr(l, x)), 1)))
+                l := add(l, shl(1, lt(shr(1, shr(l, x)), 1)))
+                r := add(l, byte(and(0x1F, shr(l, x)), 0x0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20))
+            }
+        }
+    } 

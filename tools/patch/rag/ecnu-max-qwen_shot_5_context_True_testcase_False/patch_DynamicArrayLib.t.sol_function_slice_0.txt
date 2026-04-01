@@ -1,0 +1,20 @@
+function slice(uint256[] memory a, uint256 start, uint256 end) internal  pure returns (uint256[] memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let length := mload(a)
+            if gt(end, length) { end := length }
+            if gt(start, length) { start := length }
+            if lt(start, end) {
+                let resultLen := sub(end, start)
+                result := mload(0x40)
+                mstore(result, resultLen)
+                a := add(a, mul(start, 0x20))
+                for { let o := and(add(mul(resultLen, 0x20), 0x1f), not(0x1f)) } 1 {} {
+                    mstore(add(result, o), mload(add(a, o)))
+                    o := add(o, not(0x1f))
+                    if iszero(o) { break }
+                }
+                mstore(0x40, add(result, and(add(mul(resultLen, 0x20), 0x3f), not(0x1f))))
+            }
+        }
+    }

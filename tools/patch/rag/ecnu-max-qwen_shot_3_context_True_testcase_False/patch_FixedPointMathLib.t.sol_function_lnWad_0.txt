@@ -1,0 +1,59 @@
+function lnWad(int256 x) internal  pure returns (int256 r) {
+function lnWad(int256 x) internal pure returns (int256 r) {
+        assembly {
+            if iszero(x) {
+                mstore(0x00, 0x3544b275)
+                revert(0x1c, 0x04)
+            }
+            let k := sub(96, findFirstSetBit(x))
+            let r_val := shr(k, x)
+            let p := mul(r_val, 0x10000000000000000)
+            p := add(p, 0x1fffffffffffffffffffffffffffffff)
+            p := mul(p, 0x1fffffffffffffffffffffffffffffff)
+            p := add(p, 0x10000000000000000)
+            p := mul(p, 0x1fffffffffffffffffffffffffffffff)
+            p := add(p, 0x10000000000000000)
+            p := mul(p, 0x1fffffffffffffffffffffffffffffff)
+            p := add(p, 0x10000000000000000)
+            p := mul(p, 0x1fffffffffffffffffffffffffffffff)
+            p := add(p, 0x10000000000000000)
+            p := mul(p, 0x1fffffffffffffffffffffffffffffff)
+            p := add(p, 0x10000000000000000)
+            p := mul(p, 0x1fffffffffffffffffffffffffffffff)
+            p := add(p, 0x10000000000000000)
+            let q := mul(r_val, 0x10000000000000000)
+            q := add(q, 0x3fffffffffffffffffffffffffffffffd)
+            q := mul(q, 0x3fffffffffffffffffffffffffffffffd)
+            q := add(q, 0x10000000000000000)
+            q := mul(q, 0x3fffffffffffffffffffffffffffffffd)
+            q := add(q, 0x10000000000000000)
+            q := mul(q, 0x3fffffffffffffffffffffffffffffffd)
+            q := add(q, 0x10000000000000000)
+            q := mul(q, 0x3fffffffffffffffffffffffffffffffd)
+            q := add(q, 0x10000000000000000)
+            q := mul(q, 0x3fffffffffffffffffffffffffffffffd)
+            q := add(q, 0x10000000000000000)
+            q := mul(q, 0x3fffffffffffffffffffffffffffffffd)
+            q := add(q, 0x10000000000000000)
+            q := mul(q, 0x3fffffffffffffffffffffffffffffffd)
+            q := add(q, 0x10000000000000000)
+            r_val := div(p, q)
+            r_val := add(r_val, mul(k, 0x6c243f5f8b3b1d5b7d15f67500000000))
+            r_val := add(r_val, 0x159f8d6a85a041700000000000000000)
+            r := r_val
+        }
+    }
+    // Helper to find the first set bit position (log2 approximation)
+    function findFirstSetBit(val) -> pos {
+        pos := 0
+        if iszero(val) { revert(0, 0) }
+        if gt(val, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) { val := shr(128, val); pos := add(pos, 128) }
+        if gt(val, 0xFFFFFFFFFFFFFFFF) { val := shr(64, val); pos := add(pos, 64) }
+        if gt(val, 0xFFFFFFFF) { val := shr(32, val); pos := add(pos, 32) }
+        if gt(val, 0xFFFF) { val := shr(16, val); pos := add(pos, 16) }
+        if gt(val, 0xFF) { val := shr(8, val); pos := add(pos, 8) }
+        if gt(val, 0xF) { val := shr(4, val); pos := add(pos, 4) }
+        if gt(val, 0x3) { val := shr(2, val); pos := add(pos, 2) }
+        if gt(val, 0x1) { pos := add(pos, 1) }
+    }
+}

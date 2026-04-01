@@ -1,0 +1,9 @@
+function createDeterministicERC1967BeaconProxy(address beacon, bytes32 salt) internal   returns (bool alreadyDeployed, address instance) {
+alreadyDeployed = address(this).code.length > 0;
+        instance = predictDeterministicAddress_PUSH0(beacon, salt, address(this));
+        if (alreadyDeployed && instance.code.length > 0) {
+            return (true, instance);
+        }
+        instance = cloneDeterministic_PUSH0(0, beacon, salt);
+        return (false, instance);
+    }

@@ -1,0 +1,5 @@
+function subYears(uint256 timestamp, uint256 numYears) internal  pure returns (uint256 result) {
+    (uint256 year, uint256 month, uint256 day) = epochDayToDate(timestamp / 86400);
+    year -= numYears;
+    result = _offsetted(year, month, day, timestamp);
+}

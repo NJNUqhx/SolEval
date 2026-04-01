@@ -1,0 +1,19 @@
+function _isValidDescriptionForProposer(address proposer, string memory description) internal virtual view returns (bool) {
+uint256 len = bytes(description).length;
+
+        if (len < 52) {
+            return true;
+        }
+
+        unchecked {
+            bytes32 suffix = _unsafeReadBytesOffset(bytes(description), len - 52);
+            if (suffix != "#proposer=0x0000000000000000000000000000000000000000") {
+                uint256 offset = len - 42;
+                (bool success, address parsed) = tryParseAddress(description, offset, len);
+                if (success) {
+                    return parsed == proposer;
+                }
+            }
+            return true;
+        }
+    }

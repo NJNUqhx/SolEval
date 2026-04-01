@@ -1,0 +1,9 @@
+function toShortString(string memory str) internal  pure returns (ShortString) {
+bytes memory b = bytes(str);
+        require(b.length < 32, "String too long");
+        bytes32 result;
+        assembly {
+            result := or(mload(add(b, 32)), shl(248, mload(b)))
+        }
+        return ShortString.wrap(result);
+    }

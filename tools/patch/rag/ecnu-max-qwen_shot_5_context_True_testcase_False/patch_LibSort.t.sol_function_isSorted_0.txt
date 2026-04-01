@@ -1,0 +1,16 @@
+function isSorted(uint256[] memory a) internal  pure returns (bool result) {
+assembly {
+            result := 1
+            let len := mload(a)
+            if lt(len, 2) { leave }
+            let end := add(a, mul(len, 32))
+            let curr := add(a, 32)
+            for { } lt(curr, end) { curr := add(curr, 32) } {
+                let next := add(curr, 32)
+                if gt(mload(curr), mload(next)) {
+                    result := 0
+                    break
+                }
+            }
+        }
+    }

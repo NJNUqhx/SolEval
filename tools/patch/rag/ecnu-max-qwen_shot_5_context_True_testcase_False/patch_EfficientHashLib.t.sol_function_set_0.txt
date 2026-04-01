@@ -1,0 +1,7 @@
+function set(bytes32[] memory buffer, uint256 i, bytes32 value) internal  pure returns (bytes32[] memory) {
+/// @solidity memory-safe-assembly
+        assembly {
+            mstore(add(add(buffer, 0x20), mul(i, 0x20)), value)
+        }
+        return buffer;
+    }

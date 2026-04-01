@@ -1,0 +1,5 @@
+function isSupportedEpochDay(uint256 epochDay) internal  pure returns (bool result) {
+unchecked {
+            result = epochDay <= MAX_SUPPORTED_EPOCH_DAY;
+        }
+    }

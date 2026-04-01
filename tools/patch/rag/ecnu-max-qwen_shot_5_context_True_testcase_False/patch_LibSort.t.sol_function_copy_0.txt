@@ -1,0 +1,30 @@
+function copy(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Get the length of the input array
+            let length := mload(a)
+            
+            // Allocate memory for the result array: 32 bytes for length + length * 32 bytes for data
+            result := mload(0x40)
+            mstore(result, length)
+            
+            // Calculate the end address for copying
+            let end := add(add(result, 0x20), mul(length, 0x20))
+            
+            // Copy data from input array to result array
+            // Start copying from a + 0x20 (skip length) to result + 0x20
+            let src := add(a, 0x20)
+            let dst := add(result, 0x20)
+            
+            // Use a loop to copy each 32-byte word
+            for {} lt(dst, end) {
+                dst := add(dst, 0x20)
+                src := add(src, 0x20)
+            } {
+                mstore(dst, mload(src))
+            }
+            
+            // Update the free memory pointer
+            mstore(0x40, end)
+        }
+    }

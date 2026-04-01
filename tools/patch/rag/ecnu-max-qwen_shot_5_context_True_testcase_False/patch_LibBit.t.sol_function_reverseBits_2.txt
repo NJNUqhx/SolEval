@@ -1,0 +1,9 @@
+function reverseBits(uint256 x) internal  pure returns (uint256 r) {
+uint256 m0 = 0x5555555555555555555555555555555555555555555555555555555555555555;
+    uint256 m1 = m0 ^ (m0 << 2);
+    uint256 m2 = m1 ^ (m1 << 1);
+    r = reverseBytes(x);
+    r = ((r >> 2) & m2) | ((r << 2) & (~m2 << 2));
+    r = ((r >> 1) & m1) | ((r << 1) & (~m1 << 1));
+    r = ((r >> 1) & m0) | ((r << 1) & (~m0 << 1));
+}

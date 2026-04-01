@@ -1,0 +1,9 @@
+function replace_20_4(bytes20 self, bytes4 value, uint8 offset) internal  pure returns (bytes20 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let shift := shl(3, sub(19, offset))
+            let mask := shl(shift, 0xffffffff0000000000000000000000000000000000000000)
+            let shiftedValue := shl(shift, shr(224, value))
+            result := xor(xor(self, and(self, mask)), shiftedValue)
+        }
+    }

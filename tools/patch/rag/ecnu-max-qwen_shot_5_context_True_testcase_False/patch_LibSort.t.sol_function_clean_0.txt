@@ -1,0 +1,12 @@
+function clean(address[] memory a) internal  pure {
+/// @solidity memory-safe-assembly
+        assembly {
+            let len := mload(a)
+            let ptr := add(a, 0x20)
+            let end := add(ptr, mul(len, 0x20))
+            let mask := shr(96, not(0))
+            for {} lt(ptr, end) { ptr := add(ptr, 0x20) } {
+                mstore(ptr, and(mload(ptr), mask))
+            }
+        }
+    }

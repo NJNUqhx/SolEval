@@ -1,0 +1,43 @@
+function values(AddressSet storage set) internal  view returns (address[] memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Calculate the root slot for the AddressSet (which is the slot of the `set` parameter).
+            let root := set.slot
+            
+            // Load the packed root value which contains the count and the first element (if any).
+            let rootValue := sload(root)
+            
+            // The number of elements is stored in the lower 128 bits of the root slot.
+            let n := and(rootValue, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            
+            // Allocate memory for the result array: 32 bytes for length + 32 bytes per element.
+            result := mload(0x40)
+            mstore(result, n)
+            let dataPtr := add(result, 0x20)
+            
+            // If there are elements to process
+            if gt(n, 0) {
+                // The first element is stored in the upper 128 bits of the root slot.
+                // We need to check if it's non-zero before adding (though in a valid set with n>0, it should be).
+                let first := shr(128, rootValue)
+                if first {
+                    mstore(dataPtr, first)
+                    dataPtr := add(dataPtr, 0x20)
+                }
+                
+                // Iterate through the rest of the elements starting from index 1.
+                // Elements are stored at keccak256(root) + index.
+                let elementsRoot := keccak256(root, 0x20)
+                let i := 1
+                
+                for {} lt(i, n) { i := add(i, 1) } {
+                    let val := sload(add(elementsRoot, i))
+                    mstore(dataPtr, val)
+                    dataPtr := add(dataPtr, 0x20)
+                }
+            }
+            
+            // Update the free memory pointer.
+            mstore(0x40, dataPtr)
+        }
+    }

@@ -1,0 +1,105 @@
+function encode(List memory list) internal  pure returns (bytes memory result) {
+function encode(List memory list) internal  pure returns (bytes memory result) {
+        uint256 len = _encodeList(list);
+        result = new bytes(len);
+        assembly {
+            let ptr := add(result, 0x20)
+            let end := add(ptr, len)
+            let listPtr := add(list, 0x20)
+            let listEnd := add(listPtr, mload(list))
+            
+            for {} lt(listPtr, listEnd) {
+                listPtr := add(listPtr, 0x20)
+            } {
+                let itemPtr := mload(listPtr)
+                let itemType := and(mload(itemPtr), 0xff)
+                let dataPtr := add(itemPtr, 0x20)
+                
+                switch itemType
+                case 0 {
+                    let val := mload(dataPtr)
+                    mstore8(ptr, 0x80)
+                    ptr := add(ptr, 1)
+                    for {} gt(val, 0x7f) {
+                        val := shr(7, val)
+                        ptr := add(ptr, 1)
+                    } {
+                        mstore8(ptr, or(0x80, and(val, 0x7f)))
+                        ptr := add(ptr, 1)
+                    }
+                    mstore8(sub(ptr, 1), and(mload(sub(ptr, 1)), 0x7f))
+                }
+                case 1 {
+                    let val := shr(96, mload(dataPtr))
+                    mstore8(ptr, 0x94)
+                    ptr := add(ptr, 1)
+                    mstore(ptr, shl(96, val))
+                    ptr := add(ptr, 20)
+                }
+                case 2 {
+                    let dataLen := mload(dataPtr)
+                    let dataStart := add(dataPtr, 0x20)
+                    if lt(dataLen, 56) {
+                        mstore8(ptr, add(0x84, dataLen))
+                        ptr := add(ptr, 1)
+                    } else {
+                        let lenBytes := 0
+                        for { let temp := dataLen } gt(temp, 0) {
+                            temp := shr(8, temp)
+                            lenBytes := add(lenBytes, 1)
+                        } {}
+                        mstore8(ptr, add(0xb7, lenBytes))
+                        ptr := add(ptr, 1)
+                        for { let i := sub(lenBytes, 1) } ge(i, 0) {
+                            i := sub(i, 1)
+                        } {
+                            mstore8(add(ptr, i), byte(i, dataLen))
+                        }
+                        ptr := add(ptr, lenBytes)
+                    }
+                    let copyLen := and(add(dataLen, 0x1f), not(0x1f))
+                    mstore(ptr, mload(dataStart))
+                    mstore(add(ptr, 0x20), mload(add(dataStart, 0x20)))
+                    mstore(add(ptr, 0x40), mload(add(dataStart, 0x40)))
+                    mstore(add(ptr, 0x60), mload(add(dataStart, 0x60)))
+                    ptr := add(ptr, dataLen)
+                }
+                case 3 {
+                    let sublistPtr := mload(dataPtr)
+                    let sublistLen := _encodeList(sublistPtr)
+                    let sublistStart := ptr
+                    if lt(sublistLen, 56) {
+                        mstore8(ptr, add(0xc0, sublistLen))
+                        ptr := add(ptr, 1)
+                    } else {
+                        let lenBytes := 0
+                        for { let temp := sublistLen } gt(temp, 0) {
+                            temp := shr(8, temp)
+                            lenBytes := add(lenBytes, 1)
+                        } {}
+                        mstore8(ptr, add(0xf7, lenBytes))
+                        ptr := add(ptr, 1)
+                        for { let i := sub(lenBytes, 1) } ge(i, 0) {
+                            i := sub(i, 1)
+                        } {
+                            mstore8(add(ptr, i), byte(i, sublistLen))
+                        }
+                        ptr := add(ptr, lenBytes)
+                    }
+                    let oldPtr := ptr
+                    ptr := add(ptr, sublistLen)
+                    let dst := oldPtr
+                    let src := add(sublistPtr, 0x20)
+                    let srcEnd := add(src, sublistLen)
+                    for {} lt(src, srcEnd) {
+                        src := add(src, 0x20)
+                        dst := add(dst, 0x20)
+                    } {
+                        mstore(dst, mload(src))
+                    }
+                }
+            }
+            mstore(add(result, len), 0)
+        }
+    }
+}

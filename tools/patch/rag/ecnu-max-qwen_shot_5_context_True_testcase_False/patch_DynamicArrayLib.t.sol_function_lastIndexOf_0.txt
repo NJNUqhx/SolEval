@@ -1,0 +1,23 @@
+function lastIndexOf(uint256[] memory a, uint256 needle, uint256 from) internal  pure returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := not(0)
+            let n := mload(a)
+            if n {
+                if iszero(lt(from, n)) { from := sub(n, 1) }
+                let o := add(add(a, 0x20), shl(5, from))
+                let end := sub(a, 0x20)
+                mstore(end, needle)
+                for {} 1 {} {
+                    if eq(mload(o), needle) {
+                        result := from
+                        break
+                    }
+                    if iszero(o) { break }
+                    o := sub(o, 0x20)
+                    from := sub(from, 1)
+                }
+                mstore(end, n)
+            }
+        }
+    }

@@ -1,0 +1,17 @@
+function daysInMonth(uint256 year, uint256 month) internal  pure returns (uint256 result) {
+bool leap = isLeapYear(year);
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Days in each month (non-leap year), packed into a 256-bit integer.
+            // Index 1 (Jan) = 31, Index 2 (Feb) = 28, etc.
+            // We shift right by (month * 8) bits to get the correct byte, then mask with 0xFF.
+            let days := 0x1f1c1f1e1f1e1f1f1e1f1e1f1e1f1c1f1e1f1e1f1f1e1f1e1f1c000000000000
+            let shift := mul(month, 8)
+            result := and(shr(shift, days), 0xff)
+            
+            // If leap year and month is February (2), add 1 day.
+            if and(leap, eq(month, 2)) {
+                result := add(result, 1)
+            }
+        }
+    }

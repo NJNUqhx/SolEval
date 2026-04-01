@@ -1,0 +1,4 @@
+function toUint240(uint256 x) internal  pure returns (uint240) {
+if (x > type(uint240).max) revert();
+        return uint240(x);
+    }

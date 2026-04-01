@@ -1,0 +1,43 @@
+function isValidERC6492SignatureNow(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length == 0) {
+        address recovered = ECDSA.recover(hash, signature);
+        return recovered == signer;
+    }
+
+    bytes4 selector = 0x1626ba7e; // isValidSignature(bytes32,bytes)
+    uint256 signatureLength = signature.length;
+
+    assembly {
+        let data := mload(0x40)
+        let freePtr := add(data, 0x80)
+
+        mstore(data, selector)
+        mstore(add(data, 0x04), hash)
+        mstore(add(data, 0x24), 0x40)
+        mstore(add(data, 0x44), signatureLength)
+        calldatacopy(freePtr, add(signature, 0x20), signatureLength)
+
+        let success := staticcall(gas(), signer, data, add(0x64, signatureLength), data, 0x20)
+
+        if success {
+            let retVal := mload(data)
+            if eq(retVal, selector) {
+                isValid := true
+            }
+        } else {
+            let ptr := mload(0x40)
+            returndatacopy(ptr, 0, returndatasize())
+            if eq(returndatasize(), 0x20) {
+                let errorId := mload(ptr)
+                if eq(errorId, 0x1626ba7e) {
+                    isValid := true
+                }
+            }
+        }
+    }
+
+    if (!isValid) {
+        address recovered = ECDSA.recover(hash, signature);
+        isValid = (recovered == signer);
+    }
+}

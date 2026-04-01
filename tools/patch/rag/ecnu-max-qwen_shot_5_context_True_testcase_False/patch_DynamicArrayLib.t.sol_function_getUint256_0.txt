@@ -1,0 +1,6 @@
+function getUint256(uint256[] memory a, uint256 i) internal  pure returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := mload(add(add(a, 0x20), shl(5, i)))
+        }
+    }

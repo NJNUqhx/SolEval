@@ -1,0 +1,9 @@
+function checkStartsWith(bytes32 salt, address by) internal  pure {
+/// @solidity memory-safe-assembly
+        assembly {
+            if iszero(or(iszero(shr(96, salt)), eq(shr(96, salt), by))) {
+                mstore(0x00, 0x65908e6e)
+                revert(0x1c, 0x04)
+            }
+        }
+    }

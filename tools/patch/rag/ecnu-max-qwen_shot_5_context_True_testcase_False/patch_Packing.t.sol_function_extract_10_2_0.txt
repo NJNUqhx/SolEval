@@ -1,0 +1,7 @@
+function extract_10_2(bytes10 self, uint8 offset) internal  pure returns (bytes2 result) {
+require(offset <= 8, "OutOfRangeAccess");
+        assembly {
+            result := and(shl(mul(8, sub(8, offset)), self), 0xffff000000000000000000000000000000000000000000000000000000000000)
+            result := shr(240, result)
+        }
+    }

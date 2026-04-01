@@ -1,0 +1,7 @@
+function rawMulWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let temp := mul(x, y)
+            z := div(temp, 1000000000000000000)
+        }
+    }

@@ -1,0 +1,7 @@
+function Level() {
+struct LevelStats {
+        uint256 noOfInstancesCreated;
+        uint256 noOfInstancesSubmitted_Success;
+        uint256 noOfSubmissions_Failed;
+    }
+}

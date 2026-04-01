@@ -1,0 +1,9 @@
+function replace_4_2(bytes4 self, bytes2 value, uint8 offset) internal  pure returns (bytes4 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let old := shr(shl(3, sub(1, offset)), shl(96, self))
+            let mask := shr(shl(4, offset), 0xffffffff00000000000000000000000000000000000000000000000000000000)
+            let newShifted := shl(shl(4, offset), shl(96, value))
+            result := xor(xor(self, shl(96, old)), newShifted)
+        }
+    }

@@ -1,0 +1,1611 @@
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/SlotDerivation.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/SlotDerivation.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/ShortStrings.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/ShortStrings.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Create2.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/Create2.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Arrays.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/Arrays.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Strings.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/Strings.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/cryptography/P256.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/cryptography/P256.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/math/Math.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/math/Math.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/math/SignedMath.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/math/SignedMath.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/structs/Checkpoints.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/structs/Checkpoints.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/structs/Heap.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/structs/Heap.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/metatx/ERC2771Forwarder.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/metatx/ERC2771Forwarder.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/governance/Governor.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/governance/Governor.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/proxy/Clones.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/proxy/Clones.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/metrics/Statistics.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/metrics/Statistics.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/attacks/CoinFlipAttack.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/attacks/CoinFlipAttack.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Dex.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Dex.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/DexTwo.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/DexTwo.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Instance.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Instance.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/CoinFlip.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/CoinFlip.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/HigherOrder.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/HigherOrder.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Preservation.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Preservation.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Privacy.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Privacy.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Fallback.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Fallback.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/GoodSamaritan.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/GoodSamaritan.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/PuzzleWallet.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/PuzzleWallet.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Vault.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Vault.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/King.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/King.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/NaughtCoin.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/NaughtCoin.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Motorbike.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Motorbike.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Switch.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Switch.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Token.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Token.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/MagicAnimalCarousel.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/MagicAnimalCarousel.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Stake.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Stake.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Fallout.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Fallout.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-community-contracts/lib/openzeppelin-community-contracts/contracts/utils/Masks.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-community-contracts/lib/openzeppelin-community-contracts/contracts/utils/Masks.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/LegacyUpgrades.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/LegacyUpgrades.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/Utils.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/Utils.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/DefenderDeploy.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/DefenderDeploy.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/Core.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/Core.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/Account2/lib/Account2/src/Greeter.sol
+[2026-04-01 06:31:46] [INFO] Skip file_path: /root/Account2/lib/Account2/src/Greeter.sol
+[2026-04-01 06:31:46] [INFO] file_path:
+/root/solady/lib/solady/src/utils/DateTimeLib.sol
+[2026-04-01 06:31:54] [INFO] --------------function(start)-----------------
+[2026-04-01 06:31:54] [INFO] function dateToEpochDay(uint256 year, uint256 month, uint256 day) internal  pure returns (uint256 epochDay) {
+if (month <= 2) {
+    year -= 1;
+    month += 12;
+}
+uint256 yoe = year % 400;
+uint256 doe = (yoe * 365) + (yoe / 4) - (yoe / 100) + ((153 * (month - 3) + 2) / 5) + day - 1;
+uint256 era = year / 400;
+uint256 doy = (153 * (month - 3) + 2) / 5 + day - 1;
+epochDay = era * 146097 + doe - 719468;
+    }
+[2026-04-01 06:31:54] [INFO] --------------function(end)-----------------
+[2026-04-01 06:31:54] [INFO] average_inference_time: 6.93s
+[2026-04-01 06:32:05] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:05] [INFO] function epochDayToDate(uint256 epochDay) internal  pure returns (uint256 year, uint256 month, uint256 day) {
+assembly {
+            epochDay := add(epochDay, 719468)
+            let doe := mod(epochDay, 146097)
+            let yoe := div(sub(doe, sub(div(doe, 1460), sub(div(doe, 36524), div(doe, 146096)))), 365)
+            let doy := sub(doe, sub(add(mul(365, yoe), div(yoe, 4)), sub(div(yoe, 100), div(yoe, 400))))
+            let mp := div(mul(5, add(doy, 2)), 153)
+            day := add(1, sub(doy, div(sub(mul(153, mp), 2), 5)))
+            month := add(1, mod(add(mp, 2), 12))
+            year := add(add(div(sub(epochDay, doe), 146097), mul(400, div(epochDay, 146097))), sub(yoe, div(sub(month, 1), 10)))
+        }
+    }
+[2026-04-01 06:32:05] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:05] [INFO] average_inference_time: 9.18s
+[2026-04-01 06:32:10] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:10] [INFO] function dateToTimestamp(uint256 year, uint256 month, uint256 day) internal  pure returns (uint256 result) {
+result = dateToEpochDay(year, month, day) * 86400;
+    }
+[2026-04-01 06:32:10] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:10] [INFO] average_inference_time: 7.74s
+[2026-04-01 06:32:11] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:11] [INFO] function timestampToDate(uint256 timestamp) internal  pure returns (uint256 year, uint256 month, uint256 day) {
+uint256 epochDay = timestamp / 86400;
+        (year, month, day) = epochDayToDate(epochDay);
+    } 
+[2026-04-01 06:32:11] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:11] [INFO] average_inference_time: 5.99s
+[2026-04-01 06:32:20] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:20] [INFO] function dateTimeToTimestamp(uint256 year, uint256 month, uint256 day, uint256 hour, uint256 minute, uint256 second) internal  pure returns (uint256 result) {
+unchecked {
+        result = dateToEpochDay(year, month, day) * 86400 + hour * 3600 + minute * 60 + second;
+    }
+}
+[2026-04-01 06:32:20] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:20] [INFO] average_inference_time: 6.08s
+[2026-04-01 06:32:27] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:27] [INFO] function timestampToDateTime(uint256 timestamp) internal  pure returns (
+            uint256 year,
+            uint256 month,
+            uint256 day,
+            uint256 hour,
+            uint256 minute,
+            uint256 second
+        ) {
+uint256 _days = timestamp / 86400;
+        uint256 _seconds = timestamp % 86400;
+        (year, month, day) = epochDayToDate(_days);
+        hour = _seconds / 3600;
+        minute = (_seconds % 3600) / 60;
+        second = _seconds % 60;
+    }
+[2026-04-01 06:32:27] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:27] [INFO] average_inference_time: 6.18s
+[2026-04-01 06:32:33] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:33] [INFO] function isLeapYear(uint256 year) internal  pure returns (bool leap) {
+assembly {
+            let mask := shr(250, shl(mul(3, mod(year, 25)), 0x842108421084210842108421084210842108421084210842108421084210842))
+            leap := and(mask, 1)
+        }
+    }
+[2026-04-01 06:32:33] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:33] [INFO] average_inference_time: 6.12s
+[2026-04-01 06:32:38] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:38] [INFO] function daysInMonth(uint256 year, uint256 month) internal  pure returns (uint256 result) {
+bool leap = isLeapYear(year);
+        assembly {
+            let days := shr(mul(sub(month, 1), 3), 0x1f3e3d3c3b3a39383837363534333232)
+            result := and(days, 0x1f)
+            if and(leap, eq(month, 2)) {
+                result := add(result, 1)
+            }
+        }
+    }
+[2026-04-01 06:32:38] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:38] [INFO] average_inference_time: 5.96s
+[2026-04-01 06:32:39] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:39] [INFO] function weekday(uint256 timestamp) internal  pure returns (uint256 result) {
+uint256 days = timestamp / 86400;
+        unchecked {
+            result = ((days + 3) % 7) + 1;
+        }
+    }
+[2026-04-01 06:32:39] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:39] [INFO] average_inference_time: 5.41s
+[2026-04-01 06:32:44] [INFO] --------------function(start)-----------------
+[2026-04-01 06:32:44] [INFO] function isSupportedDate(uint256 year, uint256 month, uint256 day) internal  pure returns (bool result) {
+uint256 dm = daysInMonth(year, month);
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := and(
+                and(
+                    and(gt(year, 1969), lt(year, add(1970, 0x100000000))),
+                    and(gt(month, 0), le(month, 12))
+                ),
+                and(gt(day, 0), le(day, dm))
+            )
+        }
+    }
+[2026-04-01 06:32:44] [INFO] --------------function(end)-----------------
+[2026-04-01 06:32:44] [INFO] average_inference_time: 5.37s
+[2026-04-01 06:33:03] [INFO] --------------function(start)-----------------
+[2026-04-01 06:33:03] [INFO] function isSupportedDateTime(uint256 year, uint256 month, uint256 day, uint256 hour, uint256 minute, uint256 second) internal  pure returns (bool result) {
+if (!isSupportedDate(year, month, day)) {
+            return false;
+        }
+
+        assembly {
+            result := and(lt(hour, 24), and(lt(minute, 60), lt(second, 60)))
+        }
+    }
+[2026-04-01 06:33:03] [INFO] --------------function(end)-----------------
+[2026-04-01 06:33:03] [INFO] average_inference_time: 6.61s
+[2026-04-01 06:33:27] [INFO] --------------function(start)-----------------
+[2026-04-01 06:33:27] [INFO] function isSupportedEpochDay(uint256 epochDay) internal  pure returns (bool result) {
+unchecked {
+        result = epochDay <= MAX_SUPPORTED_EPOCH_DAY;
+    }
+}
+[2026-04-01 06:33:27] [INFO] --------------function(end)-----------------
+[2026-04-01 06:33:27] [INFO] average_inference_time: 8.01s
+[2026-04-01 06:33:28] [INFO] --------------function(start)-----------------
+[2026-04-01 06:33:28] [INFO] function isSupportedTimestamp(uint256 timestamp) internal  pure returns (bool result) {
+unchecked {
+        return timestamp <= type(uint256).max;
+    }
+}
+[2026-04-01 06:33:28] [INFO] --------------function(end)-----------------
+[2026-04-01 06:33:28] [INFO] average_inference_time: 7.48s
+[2026-04-01 06:33:54] [INFO] --------------function(start)-----------------
+[2026-04-01 06:33:54] [INFO] function nthWeekdayInMonthOfYearTimestamp(uint256 year, uint256 month, uint256 n, uint256 wd) internal  pure returns (uint256 result) {
+uint256 epochDay = dateToEpochDay(year, month, 1);
+        uint256 daysInMonthVal = daysInMonth(year, month);
+        uint256 firstDayWeekday = (epochDay + 1) % 7; // 1970-01-01 was Thursday (4), but standard logic often adjusts. Assuming epochDay 0 = Thursday.
+        // Correct calculation for weekday of epochDay 0 (Jan 1, 1970) is Thursday (4).
+        // So weekday = (epochDay + 4) % 7. Let's assume standard 0=Sunday.
+        // Jan 1 1970 was Thursday. If 0=Sunday, Thursday=4.
+        uint256 currentWeekday = (epochDay + 4) % 7;
+        
+        uint256 offset;
+        if (wd >= currentWeekday) {
+            offset = wd - currentWeekday;
+        } else {
+            offset = 7 - (currentWeekday - wd);
+        }
+        
+        uint256 dayOfMonth = offset + 1 + (n - 1) * 7;
+        
+        if (dayOfMonth > daysInMonthVal) {
+            return 0;
+        }
+        
+        result = (epochDay + dayOfMonth - 1) * 86400;
+    }
+[2026-04-01 06:33:54] [INFO] --------------function(end)-----------------
+[2026-04-01 06:33:54] [INFO] average_inference_time: 8.83s
+[2026-04-01 06:34:07] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:07] [INFO] function mondayTimestamp(uint256 timestamp) internal  pure returns (uint256 result) {
+uint256 days = timestamp / 86400;
+        uint256 dayOfWeek = (days + 3) % 7;
+        uint256 mondayDays = days - dayOfWeek;
+        result = mondayDays * 86400;
+        if (timestamp > 345599) {
+            // Valid range check passed
+        } else {
+            result = 0;
+        }
+    }
+[2026-04-01 06:34:07] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:07] [INFO] average_inference_time: 9.08s
+[2026-04-01 06:34:09] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:09] [INFO] function addYears(uint256 timestamp, uint256 numYears) internal  pure returns (uint256 result) {
+(uint256 year, uint256 month, uint256 day) = epochDayToDate(timestamp / 86400);
+    year += numYears;
+    result = _offsetted(year, month, day, timestamp);
+} 
+[2026-04-01 06:34:09] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:09] [INFO] average_inference_time: 8.64s
+[2026-04-01 06:34:19] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:19] [INFO] function addMonths(uint256 timestamp, uint256 numMonths) internal  pure returns (uint256 result) {
+(uint256 year, uint256 month, uint256 day) = epochDayToDate(timestamp / 86400);
+        uint256 totalMonths = _totalMonths(year, month + numMonths);
+        year = totalMonths / 12;
+        month = totalMonths % 12;
+        if (month == 0) {
+            month = 12;
+            year -= 1;
+        }
+        result = _offsetted(year, month, day, timestamp);
+    }
+[2026-04-01 06:34:19] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:19] [INFO] average_inference_time: 8.70s
+[2026-04-01 06:34:19] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:19] [INFO] function addMinutes(uint256 timestamp, uint256 numMinutes) internal  pure returns (uint256 result) {
+result = timestamp + numMinutes * 60;
+    }
+[2026-04-01 06:34:19] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:19] [INFO] average_inference_time: 8.24s
+[2026-04-01 06:34:20] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:20] [INFO] function addSeconds(uint256 timestamp, uint256 numSeconds) internal  pure returns (uint256 result) {
+result = timestamp + numSeconds;
+    }
+[2026-04-01 06:34:20] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:20] [INFO] average_inference_time: 7.83s
+[2026-04-01 06:34:21] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:21] [INFO] function subYears(uint256 timestamp, uint256 numYears) internal  pure returns (uint256 result) {
+(uint256 year, uint256 month, uint256 day) = epochDayToDate(timestamp / 86400);
+        year -= numYears;
+        result = _offsetted(year, month, day, timestamp);
+    }
+[2026-04-01 06:34:21] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:21] [INFO] average_inference_time: 7.50s
+[2026-04-01 06:34:23] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:23] [INFO] function subMonths(uint256 timestamp, uint256 numMonths) internal  pure returns (uint256 result) {
+(uint256 year, uint256 month, uint256 day) = epochDayToDate(timestamp / 86400);
+        uint256 totalMonths = _totalMonths(year, month);
+        uint256 newTotalMonths = totalMonths - numMonths;
+        uint256 newYear = newTotalMonths / 12;
+        uint256 newMonth = (newTotalMonths % 12) + 1;
+        result = _offsetted(newYear, newMonth, day, timestamp);
+    }
+[2026-04-01 06:34:23] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:23] [INFO] average_inference_time: 7.22s
+[2026-04-01 06:34:24] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:24] [INFO] function subMinutes(uint256 timestamp, uint256 numMinutes) internal  pure returns (uint256 result) {
+result = timestamp - (numMinutes * 60);
+    }
+[2026-04-01 06:34:24] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:24] [INFO] average_inference_time: 6.95s
+[2026-04-01 06:34:25] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:25] [INFO] function subSeconds(uint256 timestamp, uint256 numSeconds) internal  pure returns (uint256 result) {
+result = timestamp - numSeconds;
+    }
+[2026-04-01 06:34:25] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:25] [INFO] average_inference_time: 6.67s
+[2026-04-01 06:34:34] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:34] [INFO] function diffYears(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+uint256 fromDays = fromTimestamp / 86400;
+        uint256 toDays = toTimestamp / 86400;
+        (uint256 fromYear, , ) = epochDayToDate(fromDays);
+        (uint256 toYear, , ) = epochDayToDate(toDays);
+        result = _sub(toYear, fromYear);
+    }
+[2026-04-01 06:34:34] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:34] [INFO] average_inference_time: 6.78s
+[2026-04-01 06:34:36] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:36] [INFO] function diffMonths(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+uint256 fromDay = fromTimestamp / 86400;
+        uint256 toDay = toTimestamp / 86400;
+        (uint256 fromYear, uint256 fromMonth, ) = epochDayToDate(fromDay);
+        (uint256 toYear, uint256 toMonth, ) = epochDayToDate(toDay);
+        result = _totalMonths(toYear, toMonth) - _totalMonths(fromYear, fromMonth);
+    }
+[2026-04-01 06:34:36] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:36] [INFO] average_inference_time: 6.58s
+[2026-04-01 06:34:37] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:37] [INFO] function diffDays(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+result = (toTimestamp - fromTimestamp) / 86400;
+    } 
+[2026-04-01 06:34:37] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:37] [INFO] average_inference_time: 6.35s
+[2026-04-01 06:34:38] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:38] [INFO] function diffHours(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+result = (toTimestamp - fromTimestamp) / 3600;
+    }
+[2026-04-01 06:34:38] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:38] [INFO] average_inference_time: 6.16s
+[2026-04-01 06:34:39] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:39] [INFO] function diffMinutes(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+result = (toTimestamp - fromTimestamp) / 60;
+    }
+[2026-04-01 06:34:39] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:39] [INFO] average_inference_time: 5.96s
+[2026-04-01 06:34:43] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:43] [INFO] function diffSeconds(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+result = toTimestamp - fromTimestamp;
+    }
+[2026-04-01 06:34:43] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:43] [INFO] average_inference_time: 5.91s
+[2026-04-01 06:34:43] [INFO] file_path:
+/root/solady/lib/solady/src/utils/ERC1967Factory.sol
+[2026-04-01 06:34:43] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/ERC1967Factory.sol
+[2026-04-01 06:34:43] [INFO] file_path:
+/root/solady/lib/solady/src/utils/UUPSUpgradeable.sol
+[2026-04-01 06:34:43] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/UUPSUpgradeable.sol
+[2026-04-01 06:34:43] [INFO] file_path:
+/root/solady/lib/solady/src/utils/Multicallable.sol
+[2026-04-01 06:34:43] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/Multicallable.sol
+[2026-04-01 06:34:43] [INFO] file_path:
+/root/solady/lib/solady/src/utils/LibMap.sol
+[2026-04-01 06:34:43] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/LibMap.sol
+[2026-04-01 06:34:43] [INFO] file_path:
+/root/solady/lib/solady/src/utils/SSTORE2.sol
+[2026-04-01 06:34:43] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/SSTORE2.sol
+[2026-04-01 06:34:43] [INFO] file_path:
+/root/solady/lib/solady/src/utils/CREATE3.sol
+[2026-04-01 06:34:43] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/CREATE3.sol
+[2026-04-01 06:34:43] [INFO] file_path:
+/root/solady/lib/solady/src/utils/DeploylessPredeployQueryer.sol
+[2026-04-01 06:34:43] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/DeploylessPredeployQueryer.sol
+[2026-04-01 06:34:43] [INFO] file_path:
+/root/solady/lib/solady/src/utils/LibBytes.sol
+[2026-04-01 06:34:54] [INFO] --------------function(start)-----------------
+[2026-04-01 06:34:54] [INFO] function length(BytesStorage storage $) internal  view returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let packed := sload($.slot)
+            if eq(and(packed, 0xff), 0xff) {
+                result := shr(8, packed)
+            } else {
+                result := and(packed, 0xff)
+            }
+        }
+    }
+[2026-04-01 06:34:54] [INFO] --------------function(end)-----------------
+[2026-04-01 06:34:54] [INFO] average_inference_time: 6.07s
+[2026-04-01 06:35:05] [INFO] --------------function(start)-----------------
+[2026-04-01 06:35:05] [INFO] function slice(bytes memory subject, uint256 start, uint256 end) internal  pure returns (bytes memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let subjectLen := mload(subject)
+            if gt(end, subjectLen) { end := subjectLen }
+            if gt(start, subjectLen) { start := subjectLen }
+            if lt(start, end) {
+                let n := sub(end, start)
+                result := mload(0x40)
+                let i := add(add(subject, 0x20), start)
+                let o := add(result, 0x20)
+                for { let j := and(add(n, 0x1f), not(0x1f)) } 1 {} {
+                    mstore(add(o, j), mload(add(i, j)))
+                    j := add(j, not(0x1f))
+                    if iszero(j) { break }
+                }
+                mstore(add(add(o, n), 0x20), 0)
+                mstore(0x40, add(add(o, n), 0x20))
+                mstore(result, n)
+            }
+        }
+    }
+[2026-04-01 06:35:05] [INFO] --------------function(end)-----------------
+[2026-04-01 06:35:05] [INFO] average_inference_time: 6.25s
+[2026-04-01 06:35:05] [INFO] exist patch file, skipping LibBytes.t.sol_function_slice
+[2026-04-01 06:35:10] [INFO] --------------function(start)-----------------
+[2026-04-01 06:35:10] [INFO] function sliceCalldata(bytes calldata subject, uint256 start, uint256 end) internal  pure returns (bytes calldata result) {
+assembly {
+            let len := subject.length
+            if gt(start, len) { start := len }
+            if gt(end, len) { end := len }
+            let offset := add(subject.offset, start)
+            let length := sub(end, start)
+            if gt(start, end) { length := 0 }
+            result.offset := offset
+            result.length := length
+        }
+    }
+[2026-04-01 06:35:10] [INFO] --------------function(end)-----------------
+[2026-04-01 06:35:10] [INFO] average_inference_time: 6.21s
+[2026-04-01 06:35:10] [INFO] exist patch file, skipping LibBytes.t.sol_function_sliceCalldata
+[2026-04-01 06:35:13] [INFO] --------------function(start)-----------------
+[2026-04-01 06:35:13] [INFO] function truncate(bytes memory subject, uint256 n) internal  pure returns (bytes memory result) {
+result = subject;
+        /// @solidity memory-safe-assembly
+        assembly {
+            if lt(n, mload(subject)) {
+                mstore(result, n)
+            }
+        }
+    }
+[2026-04-01 06:35:13] [INFO] --------------function(end)-----------------
+[2026-04-01 06:35:13] [INFO] average_inference_time: 6.10s
+[2026-04-01 06:35:14] [INFO] --------------function(start)-----------------
+[2026-04-01 06:35:14] [INFO] function truncatedCalldata(bytes calldata subject, uint256 n) internal  pure returns (bytes calldata result) {
+assembly {
+            result.offset := subject.offset
+            let len := subject.length
+            if gt(len, n) { len := n }
+            result.length := len
+        }
+    }
+[2026-04-01 06:35:14] [INFO] --------------function(end)-----------------
+[2026-04-01 06:35:14] [INFO] average_inference_time: 5.95s
+[2026-04-01 06:36:02] [INFO] --------------function(start)-----------------
+[2026-04-01 06:36:02] [INFO] function cmp(bytes memory a, bytes memory b) internal  pure returns (int256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            let aLen := mload(a)
+            let bLen := mload(b)
+            let n := and(min(aLen, bLen), not(31))
+            let aPtr := add(a, 0x20)
+            let bPtr := add(b, 0x20)
+            let i := 0
+            for { } lt(i, n) { i := add(i, 32) } {
+                let wa := mload(add(aPtr, i))
+                let wb := mload(add(bPtr, i))
+                if eq(wa, wb) { continue }
+                if gt(wa, wb) {
+                    result := 1
+                    break
+                }
+                result := -1
+                break
+            }
+            if iszero(result) {
+                if eq(aLen, bLen) {
+                    result := 0
+                } else {
+                    let remA := mod(aLen, 32)
+                    let remB := mod(bLen, 32)
+                    if iszero(remA) { remA := 32 }
+                    if iszero(remB) { remB := 32 }
+                    let maskA := shr(sub(256, mul(8, remA)), not(0))
+                    let maskB := shr(sub(256, mul(8, remB)), not(0))
+                    let lastA := and(mload(add(aPtr, n)), maskA)
+                    let lastB := and(mload(add(bPtr, n)), maskB)
+                    if eq(lastA, lastB) {
+                        if gt(aLen, bLen) {
+                            result := 1
+                        } else {
+                            result := -1
+                        }
+                    } else {
+                        if gt(lastA, lastB) {
+                            result := 1
+                        } else {
+                            result := -1
+                        }
+                    }
+                }
+            }
+        }
+    }
+[2026-04-01 06:36:02] [INFO] --------------function(end)-----------------
+[2026-04-01 06:36:02] [INFO] average_inference_time: 7.14s
+[2026-04-01 06:36:04] [INFO] --------------function(start)-----------------
+[2026-04-01 06:36:04] [INFO] function directReturn(bytes memory a) internal  pure {
+assembly {
+            let retStart := sub(a, 0x20)
+            let retUnpaddedSize := add(mload(a), 0x40)
+            mstore(add(retStart, retUnpaddedSize), 0)
+            mstore(retStart, 0x20)
+            return(retStart, and(not(0x1f), add(0x1f, retUnpaddedSize)))
+        }
+    }
+[2026-04-01 06:36:04] [INFO] --------------function(end)-----------------
+[2026-04-01 06:36:04] [INFO] average_inference_time: 6.99s
+[2026-04-01 06:36:04] [INFO] exist patch file, skipping LibBytes.t.sol_function_directReturn
+[2026-04-01 06:36:05] [INFO] --------------function(start)-----------------
+[2026-04-01 06:36:05] [INFO] function load(bytes memory a, uint256 offset) internal  pure returns (bytes32 result) {
+assembly {
+            result := mload(add(add(a, 0x20), offset))
+        }
+    }
+[2026-04-01 06:36:05] [INFO] --------------function(end)-----------------
+[2026-04-01 06:36:05] [INFO] average_inference_time: 6.84s
+[2026-04-01 06:36:06] [INFO] --------------function(start)-----------------
+[2026-04-01 06:36:06] [INFO] function loadCalldata(bytes calldata a, uint256 offset) internal  pure returns (bytes32 result) {
+assembly {
+            result := calldataload(add(a.offset, offset))
+        }
+    }
+[2026-04-01 06:36:06] [INFO] --------------function(end)-----------------
+[2026-04-01 06:36:06] [INFO] average_inference_time: 6.67s
+[2026-04-01 06:36:06] [INFO] --------------function(start)-----------------
+[2026-04-01 06:36:06] [INFO] function emptyCalldata() internal  pure returns (bytes calldata result) {
+assembly {
+            result.length := 0
+        }
+    }
+[2026-04-01 06:36:06] [INFO] --------------function(end)-----------------
+[2026-04-01 06:36:06] [INFO] average_inference_time: 6.52s
+[2026-04-01 06:36:06] [INFO] file_path:
+/root/solady/lib/solady/src/utils/SignatureCheckerLib.sol
+[2026-04-01 06:36:49] [INFO] --------------function(start)-----------------
+[2026-04-01 06:36:49] [INFO] function isValidSignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let freeMem := mload(0x40)
+            let v
+            let r
+            let s
+
+            switch eq(signature.length, 64)
+            case 1 {
+                r := mload(add(signature, 0x20))
+                let vs := mload(add(signature, 0x40))
+                s := shr(128, vs)
+                v := add(shr(255, vs), 27)
+            }
+            case 0 {
+                if eq(signature.length, 65) {
+                    r := mload(add(signature, 0x20))
+                    s := mload(add(signature, 0x40))
+                    v := byte(0, mload(add(signature, 0x60)))
+                    if lt(v, 27) {
+                        v := add(v, 27)
+                    }
+                }
+            }
+
+            if and(eq(signature.length, 64), 1) {
+                let success := staticcall(gas(), 0x01, mstore(freeMem, hash), 0x40, freeMem, 0x20)
+                if and(success, eq(mload(freeMem), signer)) {
+                    isValid := true
+                }
+            } else {
+                if and(eq(signature.length, 65), 1) {
+                    mstore(freeMem, hash)
+                    mstore(add(freeMem, 0x20), v)
+                    mstore(add(freeMem, 0x40), r)
+                    mstore(add(freeMem, 0x60), s)
+                    let success := staticcall(gas(), 0x01, freeMem, 0x80, freeMem, 0x20)
+                    if and(success, eq(mload(freeMem), signer)) {
+                        isValid := true
+                    }
+                }
+            }
+
+            mstore(0x00, 0)
+            mstore(0x40, freeMem)
+        }
+
+        if (!isValid) {
+            (bool success, bytes memory result) = signer.staticcall(
+                abi.encodeWithSignature("isValidSignature(bytes32,bytes)", hash, signature)
+            );
+            if (success && result.length == 32) {
+                isValid = (abi.decode(result, (bytes4)) == 0x1626ba7e);
+            }
+        }
+
+        return isValid;
+    }
+[2026-04-01 06:36:49] [INFO] --------------function(end)-----------------
+[2026-04-01 06:36:49] [INFO] average_inference_time: 7.42s
+[2026-04-01 06:37:11] [INFO] --------------function(start)-----------------
+[2026-04-01 06:37:11] [INFO] function isValidSignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let sigLength := signature.length
+            let sigPointer := signature.offset
+
+            // Check for standard ECDSA signature lengths (64 or 65 bytes)
+            if or(eq(sigLength, 64), eq(sigLength, 65)) {
+                let r := mload(add(sigPointer, 0x20))
+                let s := mload(add(sigPointer, 0x40))
+                let v := 0
+                if eq(sigLength, 65) {
+                    v := byte(0, mload(add(sigPointer, 0x60)))
+                }
+
+                // Recover signer from signature
+                let recovered := staticcall(gas(), 0x01, add(sigPointer, 0x20), 0x41, 0x00, 0x20)
+                
+                if and(eq(recovered, 1), eq(signer, mload(0x00))) {
+                    isValid := 1
+                }
+            }
+        }
+
+        if (!isValid) {
+            // Fallback to EIP-1271 validation for contract signers or invalid ECDSA formats
+            try IERC1271(signer).isValidSignature(hash, signature) returns (bytes4 magicValue) {
+                isValid = (magicValue == IERC1271.isValidSignature.selector);
+            } catch {
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }
+[2026-04-01 06:37:11] [INFO] --------------function(end)-----------------
+[2026-04-01 06:37:11] [INFO] average_inference_time: 7.77s
+[2026-04-01 06:37:11] [INFO] exist patch file, skipping SignatureCheckerLib.t.sol_function_isValidSignatureNow
+[2026-04-01 06:37:11] [INFO] exist patch file, skipping SignatureCheckerLib.t.sol_function_isValidSignatureNow
+[2026-04-01 06:37:17] [INFO] --------------function(start)-----------------
+[2026-04-01 06:37:17] [INFO] function isValidERC1271SignatureNow(address signer, bytes32 hash, bytes memory signature) internal  view returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, 0x1626ba7e00000000000000000000000000000000000000000000000000000000)
+            mstore(add(m, 0x04), hash)
+            let sigLen := mload(signature)
+            mstore(add(m, 0x24), 0x40)
+            mstore(add(m, 0x44), sigLen)
+            pop(staticcall(gas(), signer, add(m, 0x04), add(0x44, sigLen), m, 0x20))
+            isValid := and(eq(returndatasize(), 0x20), eq(mload(m), 0x1626ba7e00000000000000000000000000000000000000000000000000000000))
+        }
+    }
+[2026-04-01 06:37:17] [INFO] --------------function(end)-----------------
+[2026-04-01 06:37:17] [INFO] average_inference_time: 7.71s
+[2026-04-01 06:37:54] [INFO] --------------function(start)-----------------
+[2026-04-01 06:37:54] [INFO] function isValidERC1271SignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, 0x1626ba7e00000000000000000000000000000000000000000000000000000000)
+            mstore(add(m, 0x04), hash)
+            mstore(add(m, 0x24), 0x40)
+            mstore(add(m, 0x44), signature.length)
+            calldatacopy(add(m, 0x64), signature.offset, signature.length)
+            isValid := staticcall(gas(), signer, add(m, 0x04), add(0x40, signature.length), m, 0x20)
+            isValid := and(eq(mload(m), 0x1626ba7e), isValid)
+        }
+    }
+[2026-04-01 06:37:54] [INFO] --------------function(end)-----------------
+[2026-04-01 06:37:54] [INFO] average_inference_time: 8.41s
+[2026-04-01 06:37:54] [INFO] exist patch file, skipping SignatureCheckerLib.t.sol_function_isValidERC1271SignatureNow
+[2026-04-01 06:37:54] [INFO] exist patch file, skipping SignatureCheckerLib.t.sol_function_isValidERC1271SignatureNow
+[2026-04-01 06:38:02] [INFO] --------------function(start)-----------------
+[2026-04-01 06:38:02] [INFO] function isValidERC6492SignatureNowAllowSideEffects(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length == 0) {
+        require(signature.length == 64 || signature.length == 65, "ECDSA: invalid signature length");
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            if eq(signature.length, 65) {
+                v := byte(0, mload(add(signature, 0x60)))
+            } else {
+                v := 27
+                if gt(s, 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
+                    v := 28
+                }
+            }
+        }
+        address recovered = ecrecover(hash, v, r, s);
+        isValid = (recovered == signer);
+    } else {
+        (bool success, bytes memory result) = signer.staticcall(
+            abi.encodeCall(IERC1271.isValidSignature, (hash, signature))
+        );
+        if (success && result.length == 32) {
+            bytes32 magicValue;
+            assembly {
+                magicValue := mload(add(result, 0x20))
+            }
+            isValid = (magicValue == IERC1271.isValidSignature.selector);
+        }
+    }
+}
+[2026-04-01 06:38:02] [INFO] --------------function(end)-----------------
+[2026-04-01 06:38:02] [INFO] average_inference_time: 8.39s
+[2026-04-01 06:38:22] [INFO] --------------function(start)-----------------
+[2026-04-01 06:38:22] [INFO] function isValidERC6492SignatureNow(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length == 0) {
+            address recovered = ECDSA.recover(hash, signature);
+            return recovered == signer;
+        }
+
+        bytes32 magic = 0x52629c97;
+        bytes32 selector = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, selector)
+            mstore(add(m, 0x20), hash)
+            mstore(add(m, 0x40), 0x40)
+            mstore(add(m, 0x60), mload(add(signature, 0x20)))
+            pop(staticcall(gas(), signer, add(m, 0x1c), add(0x64, mload(add(signature, 0x20))), m, 0x20))
+            isValid := eq(mload(m), magic)
+        }
+    }
+[2026-04-01 06:38:22] [INFO] --------------function(end)-----------------
+[2026-04-01 06:38:22] [INFO] average_inference_time: 8.65s
+[2026-04-01 06:38:41] [INFO] --------------function(start)-----------------
+[2026-04-01 06:38:41] [INFO] function toEthSignedMessageHash(bytes32 hash) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x20, hash)
+            mstore(0x00, 0x19457468657265756d205369676e6564204d6573736167653a0a333200000000)
+            result := keccak256(0x04, 0x3c)
+        }
+    }
+[2026-04-01 06:38:41] [INFO] --------------function(end)-----------------
+[2026-04-01 06:38:41] [INFO] average_inference_time: 8.87s
+[2026-04-01 06:38:41] [INFO] exist patch file, skipping SignatureCheckerLib.t.sol_function_toEthSignedMessageHash
+[2026-04-01 06:38:46] [INFO] --------------function(start)-----------------
+[2026-04-01 06:38:46] [INFO] function emptySignature() internal  pure returns (bytes calldata signature) {
+assembly {
+            signature.length := 0
+        }
+    }
+[2026-04-01 06:38:46] [INFO] --------------function(end)-----------------
+[2026-04-01 06:38:46] [INFO] average_inference_time: 8.79s
+[2026-04-01 06:38:46] [INFO] file_path:
+/root/solady/lib/solady/src/utils/MetadataReaderLib.sol
+[2026-04-01 06:38:46] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/MetadataReaderLib.sol
+[2026-04-01 06:38:46] [INFO] file_path:
+/root/solady/lib/solady/src/utils/MinHeapLib.sol
+[2026-04-01 06:38:46] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/MinHeapLib.sol
+[2026-04-01 06:38:46] [INFO] file_path:
+/root/solady/lib/solady/src/utils/SafeCastLib.sol
+[2026-04-01 06:38:46] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/SafeCastLib.sol
+[2026-04-01 06:38:46] [INFO] file_path:
+/root/solady/lib/solady/src/utils/ECDSA.sol
+[2026-04-01 06:38:46] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/ECDSA.sol
+[2026-04-01 06:38:46] [INFO] file_path:
+/root/solady/lib/solady/src/utils/EnumerableSetLib.sol
+[2026-04-01 06:38:51] [INFO] --------------function(start)-----------------
+[2026-04-01 06:38:51] [INFO] function length(AddressSet storage set) internal  view returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let root := set.slot
+            let packed := sload(root)
+            result := shr(8, packed)
+            if iszero(eq(or(packed, 0xff), packed)) {
+                result := and(0xff, packed)
+            } else {
+                let bucket := keccak256(root, 0x20)
+                let i := 0
+                for {} lt(i, result) { i := add(i, 1) } {
+                    if iszero(sload(add(bucket, i))) {
+                        result := i
+                        break
+                    }
+                }
+            }
+        }
+    }
+[2026-04-01 06:38:51] [INFO] --------------function(end)-----------------
+[2026-04-01 06:38:51] [INFO] average_inference_time: 8.72s
+[2026-04-01 06:38:51] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_length
+[2026-04-01 06:38:51] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_length
+[2026-04-01 06:39:16] [INFO] --------------function(start)-----------------
+[2026-04-01 06:39:16] [INFO] function contains(AddressSet storage set, address value) internal  view returns (bool result) {
+bytes32 root = set._inner._slot;
+    assembly ("memory-safe") {
+        let value_shifted := shl(96, value)
+        if iszero(value_shifted) { revert(0, 0) }
+        if iszero(value) { value_shifted := 1 }
+
+        let packed := sload(root)
+        let first_three := and(packed, 0xffffffffffffffffffffffff000000000000000000000000000000000000000000000000)
+        if eq(first_three, value_shifted) {
+            result := true
+            leave
+        }
+        let second_three := and(packed, 0x000000000000000000000000ffffffffffffffffffffffff00000000000000000000000000000000)
+        if eq(second_three, shl(96, value_shifted)) {
+            result := true
+            leave
+        }
+        let third_three := and(packed, 0x0000000000000000000000000000000000000000ffffffffffffffffffffffff)
+        if eq(third_three, shr(96, value_shifted)) {
+            result := true
+            leave
+        }
+
+        let slot := keccak256(root, 0x20)
+        let val := sload(slot)
+        if eq(val, value_shifted) {
+            result := true
+        }
+    }
+}
+[2026-04-01 06:39:16] [INFO] --------------function(end)-----------------
+[2026-04-01 06:39:16] [INFO] average_inference_time: 9.03s
+[2026-04-01 06:39:16] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_contains
+[2026-04-01 06:39:16] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_contains
+[2026-04-01 06:39:50] [INFO] --------------function(start)-----------------
+[2026-04-01 06:39:50] [INFO] function add(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 slot = set._inner._slots;
+    assembly {
+        // Ensure the address is not the zero sentinel value.
+        if iszero(value) {
+            mstore(0x00, 0x8a36c973) // `ValueIsZeroSentinel()`.
+            revert(0x1c, 0x04)
+        }
+        // Replace zero address with zero sentinel if needed (though we revert above, this handles logic consistency).
+        let val := value
+        if iszero(val) { val := 0x0000000000000000000000000000000000000000000000000000000000000001 }
+        
+        // Load the packed root value (length || first_element).
+        let root := sload(slot)
+        let len := shr(128, root)
+        let first := and(root, 0xffffffffffffffffffffffffffffffffffffffff)
+        
+        // Check if the set is empty.
+        if iszero(len) {
+            // Set length to 1 and store the value.
+            sstore(slot, or(shl(128, 1), val))
+            result := true
+        } else {
+            // Check if the first element matches.
+            if eq(first, val) {
+                result := false
+            } else {
+                // Calculate the storage slot for the array elements: keccak256(slot)
+                let dataSlot := keccak256(slot, 0x20)
+                let found := false
+                let i := 0
+                
+                // Iterate through existing elements to check for duplicates.
+                for { } lt(i, len) { i := add(i, 1) } {
+                    let elem := sload(add(dataSlot, i))
+                    if eq(elem, val) {
+                        found := true
+                        break
+                    }
+                }
+                
+                if found {
+                    result := false
+                } else {
+                    // Add the new element at the end.
+                    sstore(add(dataSlot, len), val)
+                    // Update the root with new length.
+                    sstore(slot, or(shl(128, add(len, 1)), first))
+                    result := true
+                }
+            }
+        }
+    }
+}
+[2026-04-01 06:39:50] [INFO] --------------function(end)-----------------
+[2026-04-01 06:39:50] [INFO] average_inference_time: 9.53s
+[2026-04-01 06:39:50] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_add
+[2026-04-01 06:39:50] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_add
+[2026-04-01 06:42:46] [INFO] --------------function(start)-----------------
+[2026-04-01 06:42:46] [INFO] function remove(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 root = set._root;
+        assembly ("memory-safe") {
+            // Ensure the value is not the zero sentinel.
+            if iszero(value) {
+                mstore(0x00, 0x65973618) // selector for ValueIsZeroSentinel()
+                revert(0x1c, 0x04)
+            }
+
+            // Align the address to the left (upper 160 bits) for storage packing.
+            let alignedValue := shl(96, value)
+
+            // Load the current root data (packed addresses and count).
+            let data := sload(root)
+
+            // Extract the count (lower 32 bits).
+            let count := and(data, 0xffffffff)
+
+            // If the set is empty, return false.
+            if iszero(count) {
+                result := 0
+                leave
+            }
+
+            // Calculate the end of the active data (count * 20 bytes + 32 bits for count).
+            // Data layout: [count (32 bits)][addr1 (160 bits)][addr2 (160 bits)]...
+            // We scan from the last element backwards to the first.
+            let found := 0
+            let i := sub(count, 1)
+
+            for {} gt(i, 0) { i := sub(i, 1) } {
+                // Calculate the bit offset for the current index.
+                // Each address takes 160 bits. The first address starts at bit 32.
+                // Offset = 32 + (i * 160)
+                let offset := add(32, mul(i, 160))
+                let shift := sub(256, add(offset, 160))
+                
+                // Extract the address at index i.
+                let currentAddr := shr(shift, data)
+                // Mask to ensure we only have 160 bits (though shr should handle it if logic is correct).
+                currentAddr := and(currentAddr, 0xffffffffffffffffffffffffffffffffffffffff)
+
+                if eq(currentAddr, value) {
+                    found := 1
+                    // To remove: shift all subsequent elements left by 160 bits.
+                    // We need to reconstruct the data without the found element.
+                    
+                    // Mask to clear the found element and everything after it? 
+                    // No, easier to rebuild or shift bits.
+                    // Strategy: Create a mask to zero out the found slot, then shift the upper part down?
+                    // Actually, since we are in assembly and the structure is packed, shifting is complex.
+                    // Alternative: Load the whole slot, clear the specific 160 bits, then shift the higher bits down?
+                    // But the higher bits are in the same word.
+                    // Let's try a different approach: Rebuild the data word.
+                    
+                    // Clear the found element's bits.
+                    let mask := not(shl(shift, 0xffffffffffffffffffffffffffffffffffffffff))
+                    data := and(data, mask)
+                    
+                    // Now we need to shift the bits above 'offset' down by 160.
+                    // Bits above offset: shr(offset, data) -> wait, offset is from LSB?
+                    // Solidity storage: bit 0 is LSB.
+                    // Our layout: bits 0-31: count. bits 32-191: addr[0]. bits 192-351: addr[1] (spills to next slot? NO).
+                    // Wait, 32 + 160 = 192. 32 + 160*2 = 352. A single slot is 256 bits.
+                    // So max addresses per slot = floor((256-32)/160) = 1.
+                    // This implies the standard EnumerableSet implementation for addresses usually stores one per slot or uses a different packing.
+                    // However, the prompt implies a packed structure ("packed root data").
+                    // If it's packed tightly, multiple addresses might not fit in one slot if count > 1.
+                    // Let's re-read standard patterns. Usually, for AddressSet, if it's optimized, it might just store the count in the first slot and addresses in subsequent slots derived from the root.
+                    // BUT the requirement says "Load the packed root data". This suggests a specific custom implementation where multiple addresses are packed.
+                    // If multiple addresses are packed, they must fit in 256 bits.
+                    // 32 bits count + N * 160 bits <= 256.
+                    // N * 160 <= 224 => N = 1.
+                    // So only 1 address fits? That makes a set of size 1.
+                    // Perhaps the "packed root data" refers to a bitmap or a different structure?
+                    // OR, maybe the count is not in the same slot?
+                    // Let's assume the prompt implies a structure where the root slot holds metadata and potentially the first few items, or the logic handles multi-slot packing implicitly via the "derive" pattern not shown here.
+                    // HOWEVER, looking at the provided snippet context from similar libraries (e.g., Solady), the `AddressSet` often stores the count in the lower bits of the root slot, and the addresses are stored in slots derived from the root (root + 1, root + 2, etc.) OR packed if small.
+                    // But the requirement explicitly says "Load the packed root data" and "Iterate through the set".
+                    // If it's strictly packed in one slot, max size is 1.
+                    // Let's reconsider the "packed" description. Maybe it's a bitmap? No, it stores addresses.
+                    // Maybe the count is stored separately?
+                    // Let's look at the "ValueIsZeroSentinel" clue. This is specific to Solady's EnumerableSet.
+                    // In Solady, `AddressSet` stores the count in the first 32 bits of the root slot.
+                    // The addresses are stored in slots: `root + 1 + i`. They are NOT packed into the root slot beyond the count.
+                    // Wait, if they are in `root + 1 + i`, then "Load the packed root data" only loads the count.
+                    // The requirement step 2 says: "Load the packed root data from storage... Iterate through the set".
+                    // If the addresses are in separate slots, we iterate by loading `sload(add(root, add(1, i)))`.
+                    // The phrase "packed root data" might be a slight misnomer in the requirement text provided by the user, or it refers to the fact that the root slot contains the count which dictates the iteration.
+                    // Let's assume the standard Solady layout:
+                    // slot `root`: [count (32 bits)] [padding]
+                    // slot `root + 1 + i`: [address (160 bits)] [padding]
+                    
+                    // Re-evaluating the assembly logic based on Solady's actual implementation style for `remove`:
+                    // 1. Get count from `sload(root)`.
+                    // 2. Loop i from 0 to count-1.
+                    // 3. Load addr from `sload(add(root, add(1, i)))`.
+                    // 4. If match found:
+                    //    - Move the last element (at count-1) to position i.
+                    //    - Clear the last element slot.
+                    //    - Decrement count in root.
+                    //    - Return true.
+                    
+                    // Let's rewrite the assembly to match this robust pattern which fits the "AddressSet" context usually found with these requirements.
+                    
+                    found := 1
+                    let lastIdx := sub(count, 1)
+                    
+                    // If the found element is not the last one, move the last one to this position.
+                    if xor(i, lastIdx) {
+                        let lastSlot := add(root, add(1, lastIdx))
+                        let currentSlot := add(root, add(1, i))
+                        let lastVal := sload(lastSlot)
+                        sstore(currentSlot, lastVal)
+                    }
+                    
+                    // Clear the last slot
+                    let lastSlot := add(root, add(1, lastIdx))
+                    sstore(lastSlot, 0)
+                    
+                    // Update count
+                    let newCount := sub(count, 1)
+                    // Clear old count bits and set new count
+                    data := and(data, not(0xffffffff))
+                    data := or(data, newCount)
+                    sstore(root, data)
+                    
+                    result := 1
+                    break
+                }
+            }
+            
+            // Check index 0 separately if loop condition gt(i, 0) skipped it? 
+            // My loop `for {} gt(i, 0) { i := sub(i, 1) }` stops when i is 0. It does not process i=0.
+            // Let's fix the loop to include 0.
+            // Actually, simpler loop:
+            // for { let i := 0 } lt(i, count) { i := add(i, 1) } { ... }
+            // But I already wrote the backward logic above. Let's just ensure 0 is checked.
+            // The previous loop `gt(i, 0)` means it runs for count-1 down to 1. It misses 0.
+            // Let's restructure the assembly block to be correct.
+            
+            // Restarting the specific assembly logic for clarity and correctness within the generated block.
+        }
+        // Since the assembly block above was incomplete/conditional in thought process, I will write the clean, final version below.
+        
+        assembly ("memory-safe") {
+            if iszero(value) {
+                mstore(0x00, 0x65973618)
+                revert(0x1c, 0x04)
+            }
+
+            let rootSlot := root
+            let data := sload(rootSlot)
+            let count := and(data, 0xffffffff)
+
+            if iszero(count) {
+                result := 0
+                leave
+            }
+
+            let foundIndex := not(0) // -1
+            let i := 0
+            
+            // Find the element
+            for {} lt(i, count) { i := add(i, 1) } {
+                let slotToRead := add(rootSlot, add(1, i))
+                let storedAddr := sload(slotToRead)
+                // Addresses are stored in the lower 160 bits in Solady usually? 
+                // Or upper? Solidity stores at lower. 
+                // If stored as `sstore(slot, addr)`, it's in lower 160 bits.
+                // Let's assume standard storage layout: addr in lower 160 bits.
+                storedAddr := and(storedAddr, 0xffffffffffffffffffffffffffffffffffffffff)
+                
+                if eq(storedAddr, value) {
+                    foundIndex := i
+                    break
+                }
+            }
+
+            if iszero(iszero(foundIndex)) { // if foundIndex != -1 (actually foundIndex >= 0)
+                // Wait, `not(0)` is all 1s. `iszero(all 1s)` is 0.
+                // Correct check: if foundIndex is not the initial sentinel.
+                // In solidity assembly, -1 is 0xff...ff.
+                // Let's use a flag instead.
+            }
+            
+            // Refactoring to use a flag for clarity in assembly
+        }
+        
+        // Final clean assembly implementation
+        assembly ("memory-safe") {
+            if iszero(value) {
+                mstore(0x00, 0x65973618)
+                revert(0x1c, 0x04)
+            }
+
+            let rootSlot := root
+            let data := sload(rootSlot)
+            let count := and(data, 0xffffffff)
+
+            if iszero(count) {
+                result := 0
+                leave
+            }
+
+            let found := 0
+            let foundIdx := 0
+            let i := 0
+
+            for {} lt(i, count) { i := add(i, 1) } {
+                let addrSlot := add(rootSlot, add(1, i))
+                let addr := sload(addrSlot)
+                addr := and(addr, 0xffffffffffffffffffffffffffffffffffffffff)
+                if eq(addr, value) {
+                    found := 1
+                    foundIdx := i
+                    break
+                }
+            }
+
+            if found {
+                let lastIdx := sub(count, 1)
+                if xor(foundIdx, lastIdx) {
+                    let lastSlot := add(rootSlot, add(1, lastIdx))
+                    let targetSlot := add(rootSlot, add(1, foundIdx))
+                    sstore(targetSlot, sload(lastSlot))
+                }
+                let lastSlot := add(rootSlot, add(1, lastIdx))
+                sstore(lastSlot, 0)
+                
+                let newCount := sub(count, 1)
+                data := xor(data, count) // clear old count (assuming lower bits)
+                data := or(data, newCount)
+                sstore(rootSlot, data)
+                
+                result := 1
+            }
+        }
+}
+[2026-04-01 06:42:46] [INFO] --------------function(end)-----------------
+[2026-04-01 06:42:46] [INFO] average_inference_time: 12.80s
+[2026-04-01 06:42:46] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_remove
+[2026-04-01 06:42:46] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_remove
+[2026-04-01 06:43:01] [INFO] --------------function(start)-----------------
+[2026-04-01 06:43:01] [INFO] function values(AddressSet storage set) internal  view returns (address[] memory result) {
+    assembly {
+        let root := set.slot
+        let packed := sload(root)
+        let n := and(packed, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+        result := mload(0x40)
+        mstore(result, n)
+        let dataPtr := add(result, 0x20)
+        let zeroSentinel := 0
+        for { let i := 0 } lt(i, n) { i := add(i, 1) } {
+            let val := sload(add(root, add(1, i)))
+            if eq(val, zeroSentinel) { continue }
+            mstore(dataPtr, val)
+            dataPtr := add(dataPtr, 0x20)
+        }
+        mstore(0x40, dataPtr)
+    }
+}
+[2026-04-01 06:43:01] [INFO] --------------function(end)-----------------
+[2026-04-01 06:43:01] [INFO] average_inference_time: 12.84s
+[2026-04-01 06:43:01] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_values
+[2026-04-01 06:43:01] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_values
+[2026-04-01 06:43:36] [INFO] --------------function(start)-----------------
+[2026-04-01 06:43:36] [INFO] function at(AddressSet storage set, uint256 i) internal  view returns (address result) {
+bytes32 rootSlot = set._inner._slots.slot;
+    bytes32 valueSlot;
+    assembly {
+        mstore(0x00, rootSlot)
+        mstore(0x20, add(i, 1))
+        valueSlot := keccak256(0x00, 0x40)
+        result := shr(96, sload(valueSlot))
+        if iszero(mul(result, lt(i, sload(rootSlot)))) {
+            revert(0x00, 0x00)
+        }
+    }
+}
+[2026-04-01 06:43:36] [INFO] --------------function(end)-----------------
+[2026-04-01 06:43:36] [INFO] average_inference_time: 13.26s
+[2026-04-01 06:43:36] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_at
+[2026-04-01 06:43:36] [INFO] exist patch file, skipping EnumerableSetLib.t.sol_function_at
+[2026-04-01 06:43:37] [INFO] --------------function(start)-----------------
+[2026-04-01 06:43:37] [INFO] function _toUints(bytes32[] memory a) private  pure returns (uint256[] memory c) {
+assembly {
+            c := a
+        }
+    }
+[2026-04-01 06:43:37] [INFO] --------------function(end)-----------------
+[2026-04-01 06:43:37] [INFO] average_inference_time: 13.02s
+[2026-04-01 06:43:37] [INFO] file_path:
+/root/solady/lib/solady/src/utils/LibTransient.sol
+[2026-04-01 06:43:37] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/LibTransient.sol
+[2026-04-01 06:43:37] [INFO] file_path:
+/root/solady/lib/solady/src/utils/JSONParserLib.sol
+[2026-04-01 06:43:37] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/JSONParserLib.sol
+[2026-04-01 06:43:37] [INFO] file_path:
+/root/solady/lib/solady/src/utils/LibSort.sol
+[2026-04-01 06:43:37] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/LibSort.sol
+[2026-04-01 06:43:37] [INFO] file_path:
+/root/solady/lib/solady/src/utils/DynamicArrayLib.sol
+[2026-04-01 06:43:37] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/DynamicArrayLib.sol
+[2026-04-01 06:43:37] [INFO] file_path:
+/root/solady/lib/solady/src/utils/Base64.sol
+[2026-04-01 06:43:37] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/Base64.sol
+[2026-04-01 06:43:37] [INFO] file_path:
+/root/solady/lib/solady/src/utils/DynamicBufferLib.sol
+[2026-04-01 06:43:57] [INFO] --------------function(start)-----------------
+[2026-04-01 06:43:57] [INFO] function reserve(DynamicBuffer memory buffer, uint256 minimum) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = buffer;
+        if (result.length < minimum) {
+            uint256 capacity = result.length == 0 ? 32 : result.length;
+            while (capacity < minimum) {
+                capacity *= 2;
+            }
+            assembly {
+                let ptr := mload(0x40)
+                mstore(0x40, add(ptr, add(32, capacity)))
+                mstore(result, ptr)
+                mstore(add(result, 0x20), minimum)
+                mstore(add(result, 0x40), capacity)
+            }
+        }
+    }
+[2026-04-01 06:43:57] [INFO] --------------function(end)-----------------
+[2026-04-01 06:43:57] [INFO] average_inference_time: 13.16s
+[2026-04-01 06:43:58] [INFO] --------------function(start)-----------------
+[2026-04-01 06:43:58] [INFO] function clear(DynamicBuffer memory buffer) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        assembly {
+            mstore(add(result, 0x20), 0)
+        }
+    }
+[2026-04-01 06:43:58] [INFO] --------------function(end)-----------------
+[2026-04-01 06:43:58] [INFO] average_inference_time: 12.94s
+[2026-04-01 06:44:32] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:32] [INFO] function p(DynamicBuffer memory buffer, bytes memory data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = buffer;
+        uint256 dataLength = data.length;
+        if (dataLength == 0) {
+            return result;
+        }
+        /// @solidity memory-safe-assembly
+        assembly {
+            let bufferPtr := mload(result)
+            let bufferLen := mload(bufferPtr)
+            let newLen := add(bufferLen, dataLength)
+            let capPtr := sub(bufferPtr, 0x20)
+            let cap := mload(capPtr)
+            let capacity := div(cap, 0x07)
+
+            if gt(newLen, capacity) {
+                let newCap := mul(cap, 2)
+                if iszero(newCap) { newCap := 0x20 }
+                if lt(newCap, newLen) { newCap := newLen }
+                newCap := mul(newCap, 0x07)
+
+                let freePtr := mload(0x40)
+                let isContiguous := eq(add(bufferPtr, cap), freePtr)
+
+                if isContiguous {
+                    mstore(0x40, add(freePtr, sub(newCap, cap)))
+                    mstore(capPtr, newCap)
+                } else {
+                    let newPtr := freePtr
+                    mstore(0x40, add(newPtr, add(0x20, newCap)))
+                    mstore(newPtr, newCap)
+                    let dataStart := add(bufferPtr, 0x20)
+                    let newStart := add(newPtr, 0x20)
+                    if bufferLen {
+                        pop(staticadd(gas(), 0), dataStart, newStart, bufferLen)
+                    }
+                    mstore(result, newPtr)
+                    bufferPtr := newPtr
+                    capPtr := sub(bufferPtr, 0x20)
+                }
+            }
+
+            if eq(mload(data), 0x01) {
+                mstore(bufferPtr, newLen)
+                leave
+            }
+
+            let dataPtr := add(data, 0x20)
+            let destPtr := add(bufferPtr, add(0x20, bufferLen))
+            let endPtr := add(destPtr, dataLength)
+            let i := sub(endPtr, destPtr)
+
+            for {} gt(i, 0) { i := sub(i, 0x20) } {
+                mstore(add(destPtr, i), mload(add(dataPtr, i)))
+            }
+
+            if and(i, 0x1f) {
+                let offset := and(i, 0x1f)
+                let mask := not(sub(shl(mul(8, offset), 1), 1))
+                mstore(destPtr, and(mload(destPtr), mask))
+            }
+
+            mstore(add(bufferPtr, 0x20), newLen)
+        }
+    }
+[2026-04-01 06:44:32] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:32] [INFO] average_inference_time: 13.30s
+[2026-04-01 06:44:32] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:32] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:32] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:32] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:32] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:32] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:33] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:33] [INFO] function pBool(DynamicBuffer memory buffer, bool data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        uint256 value;
+        assembly {
+            value := data
+        }
+        result = p(buffer, _single(bytes32(value), 1));
+    } 
+[2026-04-01 06:44:33] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:33] [INFO] average_inference_time: 13.09s
+[2026-04-01 06:44:34] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:34] [INFO] function pAddress(DynamicBuffer memory buffer, address data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = p(buffer, _single(bytes32(uint256(uint160(data))), 20));
+    }
+[2026-04-01 06:44:34] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:34] [INFO] average_inference_time: 12.88s
+[2026-04-01 06:44:34] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:34] [INFO] function pUint8(DynamicBuffer memory buffer, uint8 data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = p(buffer, _single(data, 1));
+    }
+[2026-04-01 06:44:34] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:34] [INFO] average_inference_time: 12.67s
+[2026-04-01 06:44:35] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:35] [INFO] function pUint32(DynamicBuffer memory buffer, uint32 data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = p(buffer, _single(data, 4));
+    }
+[2026-04-01 06:44:35] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:35] [INFO] average_inference_time: 12.48s
+[2026-04-01 06:44:36] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:36] [INFO] function pUint256(DynamicBuffer memory buffer, uint256 data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = p(buffer, _single(data, 32));
+    }
+[2026-04-01 06:44:36] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:36] [INFO] average_inference_time: 12.29s
+[2026-04-01 06:44:53] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:53] [INFO] function pBytes1(DynamicBuffer memory buffer, bytes1 data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = p(buffer, _single(bytes32(data), 1));
+    }
+[2026-04-01 06:44:53] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:53] [INFO] average_inference_time: 12.37s
+[2026-04-01 06:44:54] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:54] [INFO] function pBytes3(DynamicBuffer memory buffer, bytes3 data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = p(buffer, _single(bytes32(data), 3));
+    }
+[2026-04-01 06:44:54] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:54] [INFO] average_inference_time: 12.19s
+[2026-04-01 06:44:55] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:55] [INFO] function pBytes32(DynamicBuffer memory buffer, bytes32 data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = p(buffer, _single(data, 32));
+    }
+[2026-04-01 06:44:55] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:55] [INFO] average_inference_time: 12.02s
+[2026-04-01 06:44:55] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:55] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:55] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:55] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:55] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:55] [INFO] exist patch file, skipping DynamicBufferLib.t.sol_function_p
+[2026-04-01 06:44:55] [INFO] file_path:
+/root/solady/lib/solady/src/utils/EfficientHashLib.sol
+[2026-04-01 06:44:55] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/EfficientHashLib.sol
+[2026-04-01 06:44:55] [INFO] file_path:
+/root/solady/lib/solady/src/utils/Lifebuoy.sol
+[2026-04-01 06:44:55] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/Lifebuoy.sol
+[2026-04-01 06:44:55] [INFO] file_path:
+/root/solady/lib/solady/src/utils/LibRLP.sol
+[2026-04-01 06:44:55] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/LibRLP.sol
+[2026-04-01 06:44:55] [INFO] file_path:
+/root/solady/lib/solady/src/utils/EnumerableMapLib.sol
+[2026-04-01 06:44:55] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/EnumerableMapLib.sol
+[2026-04-01 06:44:55] [INFO] file_path:
+/root/solady/lib/solady/src/utils/ReentrancyGuard.sol
+[2026-04-01 06:44:55] [INFO] Skip file_path: /root/solady/lib/solady/src/utils/ReentrancyGuard.sol
+[2026-04-01 06:44:55] [INFO] file_path:
+/root/solady/lib/solady/src/utils/FixedPointMathLib.sol
+[2026-04-01 06:44:58] [INFO] --------------function(start)-----------------
+[2026-04-01 06:44:58] [INFO] function mulWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if and(iszero(iszero(y)), gt(x, div(not(0), y))) {
+                mstore(0x00, 0xbac65e5b)
+                revert(0x1c, 0x04)
+            }
+            z := div(mul(x, y), 1000000000000000000)
+        }
+    }
+[2026-04-01 06:44:58] [INFO] --------------function(end)-----------------
+[2026-04-01 06:44:58] [INFO] average_inference_time: 11.88s
+[2026-04-01 06:45:08] [INFO] --------------function(start)-----------------
+[2026-04-01 06:45:08] [INFO] function sMulWad(int256 x, int256 y) internal  pure returns (int256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mul := mul(x, y)
+            let xNeg := slt(x, 0)
+            let yNeg := slt(y, 0)
+            let xyNeg := xor(xNeg, yNeg)
+            let xyAbs := xor(mul, sub(0, xyNeg))
+            let xyAbsSub := sub(xyAbs, xyNeg)
+            let remainder := mod(xyAbsSub, WAD)
+            let divResult := sdiv(mul, WAD)
+            let check1 := iszero(iszero(x))
+            let check2 := iszero(eq(sdiv(mul, x), y))
+            let check3 := and(eq(x, -1), eq(y, sub(0, 0x8000000000000000000000000000000000000000000000000000000000000000)))
+            if and(check1, or(check2, check3)) {
+                mstore(0x00, 0xbac65e5b) // `SMulWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            z := divResult
+        }
+    }
+[2026-04-01 06:45:08] [INFO] --------------function(end)-----------------
+[2026-04-01 06:45:08] [INFO] average_inference_time: 11.85s
+[2026-04-01 06:45:11] [INFO] --------------function(start)-----------------
+[2026-04-01 06:45:11] [INFO] function rawMulWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := div(mul(x, y), WAD)
+        }
+    }
+[2026-04-01 06:45:11] [INFO] --------------function(end)-----------------
+[2026-04-01 06:45:11] [INFO] average_inference_time: 11.72s
+[2026-04-01 06:45:12] [INFO] --------------function(start)-----------------
+[2026-04-01 06:45:12] [INFO] function rawSMulWad(int256 x, int256 y) internal  pure returns (int256 z) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            z := sdiv(mul(x, y), WAD)
+        }
+    }
+[2026-04-01 06:45:12] [INFO] --------------function(end)-----------------
+[2026-04-01 06:45:12] [INFO] average_inference_time: 11.56s
+[2026-04-01 06:45:15] [INFO] --------------function(start)-----------------
+[2026-04-01 06:45:15] [INFO] function mulWadUp(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := mul(x, y)
+            if and(iszero(iszero(y)), xor(x, div(z, y))) {
+                mstore(0x00, 0x1e20c4f5) // `MulWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            z := add(iszero(iszero(mod(z, WAD))), div(z, WAD))
+        }
+    }
+[2026-04-01 06:45:15] [INFO] --------------function(end)-----------------
+[2026-04-01 06:45:15] [INFO] average_inference_time: 11.43s
+[2026-04-01 06:45:21] [INFO] --------------function(start)-----------------
+[2026-04-01 06:45:21] [INFO] function divWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+function divWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if or(iszero(y), gt(x, mul(sub(mul(115792089237316195423570985008687907853269984665640564039457584007913129639935, WAD), 1), y))) {
+                mstore(0x00, 0x7559e9c7) // `DivWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            z := div(mul(x, WAD), y)
+        }
+    }
+}
+[2026-04-01 06:45:21] [INFO] --------------function(end)-----------------
+[2026-04-01 06:45:21] [INFO] average_inference_time: 11.36s
+[2026-04-01 06:45:42] [INFO] --------------function(start)-----------------
+[2026-04-01 06:45:42] [INFO] function sDivWad(int256 x, int256 y) internal  pure returns (int256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if iszero(y) {
+                mstore(0x00, 0x93936799) // `SDivWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            let xx := x
+            let yy := y
+            let negative := xor(xx < 0, yy < 0)
+            if xx < 0 { xx := sub(0, xx) }
+            if yy < 0 { yy := sub(0, yy) }
+            let prod := mul(xx, 1000000000000000000)
+            if and(gt(xx, 0), lt(xx, div(add(prod, sub(0, 1)), xx))) {
+                 mstore(0x00, 0x93936799)
+                 revert(0x1c, 0x04)
+            }
+            z := sdiv(prod, yy)
+            if negative { z := sub(0, z) }
+        }
+    }
+[2026-04-01 06:45:42] [INFO] --------------function(end)-----------------
+[2026-04-01 06:45:42] [INFO] average_inference_time: 11.49s
+[2026-04-01 06:45:56] [INFO] --------------function(start)-----------------
+[2026-04-01 06:45:56] [INFO] function rawDivWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := div(mul(x, WAD), y)
+        }
+    }
+[2026-04-01 06:45:56] [INFO] --------------function(end)-----------------
+[2026-04-01 06:45:56] [INFO] average_inference_time: 11.53s
+[2026-04-01 06:46:01] [INFO] --------------function(start)-----------------
+[2026-04-01 06:46:01] [INFO] function rawSDivWad(int256 x, int256 y) internal  pure returns (int256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := sdiv(mul(x, WAD), y)
+        }
+    }
+[2026-04-01 06:46:01] [INFO] --------------function(end)-----------------
+[2026-04-01 06:46:01] [INFO] average_inference_time: 11.44s
+[2026-04-01 06:46:06] [INFO] --------------function(start)-----------------
+[2026-04-01 06:46:06] [INFO] function divWadUp(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if or(iszero(y), gt(x, 115792089237316195423570985008687907853269984665640564039457584007913129639935)) {
+                mstore(0x00, 0x1e4cb875) // `DivWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            let product := mul(x, WAD)
+            z := add(iszero(iszero(mod(product, y))), div(product, y))
+        }
+    }
+[2026-04-01 06:46:06] [INFO] --------------function(end)-----------------
+[2026-04-01 06:46:06] [INFO] average_inference_time: 11.35s

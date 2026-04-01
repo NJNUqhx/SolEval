@@ -1,0 +1,9 @@
+function argsOnERC1967I(address instance) internal  view returns (bytes memory args) {
+assembly {
+            args := mload(0x40)
+            let size := and(sub(extcodesize(instance), 0x52), 0xFFFFFFFF)
+            extcodecopy(instance, add(args, 0x20), 0x52, size)
+            mstore(args, size)
+            mstore(0x40, add(add(args, 0x20), size))
+        }
+    }

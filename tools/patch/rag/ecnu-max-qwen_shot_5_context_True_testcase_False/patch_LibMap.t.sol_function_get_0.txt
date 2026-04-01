@@ -1,0 +1,10 @@
+function get(Uint8Map storage map, uint256 index) internal  view returns (uint8 result) {
+assembly {
+            mstore(0x20, map.slot)
+            mstore(0x00, shr(5, index))
+            let slot := keccak256(0x00, 0x40)
+            let value := sload(slot)
+            let shift := shl(3, and(index, 31))
+            result := shr(shift, value)
+        }
+    }

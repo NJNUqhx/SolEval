@@ -1,0 +1,5 @@
+function pack_2_2(bytes2 left, bytes2 right) internal  pure returns (bytes4 result) {
+assembly {
+            result := or(shr(16, left), shl(16, right))
+        }
+    }

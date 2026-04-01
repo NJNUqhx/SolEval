@@ -1,0 +1,6 @@
+function and(bool x, bool y) internal  pure returns (bool z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := and(iszero(iszero(x)), iszero(iszero(y)))
+        }
+    }

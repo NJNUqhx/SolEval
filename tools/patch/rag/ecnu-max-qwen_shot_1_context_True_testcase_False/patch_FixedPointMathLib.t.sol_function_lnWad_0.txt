@@ -1,0 +1,140 @@
+function lnWad(int256 x) internal  pure returns (int256 r) {
+assembly {
+        // Check if x <= 0, revert with LnWadUndefined()
+        if iszero(sgt(x, 0)) {
+            mstore(0x00, 0xc7176c9c00000000000000000000000000000000000000000000000000000000) // selector for LnWadUndefined()
+            revert(0x1c, 0x04)
+        }
+
+        // Convert x from 1e18 to 2^96 fixed-point: x_2_96 = x * 2^96 / 1e18
+        // We use a precomputed constant: 2^96 / 1e18 = 79228162514264337593543950336 (approx)
+        // But we do it via shifting and division for precision
+        let x_2_96 := mul(x, 79228162514264337593543950336)
+        x_2_96 := div(x_2_96, 1e18)
+
+        // Compute k = log2(x_2_96) - 96
+        // We find the position of the most significant bit to approximate log2
+        let msb := 0
+        let temp := x_2_96
+        if iszero(temp) {
+            revert(0x00, 0x00)
+        }
+        if gt(temp, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) {
+            msb := 128
+            temp := shr(128, temp)
+        }
+        if gt(temp, 0xFFFFFFFFFFFFFFFF) {
+            msb := add(msb, 64)
+            temp := shr(64, temp)
+        }
+        if gt(temp, 0xFFFFFFFF) {
+            msb := add(msb, 32)
+            temp := shr(32, temp)
+        }
+        if gt(temp, 0xFFFF) {
+            msb := add(msb, 16)
+            temp := shr(16, temp)
+        }
+        if gt(temp, 0xFF) {
+            msb := add(msb, 8)
+            temp := shr(8, temp)
+        }
+        if gt(temp, 0xF) {
+            msb := add(msb, 4)
+            temp := shr(4, temp)
+        }
+        if gt(temp, 0x3) {
+            msb := add(msb, 2)
+            temp := shr(2, temp)
+        }
+        if gt(temp, 0x1) {
+            msb := add(msb, 1)
+        }
+        let k := sub(msb, 96)
+
+        // r = 159 - k
+        let r_val := sub(159, k)
+
+        // Reduce x to range [2^96, 2^97) by shifting
+        let x_reduced := shl(sub(255, msb), x_2_96)
+        x_reduced := shr(sub(255, msb), x_2_96)
+        // Normalize to [1, 2) * 2^96
+        x_reduced := shr(sub(msb, 96), x_2_96)
+
+        // Rational approximation coefficients for ln(x) in [1,2)
+        // Using (8,8) Pade approximation
+        let p := 0
+        let q := 0
+
+        // Numerator polynomial: p = a0 + a1*y + a2*y^2 + ... + a8*y^8
+        // Denominator polynomial: q = b0 + b1*y + ... + b8*y^8
+        // where y = (x_reduced - 2^96) / (x_reduced + 2^96)
+
+        let y_num := sub(x_reduced, 79228162514264337593543950336)
+        let y_den := add(x_reduced, 79228162514264337593543950336)
+        let y := mul(y_num, 1e18)
+        y := div(y, y_den)
+
+        // Coefficients for numerator (scaled by 1e18)
+        let a0 := 0
+        let a1 := 2000000000000000000
+        let a2 := 0
+        let a3 := 400000000000000000
+        let a4 := 0
+        let a5 := 114285714285714285
+        let a6 := 0
+        let a7 := 40404040404040404
+        let a8 := 0
+
+        // Coefficients for denominator (scaled by 1e18)
+        let b0 := 2000000000000000000
+        let b1 := 0
+        let b2 := 1200000000000000000
+        let b3 := 0
+        let b4 := 480000000000000000
+        let b5 := 0
+        let b6 := 137142857142857142
+        let b7 := 0
+        let b8 := 28282828282828282
+
+        // Evaluate numerator using Horner's method
+        p := a8
+        p := add(mul(p, y), a7)
+        p := add(mul(p, y), a6)
+        p := add(mul(p, y), a5)
+        p := add(mul(p, y), a4)
+        p := add(mul(p, y), a3)
+        p := add(mul(p, y), a2)
+        p := add(mul(p, y), a1)
+        p := add(mul(p, y), a0)
+
+        // Evaluate denominator using Horner's method
+        q := b8
+        q := add(mul(q, y), b7)
+        q := add(mul(q, y), b6)
+        q := add(mul(q, y), b5)
+        q := add(mul(q, y), b4)
+        q := add(mul(q, y), b3)
+        q := add(mul(q, y), b2)
+        q := add(mul(q, y), b1)
+        q := add(mul(q, y), b0)
+
+        // Compute p / q
+        let ln_approx := mul(p, 1e18)
+        ln_approx := div(ln_approx, q)
+
+        // Final adjustment:
+        // result = ln_approx * s + ln(2^96 / 1e18) + k * ln(2)
+        // s = 1 (since we are already in natural log scale)
+        // ln(2^96 / 1e18) ≈ -4.1588830833596718 (scaled by 1e18)
+        // ln(2) ≈ 0.6931471805599453 (scaled by 1e18)
+
+        let ln2 := 693147180559945309
+        let ln_scale := -4158883083359671800
+
+        let result := add(ln_approx, ln_scale)
+        result := add(result, mul(k, ln2))
+
+        r := result
+    }
+}

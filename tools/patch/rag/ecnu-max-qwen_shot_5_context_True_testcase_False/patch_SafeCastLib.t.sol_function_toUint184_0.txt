@@ -1,0 +1,4 @@
+function toUint184(uint256 x) internal  pure returns (uint184) {
+if (x >= type(uint184).max + 1) revert Overflow();
+        return uint184(x);
+    }

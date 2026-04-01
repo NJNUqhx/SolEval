@@ -1,0 +1,8 @@
+function gm(string memory myGm) external   returns(string memory greet) {
+string memory expectedGreeting = "gm";
+        if (keccak256(bytes(myGm)) != keccak256(bytes(expectedGreeting))) {
+            revert BadGm();
+        }
+        emit GMEverybodyGM();
+        return expectedGreeting;
+    }

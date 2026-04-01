@@ -1,0 +1,44 @@
+function parseProposeUpgradeResponse(string memory stdout) internal  pure returns (ProposeUpgradeResponse memory) {
+ProposeUpgradeResponse memory response;
+        bytes memory stdoutBytes = bytes(stdout);
+        uint256 len = stdoutBytes.length;
+        uint256 i = 0;
+
+        while (i < len) {
+            uint256 lineStart = i;
+            while (i < len && stdoutBytes[i] != 0x0a) {
+                i++;
+            }
+            uint256 lineEnd = i;
+            if (i < len) i++;
+
+            string memory line = string(abi.encodePacked(stdoutBytes[lineStart:lineEnd]));
+            bytes memory lineBytes = bytes(line);
+
+            if (startsWith(lineBytes, "Proposal ID: ")) {
+                bytes memory idBytes = sliceBytes(lineBytes, 13, lineBytes.length - 13);
+                response.proposalId = string(idBytes);
+            } else if (startsWith(lineBytes, "Proposal URL: ")) {
+                bytes memory urlBytes = sliceBytes(lineBytes, 14, lineBytes.length - 14);
+                response.proposalUrl = string(urlBytes);
+            }
+        }
+
+        return response;
+    }
+
+    function startsWith(bytes memory data, bytes memory prefix) internal pure returns (bool) {
+        if (data.length < prefix.length) return false;
+        for (uint256 i = 0; i < prefix.length; i++) {
+            if (data[i] != prefix[i]) return false;
+        }
+        return true;
+    }
+
+    function sliceBytes(bytes memory data, uint256 start, uint256 length) internal pure returns (bytes memory) {
+        bytes memory result = new bytes(length);
+        for (uint256 i = 0; i < length; i++) {
+            result[i] = data[start + i];
+        }
+        return result;
+    }

@@ -1,0 +1,19 @@
+function set(Uint8Map storage map, uint256 index, uint8 value) internal {
+bytes32 slot = map.slot;
+        uint256 bucket = index / 32;
+        uint256 offset = index % 32;
+        bytes32 targetSlot;
+        assembly {
+            targetSlot := add(slot, bucket)
+        }
+        bytes32 currentValue;
+        assembly {
+            currentValue := sload(targetSlot)
+        }
+        bytes32 mask = bytes32(uint256(0xFF) << (offset * 8));
+        bytes32 newValueBytes = bytes32(uint256(value) << (offset * 8));
+        bytes32 updatedValue = (currentValue & ~mask) | (newValueBytes & mask);
+        assembly {
+            sstore(targetSlot, updatedValue)
+        }
+    }

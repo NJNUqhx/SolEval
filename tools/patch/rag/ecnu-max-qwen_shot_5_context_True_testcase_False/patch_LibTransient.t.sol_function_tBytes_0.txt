@@ -1,0 +1,5 @@
+function tBytes(bytes32 tSlot) internal  pure returns (TBytes storage ptr) {
+assembly {
+            ptr.slot := tSlot
+        }
+    }

@@ -1,0 +1,10 @@
+function toInt152(int256 x) internal  pure returns (int152) {
+unchecked {
+        int256 min = type(int152).min;
+        int256 max = type(int152).max;
+        if (x < min || x > max) {
+            revert("Overflow when converting to int152");
+        }
+        return int152(x);
+    }
+}

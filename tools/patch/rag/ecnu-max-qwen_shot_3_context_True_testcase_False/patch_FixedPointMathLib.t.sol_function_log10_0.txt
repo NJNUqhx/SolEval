@@ -1,0 +1,36 @@
+function log10(uint256 x) internal  pure returns (uint256 r) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if gt(x, 100000000000000000000000000000000000000) {
+                x := div(x, 100000000000000000000000000000000000000)
+                r := add(r, 38)
+            }
+            if gt(x, 100000000000000000000) {
+                x := div(x, 100000000000000000000)
+                r := add(r, 20)
+            }
+            if gt(x, 10000000000) {
+                x := div(x, 10000000000)
+                r := add(r, 10)
+            }
+            if gt(x, 100000) {
+                x := div(x, 100000)
+                r := add(r, 5)
+            }
+            if gt(x, 10000) {
+                x := div(x, 10000)
+                r := add(r, 4)
+            }
+            if gt(x, 1000) {
+                x := div(x, 1000)
+                r := add(r, 3)
+            }
+            if gt(x, 100) {
+                x := div(x, 100)
+                r := add(r, 2)
+            }
+            if gt(x, 10) {
+                r := add(r, 1)
+            }
+        }
+    }

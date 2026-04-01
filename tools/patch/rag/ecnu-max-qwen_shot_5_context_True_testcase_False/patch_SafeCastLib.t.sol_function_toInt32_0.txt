@@ -1,0 +1,6 @@
+function toInt32(int256 x) internal  pure returns (int32) {
+if (x < type(int32).min || x > type(int32).max) {
+            revert Overflow();
+        }
+        return int32(x);
+    }

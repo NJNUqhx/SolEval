@@ -1,0 +1,6 @@
+function eq(bytes32 a, bytes memory b) internal  pure returns (bool result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := and(eq(mload(b), 32), eq(a, mload(add(b, 0x20))))
+        }
+    }

@@ -1,0 +1,38 @@
+function add(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 root = set._root;
+    assembly {
+        // Ensure the address is not the zero sentinel value.
+        if iszero(value) {
+            mstore(0x00, 0x6ab8ed3c) // `ValueIsZeroSentinel()`.
+            revert(0x1c, 0x04)
+        }
+        // Load the packed root value from storage.
+        let packed := sload(root)
+        // Extract the length of the set (lower 128 bits).
+        let length := and(packed, 0xffffffffffffffffffffffffffffffff)
+        // Extract the entries pointer (upper 128 bits).
+        let entries := shr(128, packed)
+        // Initialize flag to indicate if the value exists.
+        let exists := 0
+        // Iterate through the set to check if the address already exists.
+        for { let i := 0 } lt(i, length) { i := add(i, 1) } {
+            let entry := sload(add(entries, i))
+            if eq(entry, value) {
+                exists := 1
+                break
+            }
+        }
+        // If the address does not exist, add it to the set.
+        if iszero(exists) {
+            // Store the new value at the next available slot.
+            sstore(add(entries, length), value)
+            // Update the length in the packed root value.
+            packed := or(shl(128, entries), add(length, 1))
+            // Save the updated packed root value back to storage.
+            sstore(root, packed)
+            result := 1
+        } else {
+            result := 0
+        }
+    }
+}

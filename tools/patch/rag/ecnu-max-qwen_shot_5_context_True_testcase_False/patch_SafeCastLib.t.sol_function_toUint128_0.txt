@@ -1,0 +1,4 @@
+function toUint128(uint256 x) internal  pure returns (uint128) {
+if (x >= 2 ** 128) revert("Overflow: uint256 to uint128");
+        return uint128(x);
+    }

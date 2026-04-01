@@ -1,0 +1,59 @@
+function cbrt(uint256 x) internal  pure returns (uint256 z) {
+assembly {
+            if eq(x, 0) {
+                z := 0
+            } else {
+                let log2x := 0
+                let temp := x
+                if gt(temp, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) {
+                    temp := shr(128, temp)
+                    log2x := or(log2x, 128)
+                }
+                if gt(temp, 0xFFFFFFFFFFFFFFFF) {
+                    temp := shr(64, temp)
+                    log2x := or(log2x, 64)
+                }
+                if gt(temp, 0xFFFFFFFF) {
+                    temp := shr(32, temp)
+                    log2x := or(log2x, 32)
+                }
+                if gt(temp, 0xFFFF) {
+                    temp := shr(16, temp)
+                    log2x := or(log2x, 16)
+                }
+                if gt(temp, 0xFF) {
+                    temp := shr(8, temp)
+                    log2x := or(log2x, 8)
+                }
+                if gt(temp, 0xF) {
+                    temp := shr(4, temp)
+                    log2x := or(log2x, 4)
+                }
+                if gt(temp, 0x3) {
+                    temp := shr(2, temp)
+                    log2x := or(log2x, 2)
+                }
+                if gt(temp, 0x1) {
+                    log2x := or(log2x, 1)
+                }
+
+                let initialGuess := shl(div(log2x, 3), 1)
+                z := initialGuess
+
+                for { let i := 0 } lt(i, 4) { i := add(i, 1) } {
+                    let z3 := mul(z, mul(z, z))
+                    let numerator := add(mul(2, z3), x)
+                    let denominator := mul(3, z2)
+                    let nextZ := div(numerator, denominator)
+                    if eq(nextZ, z) {
+                        break
+                    }
+                    z := nextZ
+                }
+                
+                if gt(mul(z, mul(z, z)), x) {
+                    z := sub(z, 1)
+                }
+            }
+        }
+    }

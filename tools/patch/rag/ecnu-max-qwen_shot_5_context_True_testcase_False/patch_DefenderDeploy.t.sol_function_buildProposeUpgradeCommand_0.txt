@@ -1,0 +1,29 @@
+function buildProposeUpgradeCommand(address proxyAddress, address proxyAdminAddress, address newImplementationAddress, ContractInfo memory contractInfo, Options memory opts) internal  view returns (string[] memory) {
+Vm vm = Vm(CHEATCODE_ADDRESS);
+        string[] memory inputs = new string[](255);
+        uint256 inputsCount = 0;
+
+        inputs[inputsCount++] = DEFENDER_DEPLOY_CLIENT_CLI;
+        inputs[inputsCount++] = "propose-upgrade";
+        inputs[inputsCount++] = vm.toString(proxyAddress);
+        inputs[inputsCount++] = vm.toString(newImplementationAddress);
+        inputs[inputsCount++] = vm.toString(block.chainid);
+        inputs[inputsCount++] = contractInfo.path;
+
+        if (proxyAdminAddress != address(0)) {
+            inputs[inputsCount++] = "--proxy-admin";
+            inputs[inputsCount++] = vm.toString(proxyAdminAddress);
+        }
+
+        if (bytes(opts.approvalProcessId).length > 0) {
+            inputs[inputsCount++] = "--approval-process";
+            inputs[inputsCount++] = opts.approvalProcessId;
+        }
+
+        string[] memory result = new string[](inputsCount);
+        for (uint256 i = 0; i < inputsCount; i++) {
+            result[i] = inputs[i];
+        }
+
+        return result;
+    }

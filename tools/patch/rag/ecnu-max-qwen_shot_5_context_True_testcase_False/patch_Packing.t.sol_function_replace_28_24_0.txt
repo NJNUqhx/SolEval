@@ -1,0 +1,9 @@
+function replace_28_24(bytes28 self, bytes24 value, uint8 offset) internal  pure returns (bytes28 result) {
+assembly {
+            let selfVal := shr(32, shl(32, self))
+            let valueVal := shr(32, shl(32, value))
+            let shift := shl(3, sub(24, offset))
+            let mask := not(shl(shift, shr(shift, not(0))))
+            result := shr(32, or(and(selfVal, mask), shl(shift, valueVal)))
+        }
+    }

@@ -1,0 +1,4 @@
+function toUint192(uint256 x) internal  pure returns (uint192) {
+require(x < (1 << 192), "Overflow: uint256 exceeds uint192");
+        return uint192(x);
+    }

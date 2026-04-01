@@ -1,0 +1,49 @@
+function remove(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 rootSlot;
+    assembly ("memory-safe") {
+        rootSlot := set.slot
+    }
+
+    if (value == address(0)) {
+        revert ValueIsZeroSentinel();
+    }
+
+    bytes32 valueBytes = bytes32(uint256(uint160(value)));
+    bytes32 zeroSentinel = bytes32(uint256(1)); 
+
+    assembly ("memory-safe") {
+        let rootData := sload(rootSlot)
+        let length := and(rootData, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+        let found := false
+        let index := 0
+
+        for { } lt(index, length) { index := add(index, 1) } {
+            let elementSlot := add(rootSlot, add(1, index))
+            let element := sload(elementSlot)
+            if eq(element, valueBytes) {
+                found := true
+                let lastElementSlot := add(rootSlot, add(1, sub(length, 1)))
+                let lastElement := sload(lastElementSlot)
+                
+                if eq(lastElement, zeroSentinel) {
+                    lastElement := 0
+                }
+
+                sstore(elementSlot, lastElement)
+                
+                if eq(lastElement, 0) {
+                     sstore(lastElementSlot, zeroSentinel)
+                } else {
+                    sstore(lastElementSlot, 0)
+                }
+
+                let newLength := sub(length, 1)
+                let newRootData := or(and(rootData, not(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)), newLength)
+                sstore(rootSlot, newRootData)
+                break
+            }
+        }
+
+        result := found
+    }
+}

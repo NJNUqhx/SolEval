@@ -1,0 +1,22 @@
+function length(AddressSet storage set) internal  view returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let root := set.slot
+            let packed := sload(root)
+            result := shr(128, packed)
+            if iszero(eq(or(packed, 0xffffffffffffffffffffffffffffffff00000000000000000000000000000000), packed)) {
+                let n := and(0xffffffffffffffffffffffffffffffff, packed)
+                if gt(n, 0) {
+                    let i := 0
+                    let p := keccak256(root, 0x20)
+                    for {} lt(i, n) { i := add(i, 1) } {
+                        if iszero(sload(add(p, i))) {
+                            result := i
+                            break
+                        }
+                        result := add(i, 1)
+                    }
+                }
+            }
+        }
+    }

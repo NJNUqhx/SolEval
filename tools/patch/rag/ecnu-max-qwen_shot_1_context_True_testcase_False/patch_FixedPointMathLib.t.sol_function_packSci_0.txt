@@ -1,0 +1,12 @@
+function packSci(uint256 x) internal  pure returns (uint256 packed) {
+uint256 mantissa;
+    uint256 exponent;
+    (mantissa, exponent) = sci(x);
+    assembly ("memory-safe") {
+        if gt(mantissa, 0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) {
+            mstore(0x00, 0x1f8c0a28)
+            revert(0x1c, 0x04)
+        }
+        packed := or(shl(7, mantissa), exponent)
+    }
+}

@@ -1,0 +1,42 @@
+function canonicalHash(bytes memory signature) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let len := mload(signature)
+            let ptr := add(signature, 0x20)
+            let r := mload(ptr)
+            let s := mload(add(ptr, 0x20))
+            let v := 0
+            let validLen := 0
+
+            if eq(len, 64) {
+                v := add(27, shr(255, s))
+                s := and(s, sub(shl(255, 1), 1))
+                validLen := 1
+            } else if eq(len, 65) {
+                v := and(mload(add(ptr, 0x40)), 0xff)
+                validLen := 1
+            }
+
+            if validLen {
+                if iszero(lt(s, _HALF_N_PLUS_1)) {
+                    v := xor(v, 1)
+                    s := sub(_N, s)
+                }
+                mstore(ptr, r)
+                mstore(add(ptr, 0x20), s)
+                mstore8(add(ptr, 0x40), v)
+                result := keccak256(ptr, 0x41)
+            } else {
+                mstore(ptr, r)
+                mstore(add(ptr, 0x20), s)
+                if gt(len, 0x40) {
+                    v := and(mload(add(ptr, 0x40)), 0xff)
+                    mstore8(add(ptr, 0x40), xor(v, 1))
+                } else {
+                    mstore8(add(ptr, 0x40), 0x01)
+                }
+                result := keccak256(ptr, 0x41)
+                result := xor(result, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+            }
+        }
+}

@@ -1,0 +1,20 @@
+function toChecksumHexString(address addr) internal  pure returns (string memory) {
+string memory result = toHexString(addr);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let o := add(result, 0x22)
+            let hashed := keccak256(o, 40)
+            let mask := shl(6, div(not(0), 255))
+            hashed := and(hashed, mul(34, mask))
+            let t := shl(240, 136)
+            for { let i := 0 } 1 {} {
+                mstore(add(i, i), mul(t, byte(i, hashed)))
+                i := add(i, 1)
+                if eq(i, 20) { break }
+            }
+            mstore(o, xor(mload(o), shr(1, and(mload(0x00), and(mload(o), mask)))))
+            o := add(o, 0x20)
+            mstore(o, xor(mload(o), shr(1, and(mload(0x20), and(mload(o), mask)))))
+        }
+        return result;
+    }

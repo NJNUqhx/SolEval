@@ -1,0 +1,10 @@
+function argsOnClone(address instance) internal  view returns (bytes memory args) {
+/// @solidity memory-safe-assembly
+        assembly {
+            args := mload(0x40)
+            let len := sub(extcodesize(instance), 0x2d)
+            extcodecopy(instance, add(args, 0x20), 0x2d, len)
+            mstore(args, len)
+            mstore(0x40, add(add(args, 0x20), len))
+        }
+    }

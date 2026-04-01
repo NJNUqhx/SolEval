@@ -1,0 +1,24 @@
+function lambertW0Wad(int256 x) internal  pure returns (int256 w) {
+require(x >= -630740443692721868, "OutOfDomain");
+    int256 wad = int256(WAD);
+    int256 p = 0;
+    uint256 i;
+    if (x >= 0) {
+        i = uint256(log2(uint256(x >> 128))) >> 7;
+    } else if (x < -630740443692721800) {
+        i = 32;
+    } else {
+        i = uint256(log2(uint256((-x) >> 128))) >> 7;
+    }
+    if (i > 0) {
+        w = _lambertW0WadApprox(x, i);
+        for (uint256 j = 0; j < i; j++) {
+            p = w;
+            w = w - (w * w - x * expWad(w)) / (w + wad - (w + wad + wad) * (w * w - x * expWad(w)) / (w * w + wad * w + wad * wad));
+            if (w == p) break;
+        }
+    } else {
+        w = x;
+    }
+    return w;
+}

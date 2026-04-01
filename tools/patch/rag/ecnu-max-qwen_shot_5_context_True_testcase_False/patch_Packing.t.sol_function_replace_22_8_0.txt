@@ -1,0 +1,10 @@
+function replace_22_8(bytes22 self, bytes8 value, uint8 offset) internal  pure returns (bytes22 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mask := shr(mul(8, sub(22, add(offset, 8))), not(0))
+            let shiftedValue := shr(mul(8, offset), shl(mul(8, offset), value))
+            let shiftedSelf := shr(mul(8, offset), shl(mul(8, offset), self))
+            let xorPart := xor(shiftedSelf, shiftedValue)
+            result := xor(self, xorPart)
+        }
+    }

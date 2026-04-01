@@ -1,0 +1,17 @@
+function union(uint256[] memory a, uint256[] memory b) internal  pure returns (uint256[] memory c) {
+        uint256 lenA = a.length;
+        uint256 lenB = b.length;
+        uint256 lenC = lenA + lenB;
+        
+        c = new uint256[](lenC);
+        
+        for (uint256 i = 0; i < lenA; ) {
+            c[i] = a[i];
+            unchecked { ++i; }
+        }
+        
+        for (uint256 i = 0; i < lenB; ) {
+            c[lenA + i] = b[i];
+            unchecked { ++i; }
+        }
+    }

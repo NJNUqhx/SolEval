@@ -1,0 +1,11 @@
+function pack_24_8(bytes24 left, bytes8 right) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear the lower 64 bits of `left` to ensure it only occupies the higher 24 bytes.
+            left := and(left, not(shl(192, sub(1, 0))))
+            // Clear the higher 192 bits of `right` to ensure it only occupies the lower 8 bytes.
+            right := and(right, sub(1, shl(192, 0)))
+            // Combine `left` and `right` by shifting `right` to the correct position and performing a bitwise OR operation.
+            result := or(left, shr(192, right))
+        }
+    }

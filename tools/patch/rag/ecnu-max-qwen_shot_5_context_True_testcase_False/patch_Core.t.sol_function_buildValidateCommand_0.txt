@@ -1,0 +1,46 @@
+function buildValidateCommand(string memory contractName, Options memory opts, bool requireReference) internal  view returns (string[] memory) {
+string memory outDir = getOutDir();
+        string[] memory inputBuilder = new string[](20);
+        uint256 inputIndex = 0;
+
+        inputBuilder[inputIndex++] = "npx";
+        inputBuilder[inputIndex++] = UPGRADES_CORE;
+        inputBuilder[inputIndex++] = "validate";
+        inputBuilder[inputIndex++] = outDir;
+        inputBuilder[inputIndex++] = getFullyQualifiedName(contractName, outDir);
+
+        if (bytes(opts.referenceContract).length > 0) {
+            inputBuilder[inputIndex++] = "--reference";
+            inputBuilder[inputIndex++] = opts.referenceContract;
+        }
+        if (bytes(opts.referenceBuildInfoDir).length > 0) {
+            inputBuilder[inputIndex++] = "--referenceBuildInfoDirs";
+            inputBuilder[inputIndex++] = opts.referenceBuildInfoDir;
+        }
+
+        for (uint256 i = 0; i < opts.exclude.length; i++) {
+            inputBuilder[inputIndex++] = "--exclude";
+            inputBuilder[inputIndex++] = opts.exclude[i];
+        }
+
+        if (opts.unsafeSkipStorageCheck) {
+            inputBuilder[inputIndex++] = "--unsafeSkipStorageCheck";
+        }
+        if (requireReference) {
+            inputBuilder[inputIndex++] = "--requireReference";
+        }
+        if (bytes(opts.unsafeAllow).length > 0) {
+            inputBuilder[inputIndex++] = "--unsafeAllow";
+            inputBuilder[inputIndex++] = opts.unsafeAllow;
+        }
+        if (opts.unsafeAllowRenames) {
+            inputBuilder[inputIndex++] = "--unsafeAllowRenames";
+        }
+
+        string[] memory inputs = new string[](inputIndex);
+        for (uint256 i = 0; i < inputIndex; i++) {
+            inputs[i] = inputBuilder[i];
+        }
+
+        return inputs;
+    }

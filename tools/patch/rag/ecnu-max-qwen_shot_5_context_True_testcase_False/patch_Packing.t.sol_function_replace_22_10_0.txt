@@ -1,0 +1,11 @@
+function replace_22_10(bytes22 self, bytes10 value, uint8 offset) internal  pure returns (bytes22 result) {
+assembly {
+            let selfVal := and(self, shl(176, 1))
+            let valueVal := and(value, shl(160, 1))
+            let shift := shl(3, sub(27, offset))
+            let mask := shl(shift, sub(shl(80, 1), 1))
+            let oldSegment := and(selfVal, mask)
+            let newSegment := and(shl(shift, valueVal), mask)
+            result := xor(xor(selfVal, oldSegment), newSegment)
+        }
+    }

@@ -1,0 +1,17 @@
+function nonReentrant()  virtual {
+uint256 _slot = _REENTRANCY_GUARD_SLOT;
+        uint256 _status;
+        assembly {
+            _status := sload(_slot)
+        }
+        if _status == address(this) {
+            revert Reentrancy();
+        }
+        assembly {
+            sstore(_slot, address(this))
+        }
+        _;
+        assembly {
+            sstore(_slot, codesize())
+        }
+    }

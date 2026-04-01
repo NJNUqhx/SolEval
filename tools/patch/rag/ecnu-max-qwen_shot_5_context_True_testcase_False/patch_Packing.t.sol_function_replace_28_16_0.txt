@@ -1,0 +1,12 @@
+function replace_28_16(bytes28 self, bytes16 value, uint8 offset) internal  pure returns (bytes28 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let selfVal := shr(96, shl(96, self))
+            let valueVal := shr(128, shl(128, value))
+            let shift := shl(3, sub(28, add(offset, 16)))
+            let mask := shl(shift, sub(shl(128, 1), 1))
+            let oldSegment := and(selfVal, mask)
+            let newSegment := shl(shift, valueVal)
+            result := xor(xor(selfVal, oldSegment), newSegment)
+        }
+    }

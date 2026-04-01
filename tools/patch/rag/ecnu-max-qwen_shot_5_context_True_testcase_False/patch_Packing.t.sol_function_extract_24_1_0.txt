@@ -1,0 +1,6 @@
+function extract_24_1(bytes24 self, uint8 offset) internal  pure returns (bytes1 result) {
+if (offset >= 24) revert OutOfRangeAccess();
+    assembly {
+        result := shr(184, shl(mul(offset, 8), self))
+    }
+}

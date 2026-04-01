@@ -1,0 +1,13 @@
+function isValidERC1271SignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, 0x1626ba7e00000000000000000000000000000000000000000000000000000000)
+            mstore(add(m, 0x04), hash)
+            mstore(add(m, 0x24), 0x40)
+            mstore(add(m, 0x44), signature.length)
+            calldatacopy(add(m, 0x64), signature.offset, signature.length)
+            isValid := staticcall(gas(), signer, add(m, 0x04), add(0x40, signature.length), m, 0x20)
+            isValid := and(eq(mload(m), 0x1626ba7e), isValid)
+        }
+    }

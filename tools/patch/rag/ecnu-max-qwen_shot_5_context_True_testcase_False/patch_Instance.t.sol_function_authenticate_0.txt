@@ -1,0 +1,5 @@
+function authenticate(string memory passkey) public {
+if (keccak256(bytes(passkey)) == keccak256(bytes(password))) {
+            cleared = true;
+        }
+    }

@@ -1,0 +1,8 @@
+function initCodeHashERC1967BeaconProxy(address beacon) internal  pure returns (bytes32 hash) {
+bytes32 hash) {
+        bytes32 m = _initCodeERC1967BeaconProxy(beacon);
+        assembly {
+            hash := keccak256(add(m, 0x13), 0x98)
+        }
+    }
+}

@@ -1,0 +1,11 @@
+function replace_8_4(bytes8 self, bytes4 value, uint8 offset) internal  pure returns (bytes8 result) {
+uint256 offsetUint = uint256(offset);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let shift := shl(3, sub(4, offsetUint))
+            let mask := shl(shift, 0xffffffff00000000000000000000000000000000000000000000000000000000)
+            let oldValue := and(self, mask)
+            let newValue := and(shl(shift, shl(96, value)), mask)
+            result := xor(xor(self, oldValue), newValue)
+        }
+    }

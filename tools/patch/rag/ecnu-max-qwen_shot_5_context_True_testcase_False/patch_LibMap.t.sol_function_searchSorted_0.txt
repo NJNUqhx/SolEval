@@ -1,0 +1,3 @@
+function searchSorted(Uint8Map storage map, uint8 needle, uint256 start, uint256 end) internal  view returns (bool found, uint256 index) {
+(found, index) = searchSorted(map._data, needle, start, end, 8);
+    }

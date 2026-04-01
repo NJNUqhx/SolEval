@@ -1,0 +1,12 @@
+function createNewInstance(address instance, address level, address player) external  levelExistsCheck(level) {
+require(!playerExists[player], "Player already exists");
+        players.push(player);
+        playerExists[player] = true;
+        if (playerStats[player][level].createdAt == 0) {
+            playerStats[player][level].createdAt = block.timestamp;
+        }
+        playerStats[player][level].instance = instance;
+        playerStats[player][level].isCompleted = false;
+        levelStats[level].noOfInstancesCreated++;
+        globalNoOfInstancesCreatedByPlayer[player]++;
+    }

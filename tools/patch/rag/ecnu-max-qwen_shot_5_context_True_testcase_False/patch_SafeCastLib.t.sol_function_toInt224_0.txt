@@ -1,0 +1,6 @@
+function toInt224(int256 x) internal  pure returns (int224) {
+if (x < type(int224).min || x > type(int224).max) {
+            revert("int256 overflow");
+        }
+        return int224(x);
+    }

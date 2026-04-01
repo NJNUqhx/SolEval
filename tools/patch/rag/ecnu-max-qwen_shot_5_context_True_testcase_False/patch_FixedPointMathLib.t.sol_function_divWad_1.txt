@@ -1,0 +1,12 @@
+function divWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+function divWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            if or(iszero(y), gt(x, mul(sub(WAD, 1), y))) {
+                mstore(0x00, 0x7b5e3d0a) // `DivWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            z := div(mul(x, WAD), y)
+        }
+    }
+}

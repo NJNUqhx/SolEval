@@ -1,0 +1,17 @@
+function argsOnERC1967BeaconProxy(address instance) internal  view returns (bytes memory args) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Calculate the length of the arguments: code size minus the offset (0x52)
+            let length := sub(extcodesize(instance), 0x52)
+            
+            // Allocate memory for the result (32 bytes for length + data length)
+            args := mload(0x40)
+            mstore(args, length)
+            
+            // Copy the code from the contract starting at offset 0x52 into memory after the length slot
+            extcodecopy(instance, add(args, 0x20), 0x52, length)
+            
+            // Update the free memory pointer
+            mstore(0x40, add(args, add(0x20, length)))
+        }
+    }

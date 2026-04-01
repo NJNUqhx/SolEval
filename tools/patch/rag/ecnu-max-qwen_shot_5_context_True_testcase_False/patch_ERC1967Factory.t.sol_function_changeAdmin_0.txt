@@ -1,0 +1,8 @@
+function changeAdmin(address proxy, address admin) public {
+address currentAdmin = address(uint160(uint256(vm.load(proxy, ADMIN_SLOT))));
+        if (msg.sender != currentAdmin) {
+            revert Unauthorized();
+        }
+        vm.store(proxy, ADMIN_SLOT, bytes32(uint256(uint160(admin))));
+        emit AdminChanged(currentAdmin, admin);
+    }

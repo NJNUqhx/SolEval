@@ -1,0 +1,4 @@
+function toUint64(uint256 x) internal  pure returns (uint64) {
+if (x >= 2**64) revert("Overflow: uint256 to uint64");
+        return uint64(x);
+    }

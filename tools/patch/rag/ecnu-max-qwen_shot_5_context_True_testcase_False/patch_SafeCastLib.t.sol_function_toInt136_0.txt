@@ -1,0 +1,8 @@
+function toInt136(int256 x) internal  pure returns (int136) {
+unchecked {
+        if ((x >> 135) == 0 || (x >> 135) == -1) {
+            return int136(x);
+        }
+    }
+    revert Overflow();
+}

@@ -1,0 +1,11 @@
+function log256(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+            if gt(x, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) { r := 32 }
+            else if gt(x, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) { r := 24 }
+            else if gt(x, 0xFFFFFFFFFFFFFFFF) { r := 16 }
+            else if gt(x, 0xFFFFFFFF) { r := 8 }
+            else if gt(x, 0xFFFF) { r := 4 }
+            else if gt(x, 0xFF) { r := 2 }
+            else if gt(x, 0x0) { r := 1 }
+        }
+    }

@@ -1,0 +1,22 @@
+function rescueERC1155(address token, address to, uint256 id, uint256 amount, bytes calldata data) public virtual onlyRescuer(_LIFEBUOY_RESCUE_ERC1155_LOCK) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(0x00, 0xf242432a)
+            mstore(0x20, address())
+            mstore(0x40, to)
+            mstore(0x60, id)
+            mstore(0x80, amount)
+            mstore(0xa0, 0xe0)
+            mstore(0xc0, data.length)
+            calldatacopy(0xe0, data.offset, data.length)
+            if iszero(call(gas(), token, 0, 0x00, add(0xe0, and(add(data.length, 0x1f), not(0x1f))), 0x00, 0x00)) {
+                mstore(0x00, 0x8c379a0000000000000000000000000000000000000000000000000000000000)
+                mstore(0x20, 0x20)
+                mstore(0x40, 0x15)
+                mstore(0x60, 0x5265736375655472616e736665724661696c65640000000000000000000000)
+                revert(0x1c, 0x64)
+            }
+            mstore(0x40, m)
+        }
+    }

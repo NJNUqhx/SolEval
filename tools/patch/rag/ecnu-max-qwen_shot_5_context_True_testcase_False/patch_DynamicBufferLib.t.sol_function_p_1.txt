@@ -1,0 +1,67 @@
+function p(DynamicBuffer memory buffer, bytes memory data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = buffer;
+        uint256 dataLength = data.length;
+        if (dataLength == 0) {
+            return result;
+        }
+
+        assembly {
+            let bufferPtr := add(result, 0x20)
+            let bufferLen := mload(bufferPtr)
+            let newLen := add(bufferLen, dataLength)
+
+            let capacityPtr := sub(bufferPtr, 0x20)
+            let capacity := mload(capacityPtr)
+            let prime := 0x1000000000000000000000000000000000000000000000000000000000000001
+
+            if gt(newLen, capacity) {
+                let newCapacity := mul(capacity, 2)
+                if iszero(newCapacity) {
+                    newCapacity := 0x20
+                }
+                for { lt(newCapacity, newLen) } { newCapacity := mul(newCapacity, 2) } { }
+
+                let freeMem := mload(0x40)
+                let isContiguous := eq(add(bufferPtr, capacity), freeMem)
+
+                if isContiguous {
+                    mstore(0x40, add(freeMem, sub(newCapacity, capacity)))
+                } else {
+                    let newBufferPtr := freeMem
+                    mstore(0x40, add(newBufferPtr, newCapacity))
+                    
+                    for { let i := 0 } { lt(i, bufferLen) } { i := add(i, 0x20) } {
+                        mstore(add(newBufferPtr, i), mload(add(bufferPtr, i)))
+                    }
+                    bufferPtr := newBufferPtr
+                    mstore(add(result, 0x20), bufferPtr)
+                }
+                mstore(capacityPtr, mul(newCapacity, prime))
+            }
+
+            if eq(mload(data), 0x01) {
+                mstore(bufferPtr, newLen)
+                mstore(add(result, 0x20), bufferPtr)
+            } else {
+                let dataPtr := add(data, 0x20)
+                let destPtr := add(bufferPtr, bufferLen)
+                
+                for { let i := dataLength } { gt(i, 0) } { i := sub(i, 0x20) } {
+                    let copyLen := 0x20
+                    if lt(i, 0x20) { copyLen := i }
+                    let offset := sub(dataLength, i)
+                    mstore(add(destPtr, offset), mload(add(dataPtr, offset)))
+                }
+
+                let remainder := mod(newLen, 0x20)
+                if remainder {
+                    let clearPtr := add(destPtr, newLen)
+                    mstore(clearPtr, 0)
+                }
+
+                mstore(bufferPtr, newLen)
+                mstore(add(result, 0x20), bufferPtr)
+            }
+        }
+    }

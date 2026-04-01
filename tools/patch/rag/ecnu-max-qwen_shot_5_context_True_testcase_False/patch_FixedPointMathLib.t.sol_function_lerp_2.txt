@@ -1,0 +1,16 @@
+function lerp(uint256 a, uint256 b, uint256 t, uint256 begin, uint256 end) internal  pure returns (uint256) {
+if (begin > end) {
+            (begin, end) = (end, begin);
+            (a, b) = (b, a);
+        }
+        if (t <= begin) return a;
+        if (t >= end) return b;
+
+        unchecked {
+            if (b >= a) {
+                return a + Math.mulDiv(b - a, t - begin, end - begin);
+            } else {
+                return a - Math.mulDiv(a - b, t - begin, end - begin);
+            }
+        }
+    }

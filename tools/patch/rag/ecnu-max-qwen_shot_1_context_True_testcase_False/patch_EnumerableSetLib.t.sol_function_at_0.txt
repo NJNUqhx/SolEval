@@ -1,0 +1,24 @@
+function at(AddressSet storage set, uint256 i) internal  view returns (address result) {
+uint256 rootSlot;
+        assembly {
+            rootSlot := set.slot
+        }
+
+        uint256 length = length(set);
+        if (i >= length) {
+            revert("IndexOutOfBounds");
+        }
+
+        uint256 slotValue;
+        assembly {
+            let indexSlot := add(rootSlot, add(1, i))
+            slotValue := sload(indexSlot)
+        }
+
+        assembly {
+            result := shr(96, slotValue)
+            if iszero(result) {
+                result := mul(result, 0)
+            }
+        }
+    }

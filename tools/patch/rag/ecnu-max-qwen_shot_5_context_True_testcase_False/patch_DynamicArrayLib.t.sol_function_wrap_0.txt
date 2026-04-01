@@ -1,0 +1,6 @@
+function wrap(address[] memory a) internal  pure returns (DynamicArray memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            mstore(result, a)
+        }
+    }

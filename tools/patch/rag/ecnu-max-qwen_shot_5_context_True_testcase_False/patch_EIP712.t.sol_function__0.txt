@@ -1,0 +1,31 @@
+constructor () {
+constructor () {
+        uint256 cachedAddress = uint256(uint160(address(this)));
+        uint256 cachedChainId = block.chainid;
+
+        if (!_domainNameAndVersionMayChange()) {
+            (string memory name, string memory version) = _domainNameAndVersion();
+            bytes32 cachedNameHash = keccak256(bytes(name));
+            bytes32 cachedVersionHash = keccak256(bytes(version));
+            _cachedNameHash = cachedNameHash;
+            _cachedVersionHash = cachedVersionHash;
+
+            bytes32 cachedDomainSeparator;
+            assembly {
+                let m := mload(0x40)
+                mstore(m, _DOMAIN_TYPEHASH)
+                mstore(add(m, 0x20), cachedNameHash)
+                mstore(add(m, 0x40), cachedVersionHash)
+                mstore(add(m, 0x60), cachedChainId)
+                mstore(add(m, 0x80), cachedAddress)
+                cachedDomainSeparator := keccak256(m, 0xa0)
+            }
+            _cachedDomainSeparator = cachedDomainSeparator;
+        }
+
+        assembly {
+            sstore(_CACHED_DOMAIN_SEPARATOR_SLOT, cachedChainId)
+            sstore(_CACHED_ADDRESS_SLOT, cachedAddress)
+        }
+    }
+}

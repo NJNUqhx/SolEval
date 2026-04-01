@@ -1,0 +1,15 @@
+function cbrtWad(uint256 x) internal  pure returns (uint256 z) {
+if (x < 0x2c678d31f0e3e0000000000000000000) {
+            z = pow256(x, 0x55555555555555555555555555555556);
+        } else {
+            uint256 y = x / 1e18;
+            z = pow256(y, 0x55555555555555555555555555555556) * 1e18;
+        }
+        assembly {
+            let r := mul(z, z)
+            r := div(r, z)
+            if gt(mul(r, r), x) {
+                z := sub(z, 1)
+            }
+        }
+    }

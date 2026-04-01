@@ -1,0 +1,13 @@
+function predictDeterministicAddress(address implementation, bytes32 salt, address deployer) internal  pure returns (address predicted) {
+assembly {
+            let m := mload(0x40)
+            mstore(m, deployer)
+            mstore(add(m, 0x20), implementation)
+            mstore(add(m, 0x40), salt)
+            mstore(0x00, 0xff)
+            mstore(0x20, deployer)
+            mstore(0x40, salt)
+            mstore(0x60, keccak256(add(m, 0x20), 0x40))
+            predicted := and(keccak256(0x00, 0x85), 0xffffffffffffffffffffffffffffffffffffffff)
+        }
+    }

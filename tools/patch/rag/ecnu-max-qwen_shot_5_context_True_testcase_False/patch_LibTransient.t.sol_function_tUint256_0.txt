@@ -1,0 +1,6 @@
+function tUint256(bytes32 tSlot) internal  pure returns (TUint256 storage ptr) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            ptr.slot := tSlot
+        }
+    }

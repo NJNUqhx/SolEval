@@ -1,0 +1,8 @@
+function index(Item memory item) internal  pure returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if and(mload(item), _PARENT_IS_ARRAY) {
+                result := shr(_BIT_INDEX, mload(item))
+            }
+        }
+    }

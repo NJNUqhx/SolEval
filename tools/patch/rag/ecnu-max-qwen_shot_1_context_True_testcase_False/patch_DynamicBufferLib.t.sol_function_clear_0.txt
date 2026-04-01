@@ -1,0 +1,7 @@
+function clear(DynamicBuffer memory buffer) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(buffer);
+    assembly {
+        mstore(buffer, 0)
+    }
+    result = buffer;
+}

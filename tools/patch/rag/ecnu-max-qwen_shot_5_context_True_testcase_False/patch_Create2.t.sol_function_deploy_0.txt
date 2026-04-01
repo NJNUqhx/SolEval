@@ -1,0 +1,22 @@
+function deploy(uint256 amount, bytes32 salt, bytes memory bytecode) internal   returns (address addr) {
+if (address(this).balance < amount) {
+            revert InsufficientBalance();
+        }
+        if (bytecode.length == 0) {
+            revert Create2EmptyBytecode();
+        }
+        assembly {
+            addr := create2(amount, add(bytecode, 0x20), mload(bytecode), salt)
+            if iszero(addr) {
+                if returndatasize() {
+                    returndatacopy(0, 0, returndatasize())
+                    revert(0, returndatasize())
+                }
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+        }
+        if (addr == address(0)) {
+            revert FailedDeployment();
+        }
+    }

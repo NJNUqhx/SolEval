@@ -1,0 +1,29 @@
+function popCount(Bitmap storage bitmap, uint256 start, uint256 amount) internal  view returns (uint256 count) {
+uint256 bucket = start >> 8;
+uint256 shift = start & 0xff;
+uint256 end = start + amount;
+
+if (end > (bucket + 1) << 8) {
+    uint256 firstBucket = bitmap.buckets[bucket];
+    count = popCount(firstBucket >> shift);
+    bucket++;
+    shift = 0;
+    amount -= (256 - shift);
+
+    while (amount >= 256) {
+        count += popCount(bitmap.buckets[bucket]);
+        bucket++;
+        amount -= 256;
+    }
+
+    if (amount > 0) {
+        uint256 lastBucket = bitmap.buckets[bucket];
+        count += popCount(lastBucket & ((1 << amount) - 1));
+    }
+} else {
+    uint256 currentBucket = bitmap.buckets[bucket];
+    uint256 mask = ((1 << amount) - 1) << shift;
+    count = popCount((currentBucket & mask) >> shift);
+}
+return count;
+} 

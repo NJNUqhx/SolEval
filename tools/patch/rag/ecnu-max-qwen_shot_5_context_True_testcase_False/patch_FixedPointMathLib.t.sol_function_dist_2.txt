@@ -1,0 +1,9 @@
+function dist(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let gtXY := gt(x, y)
+            let diff := sub(x, y)
+            let diffInv := sub(y, x)
+            z := xor(diff, mul(xor(diff, diffInv), iszero(gtXY)))
+        }
+    }

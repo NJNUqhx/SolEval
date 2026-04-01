@@ -1,0 +1,7 @@
+function mulWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+if (y == 0 || x <= type(uint256).max / y) {
+        z = (x * y) / WAD;
+    } else {
+        revert MulWadFailed();
+    }
+} 

@@ -1,0 +1,14 @@
+function fullMulDivN(uint256 x, uint256 y, uint8 n) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mm := mulmod(x, y, not(0))
+            z := mul(x, y)
+            if iszero(eq(div(mm, x), y)) { revert(0, 0) }
+            let p1 := sub(mm, add(z, lt(mm, z)))
+            if n {
+                p1 := shr(n, p1)
+                z := add(shr(n, z), shl(sub(256, n), p1))
+                if p1 { revert(0, 0) }
+            }
+        }
+    }

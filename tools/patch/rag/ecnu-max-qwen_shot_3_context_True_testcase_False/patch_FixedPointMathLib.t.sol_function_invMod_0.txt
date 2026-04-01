@@ -1,0 +1,88 @@
+function invMod(uint256 a, uint256 n) internal  pure returns (uint256 x) {
+uint256 g = n;
+        uint256 r = a % n;
+        uint256 y = 1;
+        uint256 s = 0;
+        uint256 q;
+        uint256 temp;
+
+        while (r != 0) {
+            q = g / r;
+            temp = g % r;
+            g = r;
+            r = temp;
+
+            temp = s;
+            s = y;
+            y = temp - (q * y);
+            
+            temp = x;
+            x = s;
+            s = temp - (q * s);
+        }
+
+        if (g != 1) {
+            return 0;
+        }
+
+        if (x > n) {
+            x = x % n;
+        }
+        
+        if (x != 0 && a >= n) {
+             a = a % n;
+        }
+        
+        // Ensure result is positive
+        if (x > n) { 
+             // This case shouldn't happen with correct logic above but for safety in unsigned
+             // Actually, standard extended euclidean can yield negative intermediate values represented as large uints.
+             // The check `if (x > n)` handles the wrapping if x became negative (large uint).
+             // However, the standard way to normalize unsigned result from extended euclid:
+             // If the calculated inverse `x` corresponds to a negative number in signed arithmetic,
+             // it will be a very large number. We need `x = n - (abs(x) % n)` or simply `n - x` if x < n was negative.
+             // Let's re-evaluate the unsigned implementation logic strictly.
+             
+             // Re-implementing the normalization correctly for unsigned:
+             // The loop computes coefficients such that a*x + n*y = g.
+             // If g=1, a*x ≡ 1 (mod n).
+             // The variable `x` here tracks the coefficient for `a`.
+             // In unsigned arithmetic, subtraction wraps around.
+             // If the true mathematical `x` is negative, the stored `x` is `2^256 + true_x`.
+             // We need `x mod n`.
+        }
+        
+        // Correct normalization for unsigned result
+        if (x >= n) {
+            // If x >= n, it might be the raw large value from underflow or just > n.
+            // But in Extended Euclidean with unsigned, if the coefficient is negative, 
+            // it appears as a huge number. 
+            // We simply return x % n? No, because if x was negative, x % n is not the positive inverse.
+            // Example: n=5, inv of 2 is 3. Math: 2*(-2) + 5*1 = 1. Coeff is -2.
+            // Unsigned -2 is MAX_UINT. MAX_UINT % 5 != 3.
+            // We need: if x > n/2 (heuristic) or check if a*x % n == 1?
+            // Better approach: if x > n, then x = n - (x % n) is WRONG.
+            // Correct: if the operation resulted in a "negative" number (wrapped), 
+            // the value is `2^256 - k`. We want `n - (k % n)`.
+            // Actually, simpler: `x = x % n`. If `a * x % n != 1`, then `x = n - x`.
+            // Wait, `x` from the loop is the coefficient.
+            // Let's stick to the subtraction logic: `s = temp - q * y`.
+            // If `temp < q * y`, `s` wraps.
+            // At the end, if `x` corresponds to a negative value, `x` will be large.
+            // The inverse is `x % n` if `x` was positive, or `n - ((-x) % n)` if negative.
+            // Since we can't easily detect sign, we check:
+            uint256 res = x % n;
+            if (mulmod(a, res, n) != 1) {
+                res = n - res;
+            }
+            return res;
+        } else {
+            if (mulmod(a, x, n) != 1) {
+                 // Might happen if x is 0 and n=1? Or other edge cases.
+                 // If x < n and check fails, try n - x.
+                 if (x == 0) return 0; // No inverse or a=0
+                 return n - x;
+            }
+            return x;
+        }
+    }

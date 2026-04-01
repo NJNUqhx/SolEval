@@ -1,0 +1,82 @@
+function sDivWad(int256 x, int256 y) internal  pure returns (int256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if iszero(y) {
+                mstore(0x00, 0xf9c2b5f0) // `SDivWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            let xx := x
+            let yy := y
+            let negative := xor(xx < 0, yy < 0)
+            if xx < 0 { xx := sub(0, xx) }
+            if yy < 0 { yy := sub(0, yy) }
+            
+            // Check for overflow: x * WAD > type(int256).max
+            // WAD = 1e18. type(int256).max = 2^255 - 1.
+            // We check if xx > (type(int256).max / WAD)
+            // Since we are in assembly with unsigned logic for magnitude:
+            // Max int256 magnitude is 2^255 - 1 (if negative) or 2^255 - 1 (if positive).
+            // Actually, int256 min is -2^255, max is 2^255 - 1.
+            // If x is type(int256).min (-2^255), abs(x) is 2^255 which overflows uint256 if we try to represent it as positive int256, 
+            // but here we treat magnitudes as uint256. 2^255 fits in uint256.
+            // However, the result must fit in int256.
+            // Let's just do the multiplication in uint256 and check bounds.
+            
+            let wad := 1000000000000000000
+            let prod := mul(xx, wad)
+            
+            // Check overflow of product relative to int256 bounds?
+            // The result of division will be prod / yy.
+            // If prod is too large, the result might overflow int256.
+            // But standard sDivWad usually just ensures the intermediate x*WAD doesn't wrap around uint256 incorrectly?
+            // No, x*WAD can exceed 2^256-1 if x is large.
+            // x is int256, so max magnitude is 2^255.
+            // 2^255 * 10^18 approx 5.7e94, which is way less than 2^256 (1.1e77)? Wait.
+            // 2^255 is approx 5.7e76.
+            // 5.7e76 * 1e18 = 5.7e94. This exceeds 2^256 (1.15e77).
+            // So mul(xx, wad) WILL overflow uint256 for large x.
+            // We need to detect this or use a different approach.
+            // However, typical implementations assume x is small enough or revert on overflow.
+            // The requirement says: "ensure the multiplication does not overflow".
+            
+            // Check if xx > (2^256 - 1) / WAD
+            let max_uint := sub(not(0), 0)
+            let limit := div(max_uint, wad)
+            if gt(xx, limit) {
+                mstore(0x00, 0xf9c2b5f0)
+                revert(0x1c, 0x04)
+            }
+            
+            prod := mul(xx, wad)
+            
+            // Now divide prod by yy
+            let res := div(prod, yy)
+            
+            // Check if result fits in int256 (must be <= 2^255 - 1)
+            // Since we handled signs separately, res is magnitude.
+            // Max magnitude for int256 is 2^255 (for negative) or 2^255-1 (for positive).
+            // Strictly, if negative, can be 2^255. If positive, 2^255-1.
+            // Let's just check if res > 2^255. If so, it definitely overflows int256 positive, 
+            // and for negative, 2^255 is only valid for -2^255.
+            // Simplified: if res > 0x8000000000000000000000000000000000000000000000000000000000000000 (2^255)
+            // then it's an overflow unless it's exactly 2^255 and the result is negative.
+            // But to be safe and simple as per "SDivWadFailed":
+            if gt(res, 0x8000000000000000000000000000000000000000000000000000000000000000) {
+                 mstore(0x00, 0xf9c2b5f0)
+                 revert(0x1c, 0x04)
+            }
+            if eq(res, 0x8000000000000000000000000000000000000000000000000000000000000000) {
+                if iszero(negative) {
+                    // Positive 2^255 is not representable in int256
+                    mstore(0x00, 0xf9c2b5f0)
+                    revert(0x1c, 0x04)
+                }
+            }
+            
+            if negative {
+                z := sub(0, res)
+            } else {
+                z := res
+            }
+        }
+    }

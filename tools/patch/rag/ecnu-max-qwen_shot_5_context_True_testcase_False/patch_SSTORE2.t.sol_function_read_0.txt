@@ -1,0 +1,10 @@
+function read(address pointer) internal  view returns (bytes memory data) {
+assembly {
+            data := mload(0x40)
+            let length := extcodesize(pointer)
+            let end := add(data, add(length, 0x20))
+            mstore(data, length)
+            extcodecopy(pointer, add(data, 0x20), 0, length)
+            mstore(0x40, end)
+        }
+    }

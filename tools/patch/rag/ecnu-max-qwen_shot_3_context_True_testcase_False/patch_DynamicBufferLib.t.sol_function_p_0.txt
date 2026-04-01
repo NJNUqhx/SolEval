@@ -1,0 +1,55 @@
+function p(DynamicBuffer memory buffer, bytes memory data) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = buffer;
+        uint256 dataLength = data.length;
+        if (dataLength == 0) {
+            return result;
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let bufferPtr := mload(buffer)
+            let bufferLen := mload(bufferPtr)
+            let newLen := add(bufferLen, dataLength)
+
+            let capacityPtr := sub(bufferPtr, 0x20)
+            let capacity := mload(capacityPtr)
+            let prime := 0x1000000000000000000000000000000000000000000000000000000000000001
+
+            if iszero(lt(newLen, capacity)) {
+                let newCapacity := mul(add(newLen, 0x1f), prime)
+                let isContiguous := eq(add(bufferPtr, capacity), mload(0x40))
+
+                if isContiguous {
+                    mstore(0x40, add(bufferPtr, newCapacity))
+                } else {
+                    let newBufferPtr := mload(0x40)
+                    mstore(0x40, add(newBufferPtr, newCapacity))
+                    mcopy(newBufferPtr, bufferPtr, bufferLen)
+                    mstore(buffer, newBufferPtr)
+                    bufferPtr := newBufferPtr
+                }
+                mstore(capacityPtr, newCapacity)
+            }
+
+            if eq(mload(data), 0x01) {
+                mstore(bufferPtr, newLen)
+                mstore(add(bufferPtr, 0x20), 0)
+                mstore(add(add(bufferPtr, 0x20), bufferLen), 0)
+                mstore(add(add(bufferPtr, 0x20), newLen), 0)
+            } else {
+                let dataPtr := add(data, 0x20)
+                let destPtr := add(add(bufferPtr, 0x20), bufferLen)
+                let endPtr := add(destPtr, dataLength)
+                let i := sub(endPtr, destPtr)
+
+                for {} gt(i, 0) {} {
+                    i := sub(i, 0x20)
+                    mstore(add(destPtr, i), mload(add(dataPtr, i)))
+                }
+
+                mstore(endPtr, 0)
+                mstore(bufferPtr, newLen)
+            }
+        }
+    }

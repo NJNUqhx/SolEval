@@ -1,0 +1,10 @@
+function initCodeERC1967BeaconProxy(address beacon) internal  pure returns (bytes memory c) {
+assembly {
+            c := mload(0x40)
+            mstore(c, 0x7b)
+            mstore(add(c, 0x20), 0x60363d3d37363d34f03d5260086018f367363d3d37363d345af03d5260086018f35b)
+            mstore(add(c, 0x40), beacon)
+            mstore(add(c, 0x54), 0x16)
+            mstore(add(c, 0x60), 0x00)
+        }
+    }

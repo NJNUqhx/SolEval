@@ -1,0 +1,4 @@
+function toUint120(uint256 x) internal  pure returns (uint120) {
+if (x > type(uint120).max) revert Overflow();
+        return uint120(x);
+    }

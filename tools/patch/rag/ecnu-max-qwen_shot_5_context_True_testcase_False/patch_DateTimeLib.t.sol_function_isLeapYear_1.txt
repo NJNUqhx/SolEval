@@ -1,0 +1,8 @@
+function isLeapYear(uint256 year) internal  pure returns (bool leap) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let div25 := div(year, 25)
+            leap := iszero(and(div25, 3))
+            if iszero(mod(year, 16)) { leap := true }
+        }
+    }

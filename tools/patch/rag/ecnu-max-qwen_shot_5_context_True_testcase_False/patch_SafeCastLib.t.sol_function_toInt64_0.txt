@@ -1,0 +1,4 @@
+function toInt64(int256 x) internal  pure returns (int64) {
+require(x >= type(int64).min && x <= type(int64).max, "Overflow when converting int256 to int64");
+        return int64(x);
+    }

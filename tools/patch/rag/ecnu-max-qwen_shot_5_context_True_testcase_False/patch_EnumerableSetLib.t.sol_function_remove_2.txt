@@ -1,0 +1,70 @@
+function remove(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 root = set._slot;
+    assembly {
+        // Ensure the address is properly aligned and not the zero sentinel.
+        if iszero(value) {
+            mstore(0x00, 0x6f7765727365742076616c7565206973207a65726f2073656e74696e656c0000) // "ValueIsZeroSentinel()"
+            revert(0x1c, 0x24)
+        }
+
+        // Load the packed root data from storage.
+        let data := sload(root)
+
+        // Extract length and first element.
+        let len := and(data, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+        let first := shr(256, data)
+
+        // If the set is empty, return false.
+        if iszero(len) {
+            result := 0
+            leave
+        }
+
+        // Check if the value is the first element.
+        if eq(first, value) {
+            // If length is 1, just clear the slot.
+            if eq(len, 1) {
+                sstore(root, 0)
+            } else {
+                // Load the last element.
+                let lastSlot := add(root, sub(len, 1))
+                let last := sload(lastSlot)
+                
+                // Move the last element to the first position.
+                data := or(shl(256, last), sub(len, 1))
+                sstore(root, data)
+                
+                // Clear the last slot.
+                sstore(lastSlot, 0)
+            }
+            result := 1
+            leave
+        }
+
+        // Iterate through the set to find the address.
+        let found := 0
+        let i := 1
+        for { } lt(i, len) { i := add(i, 1) } {
+            let slot := add(root, i)
+            let val := sload(slot)
+            if eq(val, value) {
+                found := 1
+                let lastSlot := add(root, sub(len, 1))
+                let last := sload(lastSlot)
+                
+                // Move the last element to the current position.
+                sstore(slot, last)
+                
+                // Clear the last slot.
+                sstore(lastSlot, 0)
+                
+                // Update the length in the root slot.
+                data := or(shl(256, first), sub(len, 1))
+                sstore(root, data)
+                break
+            }
+        }
+
+        result := found
+    }
+} 

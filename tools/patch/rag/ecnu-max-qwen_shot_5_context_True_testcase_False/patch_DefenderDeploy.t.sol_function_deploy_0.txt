@@ -1,0 +1,23 @@
+function deploy(string memory contractName, bytes memory constructorData, DefenderOptions memory defenderOpts) internal   returns (address) {
+string memory outDir = getOutDir();
+        ContractInfo memory info = getContractInfo(contractName, outDir);
+        string memory buildInfoFile = getBuildInfoFile(info.sourceCodeHash, info.contractShortName, outDir);
+
+        string[] memory inputs = new string[](8);
+        inputs[0] = "openzeppelin-defender-deploy";
+        inputs[1] = "--contract-name";
+        inputs[2] = contractName;
+        inputs[3] = "--constructor-args";
+        inputs[4] = vm.toString(constructorData);
+        inputs[5] = "--build-info";
+        inputs[6] = buildInfoFile;
+        inputs[7] = vm.toString(defenderOpts);
+
+        Vm.FfiResult memory result = runAsBashCommand(inputs);
+
+        if (result.exitCode != 0) {
+            revert(string(abi.encodePacked("Deployment failed: ", string(result.stderr))));
+        }
+
+        return parseAddress(string(result.stdout));
+    }

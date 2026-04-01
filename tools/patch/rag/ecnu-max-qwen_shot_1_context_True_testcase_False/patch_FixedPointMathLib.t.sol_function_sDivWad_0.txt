@@ -1,0 +1,26 @@
+function sDivWad(int256 x, int256 y) internal  pure returns (int256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let xx := x
+            let yy := y
+            let wad := 1000000000000000000
+            if iszero(yy) {
+                mstore(0x00, 0x8d6ea83500000000000000000000000000000000000000000000000000000000)
+                revert(0x1c, 0x04)
+            }
+            let absX := xor(xx, shr(255, add(xx, shr(255, xx))))
+            let absY := xor(yy, shr(255, add(yy, shr(255, yy))))
+            let prod := mul(absX, wad)
+            if and(lt(absX, 0), gt(0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff, div(prod, absY))) {
+                mstore(0x00, 0x8d6ea83500000000000000000000000000000000000000000000000000000000)
+                revert(0x1c, 0x04)
+            }
+            if and(lt(absY, 0), gt(0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff, div(prod, absX))) {
+                mstore(0x00, 0x8d6ea83500000000000000000000000000000000000000000000000000000000)
+                revert(0x1c, 0x04)
+            }
+            let q := div(prod, absY)
+            let sign := xor(shr(255, xx), shr(255, yy))
+            z := sub(xor(q, mul(sign, add(q, q))), sign)
+        }
+    }

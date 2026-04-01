@@ -1,0 +1,4 @@
+function toUint8(uint256 x) internal  pure returns (uint8) {
+if (x >= 2**8) revert SafeCastOverflowedUint8(x);
+        return uint8(x);
+    }

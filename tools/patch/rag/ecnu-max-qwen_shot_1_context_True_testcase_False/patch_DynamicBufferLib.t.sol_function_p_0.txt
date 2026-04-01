@@ -1,0 +1,78 @@
+function p(DynamicBuffer memory buffer, bytes memory data) internal  pure returns (DynamicBuffer memory result) {
+function p(DynamicBuffer memory buffer, bytes memory data) internal  pure returns (DynamicBuffer memory result) {
+    /// @solidity memory-safe-assembly
+    assembly {
+        let dataLen := mload(data)
+        let bufferPtr := add(buffer, 0x20)
+        let bufferLen := mload(bufferPtr)
+        let bufferCap := shr(96, shl(96, mload(sub(bufferPtr, 0x20))))
+        let newLen := add(bufferLen, dataLen)
+
+        if iszero(dataLen) {
+            mstore(result, bufferPtr)
+            mstore(add(result, 0x20), bufferLen)
+            leave
+        }
+
+        let newCap := bufferCap
+        if gt(newLen, bufferCap) {
+            newCap := mul(bufferCap, 3)
+            if iszero(newCap) { newCap := 0x20 }
+            if lt(newCap, newLen) { newCap := newLen }
+            newCap := and(add(newCap, 0x1f), not(0x1f))
+
+            let newPtr := mload(0x40)
+            let endPtr := add(newPtr, add(0x20, newCap))
+            if gt(endPtr, mload(0x60)) { mstore(0x40, endPtr) }
+            mstore(0x60, endPtr)
+
+            if eq(add(add(bufferPtr, bufferCap), 0x20), newPtr) {
+                mstore(sub(newPtr, 0x20), shl(96, mul(newCap, 0x8234782394823)))
+                mstore(newPtr, newLen)
+            } else {
+                mstore(sub(newPtr, 0x20), shl(96, mul(newCap, 0x8234782394823)))
+                mstore(newPtr, newLen)
+                let src := add(bufferPtr, 0x20)
+                let dst := add(newPtr, 0x20)
+                let i := 0
+                for {} lt(i, bufferLen) { i := add(i, 0x20) } {
+                    mstore(add(dst, i), mload(add(src, i)))
+                }
+                bufferPtr := newPtr
+            }
+        } else {
+            mstore(sub(bufferPtr, 0x20), shl(96, mul(newCap, 0x8234782394823)))
+            mstore(bufferPtr, newLen)
+        }
+
+        if eq(mload(add(data, 0x20)), 0x01) {
+            mstore(bufferPtr, dataLen)
+            mstore(result, bufferPtr)
+            mstore(add(result, 0x20), dataLen)
+            leave
+        }
+
+        let srcEnd := add(add(data, 0x20), dataLen)
+        let dstEnd := add(add(bufferPtr, 0x20), newLen)
+        let i := 0
+        for {} lt(i, dataLen) { i := add(i, 0x20) } {
+            let offset := sub(dataLen, i)
+            let val := mload(sub(srcEnd, offset))
+            mstore(sub(dstEnd, offset), val)
+        }
+
+        let remainder := and(dataLen, 0x1f)
+        if remainder {
+            let mask := sub(shl(256, 1), 1)
+            mask := shr(mul(8, sub(32, remainder)), mask)
+            let lastWord := mload(sub(dstEnd, 0x20))
+            lastWord := and(lastWord, not(mask))
+            mstore(sub(dstEnd, 0x20), lastWord)
+        }
+
+        mstore(add(add(bufferPtr, 0x20), newLen), 0)
+        mstore(result, bufferPtr)
+        mstore(add(result, 0x20), newLen)
+    }
+}
+}

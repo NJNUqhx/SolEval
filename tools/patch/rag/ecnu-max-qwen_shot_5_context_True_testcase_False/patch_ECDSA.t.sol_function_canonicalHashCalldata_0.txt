@@ -1,0 +1,35 @@
+function canonicalHashCalldata(bytes calldata signature) internal  pure returns (bytes32 result) {
+bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            calldatacopy(0, signature.offset, signature.length)
+            r := mload(0)
+            s := mload(32)
+            switch signature.length
+            case 64 {
+                v := byte(0, s)
+                v := add(27, and(v, 1))
+                s := shr(248, shl(248, s))
+            }
+            case 65 {
+                v := byte(0, mload(64))
+            }
+            default {
+                result := xor(keccak256(0, signature.length), 0xdeadbeef)
+                leave
+            }
+        }
+        if (uint256(s) >= _HALF_N_PLUS_1) {
+            assembly {
+                s := sub(N, s)
+                v := xor(v, 1)
+            }
+        }
+        assembly {
+            mstore(0, r)
+            mstore(32, s)
+            mstore8(64, v)
+            result := keccak256(0, 65)
+        }
+    }

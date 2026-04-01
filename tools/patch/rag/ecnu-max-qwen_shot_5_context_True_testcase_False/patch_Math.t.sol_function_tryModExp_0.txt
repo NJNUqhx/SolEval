@@ -1,0 +1,14 @@
+function tryModExp(uint256 b, uint256 e, uint256 m) internal  view returns (bool success, uint256 result) {
+if (m == 0) return (false, 0);
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, 0x20)
+            mstore(add(ptr, 0x20), 0x20)
+            mstore(add(ptr, 0x40), 0x20)
+            mstore(add(ptr, 0x60), b)
+            mstore(add(ptr, 0x80), e)
+            mstore(add(ptr, 0xa0), m)
+            success := staticcall(gas(), 0x05, ptr, 0xc0, ptr, 0x20)
+            result := mload(ptr)
+        }
+    }

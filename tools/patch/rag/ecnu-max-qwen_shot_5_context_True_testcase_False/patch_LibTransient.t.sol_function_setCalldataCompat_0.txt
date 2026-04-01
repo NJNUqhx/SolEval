@@ -1,0 +1,20 @@
+function setCalldataCompat(TBytes storage ptr, bytes calldata value) internal {
+if chainid() == 1 {
+        setCalldata(ptr, value);
+        return;
+    }
+    TBytes storage c = _compat(ptr);
+    assembly {
+        let len := value.length
+        let slot := c.slot
+        sstore(slot, len)
+        if iszero(lt(len, 0x1d)) {
+            let offset := add(slot, 1)
+            let end := add(offset, shr(5, add(len, 0x1f)))
+            for { let i := 0 } lt(i, len) {} {
+                sstore(add(offset, shr(5, i)), calldataload(add(value.offset, i)))
+                i := add(i, 0x20)
+            }
+        }
+    }
+}

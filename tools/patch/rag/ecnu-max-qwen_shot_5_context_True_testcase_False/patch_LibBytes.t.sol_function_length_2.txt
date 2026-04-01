@@ -1,0 +1,11 @@
+function length(BytesStorage storage $) internal  view returns (uint256 result) {
+uint256 spacer;
+        assembly {
+            spacer := sload($.slot)
+        }
+        if (spacer & 0xff == 0xff) {
+            result = spacer >> 8;
+        } else {
+            result = spacer & 0xff;
+        }
+    }

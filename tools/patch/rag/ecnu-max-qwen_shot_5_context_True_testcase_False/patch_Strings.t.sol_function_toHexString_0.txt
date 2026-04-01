@@ -1,0 +1,5 @@
+function toHexString(uint256 value) internal  pure returns (string memory) {
+if (value == 0) return "0x0";
+        uint256 length = Math.log256(value) + 1;
+        return toHexString(value, length);
+    }

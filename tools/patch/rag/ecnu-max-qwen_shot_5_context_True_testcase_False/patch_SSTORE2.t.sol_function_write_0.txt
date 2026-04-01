@@ -1,0 +1,14 @@
+function write(bytes memory data) internal   returns (address pointer) {
+assembly {
+            let n := mload(data)
+            mstore(data, add(n, 97))
+            mstore(add(data, 32), shl(224, 0x600035601f5f5f3660015f5f375f5f36601d5f5ff35fe000000000000000000000000000000000000000000000000000000000))
+            mstore(add(data, 64), n)
+            pointer := create(0, add(data, 23), add(n, 67))
+            if iszero(pointer) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+            mstore(data, n)
+        }
+    }

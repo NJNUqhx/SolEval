@@ -1,0 +1,51 @@
+function findFirstUnset(Bitmap storage bitmap, uint256 begin, uint256 upTo) internal  view returns (uint256 unsetBitIndex) {
+uint256 notFound = type(uint256).max;
+        unsetBitIndex = notFound;
+
+        if (begin >= upTo) {
+            return unsetBitIndex;
+        }
+
+        uint256 bucket = begin / 256;
+        uint256 upToBucket = (upTo - 1) / 256;
+
+        assembly {
+            let slot := add(bitmap.slot, bucket)
+            let endSlot := add(bitmap.slot, upToBucket)
+            let mask := shl(mod(begin, 256), sub(shl(1, mod(begin, 256)), 1))
+            let val := sload(slot)
+            let inverted := not(val)
+            let candidate := and(inverted, not(mask))
+
+            if iszero(candidate) {
+                for { let currentSlot := add(slot, 1) } lt(currentSlot, endSlot) { currentSlot := add(currentSlot, 1) } {
+                    val := sload(currentSlot)
+                    if iszero(iszero(not(val))) {
+                        slot := currentSlot
+                        candidate := not(val)
+                        break
+                    }
+                }
+                if iszero(candidate) {
+                    if eq(slot, endSlot) {
+                        val := sload(endSlot)
+                        let endMask := sub(shl(1, mod(upTo, 256)), 1)
+                        candidate := and(not(val), not(endMask))
+                        if iszero(candidate) {
+                            leave
+                        }
+                        slot := endSlot
+                    } else {
+                        leave
+                    }
+                }
+            }
+
+            let bitPos := ffs(candidate)
+            let index := add(mul(sub(slot, bitmap.slot), 256), bitPos)
+
+            if lt(index, upTo) {
+                unsetBitIndex := index
+            }
+        }
+    }

@@ -1,0 +1,11 @@
+function lowerLookup(Trace224 storage self, uint32 key) internal  view returns (uint224) {
+uint256 len = self._checkpoints.length;
+        if (len == 0) {
+            return 0;
+        }
+        uint256 pos = _lowerBinaryLookup(self._checkpoints, key, 0, len);
+        if (pos == len) {
+            return 0;
+        }
+        return _unsafeAccess(self._checkpoints, pos)._value;
+    }

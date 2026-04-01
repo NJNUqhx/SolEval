@@ -1,0 +1,12 @@
+function p(List memory list, uint256 x) internal  pure returns (List memory result) {
+result._data = shl(48, x);
+        _updateTail(list, result);
+        assembly ("memory-safe") {
+            if shr(208, x) {
+                let m := mload(0x40)
+                mstore(m, x)
+                mstore(0x40, add(m, 0x20))
+                mstore(add(result, 0x20), or(shl(248, 0x01), m))
+            }
+        }
+    }

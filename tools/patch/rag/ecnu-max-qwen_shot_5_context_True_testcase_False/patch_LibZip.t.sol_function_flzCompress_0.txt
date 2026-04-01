@@ -1,0 +1,85 @@
+function flzCompress(bytes memory data) internal  pure returns (bytes memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := mload(0x40)
+            let outPtr := add(result, 0x20)
+            let dataPtr := add(data, 0x20)
+            let dataLen := mload(data)
+            let dataEnd := add(dataPtr, dataLen)
+
+            if iszero(dataLen) {
+                mstore(result, 0)
+                mstore(0x40, add(result, 0x20))
+                leave
+            }
+
+            let i := 0
+            let minMatch := 4
+            let maxDist := 0xffff
+            let hashShift := 5
+            let hashMask := sub(shl(hashShift, 1), 1)
+            let hashTable := mload(0x40)
+            let hashTableSize := shl(12, 1)
+            mstore(0x40, add(hashTable, hashTableSize))
+
+            for { let j := 0 } lt(j, hashTableSize) { j := add(j, 0x20) } {
+                mstore(add(hashTable, j), 0)
+            }
+
+            let src := dataPtr
+            let srcEnd := sub(dataEnd, minMatch)
+
+            for {} lt(src, srcEnd) {} {
+                let hash := and(shr(hashShift, shr(16, mload(src))), hashMask)
+                let matchPos := mload(add(hashTable, hash))
+                mstore(add(hashTable, hash), src)
+
+                let dist := sub(src, matchPos)
+                let matchLen := 0
+
+                if and(and(gt(dist, 0), lt(dist, maxDist)), eq(and(matchPos, 0xff), and(src, 0xff))) {
+                    if eq(mload(matchPos), mload(src)) {
+                        matchLen := 4
+                        if lt(add(matchPos, 8), dataEnd) {
+                            if eq(mload(add(matchPos, 4)), mload(add(src, 4))) {
+                                matchLen := 8
+                                let s := add(src, 8)
+                                let m := add(matchPos, 8)
+                                for {} and(lt(s, dataEnd), eq(mload(s), mload(m))) {} {
+                                    matchLen := add(matchLen, 1)
+                                    s := add(s, 1)
+                                    m := add(m, 1)
+                                    if gt(matchLen, 255) { break }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if gt(matchLen, 3) {
+                    mstore8(outPtr, or(0x80, sub(matchLen, 4)))
+                    outPtr := add(outPtr, 1)
+                    mstore8(outPtr, byte(0, dist))
+                    outPtr := add(outPtr, 1)
+                    mstore8(outPtr, byte(1, dist))
+                    outPtr := add(outPtr, 1)
+                    src := add(src, matchLen)
+                } else {
+                    mstore8(outPtr, and(mload(src), 0xff))
+                    outPtr := add(outPtr, 1)
+                    src := add(src, 1)
+                }
+            }
+
+            for {} lt(src, dataEnd) {} {
+                mstore8(outPtr, and(mload(src), 0xff))
+                outPtr := add(outPtr, 1)
+                src := add(src, 1)
+            }
+
+            let compressedLen := sub(outPtr, add(result, 0x20))
+            mstore(result, compressedLen)
+            mstore(outPtr, 0)
+            mstore(0x40, add(outPtr, 0x20))
+        }
+}

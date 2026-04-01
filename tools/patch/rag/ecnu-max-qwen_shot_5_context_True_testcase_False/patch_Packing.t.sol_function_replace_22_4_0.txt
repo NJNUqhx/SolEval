@@ -1,0 +1,11 @@
+function replace_22_4(bytes22 self, bytes4 value, uint8 offset) internal  pure returns (bytes22 result) {
+assembly {
+            let selfVal := shl(96, self)
+            let valueVal := shl(160, value)
+            let shift := shl(3, sub(21, offset))
+            let mask := shl(shift, 0xFFFFFFFF000000000000000000000000000000000000000000000000)
+            let cleared := and(selfVal, not(mask))
+            let inserted := and(valueVal, mask)
+            result := shr(96, or(cleared, inserted))
+        }
+    }

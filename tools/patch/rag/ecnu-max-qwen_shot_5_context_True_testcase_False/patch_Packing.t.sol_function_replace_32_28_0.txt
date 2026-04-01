@@ -1,0 +1,9 @@
+function replace_32_28(bytes32 self, bytes28 value, uint8 offset) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let shift := shl(3, sub(32, offset))
+            let mask := not(shl(224, shift))
+            let shiftedValue := shl(shift, and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000))
+            result := or(and(self, mask), shiftedValue)
+        }
+    }

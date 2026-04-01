@@ -1,0 +1,17 @@
+function at(Item memory item, uint256 i) internal  pure returns (Item memory result) {
+assembly {
+        mstore(0x40, sub(mload(0x40), 0x60))
+        if iszero(eq(and(mload(item), 0xff), 0x02)) {
+            mstore(result, 0x60)
+            leave
+        }
+        let data := mload(add(item, 0x20))
+        let len := shr(240, mload(data))
+        if iszero(lt(i, len)) {
+            mstore(result, 0x60)
+            leave
+        }
+        let offset := add(0x20, mul(i, 0x20))
+        mstore(result, add(data, offset))
+    }
+}

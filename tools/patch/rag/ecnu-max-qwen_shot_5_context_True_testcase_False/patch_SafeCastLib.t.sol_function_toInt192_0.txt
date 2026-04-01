@@ -1,0 +1,4 @@
+function toInt192(int256 x) internal  pure returns (int192) {
+require(x == int256(int192(x)), "int192 overflow");
+        return int192(x);
+    }

@@ -1,0 +1,16 @@
+function divWadUp(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if iszero(y) {
+                mstore(0x00, 0x7c13a083) // `DivWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            let wad := 1000000000000000000
+            let prod := mul(x, wad)
+            if and(gt(x, 0), lt(prod, x)) {
+                mstore(0x00, 0x7c13a083)
+                revert(0x1c, 0x04)
+            }
+            z := add(iszero(iszero(mod(prod, y))), div(prod, y))
+        }
+    }

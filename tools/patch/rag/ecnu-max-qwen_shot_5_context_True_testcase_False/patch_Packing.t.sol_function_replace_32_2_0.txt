@@ -1,0 +1,10 @@
+function replace_32_2(bytes32 self, bytes2 value, uint8 offset) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let shift := shl(3, sub(31, offset))
+            let mask := shl(shift, 0xffff)
+            let oldVal := and(self, mask)
+            let newVal := and(shl(shift, value), mask)
+            result := xor(xor(self, oldVal), newVal)
+        }
+    }

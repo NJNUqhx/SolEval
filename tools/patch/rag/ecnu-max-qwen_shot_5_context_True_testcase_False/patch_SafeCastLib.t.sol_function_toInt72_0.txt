@@ -1,0 +1,4 @@
+function toInt72(int256 x) internal  pure returns (int72) {
+if (int72(x) != x) _revertOverflow();
+        return int72(x);
+    }

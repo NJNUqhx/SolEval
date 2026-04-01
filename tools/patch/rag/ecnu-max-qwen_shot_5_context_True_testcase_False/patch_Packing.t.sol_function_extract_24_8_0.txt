@@ -1,0 +1,7 @@
+function extract_24_8(bytes24 self, uint8 offset) internal  pure returns (bytes8 result) {
+if (offset > 16) revert OutOfRangeAccess();
+    /// @solidity memory-safe-assembly
+    assembly {
+        result := and(shl(mul(8, offset), self), 0xffffffffffffffff000000000000000000000000000000000000000000000000)
+    }
+}

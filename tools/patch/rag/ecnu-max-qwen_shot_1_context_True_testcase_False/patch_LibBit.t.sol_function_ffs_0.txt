@@ -1,0 +1,22 @@
+function ffs(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+        let isolated := and(x, sub(0, x))
+        let lower := and(isolated, 0xFFFFFFFFFFFFFFFF)
+        let upper := shr(64, isolated)
+        
+        let lookupLower := 0x030201000706050409080b0a0d0c0f0e111013121514171619181b1a1d1c1f1e
+        let lookupUpper := 0x202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f
+        
+        let posLower := mul(lower, 0x03f79d71b4cb0a89)
+        posLower := shr(58, posLower)
+        posLower := byte(posLower, lookupLower)
+        
+        let posUpper := mul(upper, 0x03f79d71b4cb0a89)
+        posUpper := shr(58, posUpper)
+        posUpper := byte(posUpper, lookupUpper)
+        
+        let mask := iszero(iszero(lower))
+        r := add(posLower, mul(sub(posUpper, posLower), mask))
+        r := add(r, mul(64, iszero(mask)))
+    }
+} 

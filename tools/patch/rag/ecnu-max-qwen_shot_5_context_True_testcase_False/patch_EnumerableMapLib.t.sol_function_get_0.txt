@@ -1,0 +1,6 @@
+function get(Bytes32ToBytes32Map storage map, bytes32 key) internal  view returns (bytes32 value) {
+value = map._values[key];
+        if (value == bytes32(0) && !contains(map._keys, key)) {
+            revert EnumerableMap.NonexistentKey();
+        }
+    } 

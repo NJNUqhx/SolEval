@@ -1,0 +1,12 @@
+function mulWad(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if gt(x, div(not(0), y)) {
+                if y {
+                    mstore(0x00, 0xbac65e5b) // `MulWadFailed()`.
+                    revert(0x1c, 0x04)
+                }
+            }
+            z := div(mul(x, y), WAD)
+        }
+    }

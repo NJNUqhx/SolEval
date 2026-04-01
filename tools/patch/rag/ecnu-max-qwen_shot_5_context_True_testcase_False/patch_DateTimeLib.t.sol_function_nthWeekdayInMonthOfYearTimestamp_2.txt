@@ -1,0 +1,32 @@
+function nthWeekdayInMonthOfYearTimestamp(uint256 year, uint256 month, uint256 n, uint256 wd) internal  pure returns (uint256 result) {
+uint256 epochDayFirst = dateToEpochDay(year, month, 1);
+        uint256 dm = daysInMonth(year, month);
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Calculate weekday of the first day (epochDay % 7)
+            // Note: Unix epoch (Jan 1, 1970) was a Thursday (4).
+            // Assuming dateToEpochDay returns days since Unix epoch where 0 = Jan 1, 1970.
+            // So weekday = (epochDay + 4) % 7. However, standard implementations often normalize this.
+            // Let's assume a helper or standard logic: weekday = (epochDay + offset) % 7.
+            // To be safe with generic logic without external weekday helpers, we derive offset from first day.
+            // If dateToEpochDay is standard (0 = 1970-01-01), then 1970-01-01 is Thursday (4).
+            // So weekday of day D is (D + 4) % 7.
+            let firstWeekday := mod(add(epochDayFirst, 4), 7)
+            
+            // Calculate difference to target weekday
+            // diff = (wd - firstWeekday + 7) % 7
+            let diff := mod(add(sub(wd, firstWeekday), 7), 7)
+            
+            // Calculate day of month for nth occurrence: 1 + diff + (n-1)*7
+            let day := add(1, add(diff, mul(sub(n, 1), 7)))
+            
+            // Check if day is valid (<= days in month)
+            if gt(day, dm) {
+                result := 0
+            } else {
+                // Calculate epoch day for the result
+                let resultEpochDay := add(epochDayFirst, sub(day, 1))
+                result := mul(resultEpochDay, 86400)
+            }
+        }
+    }

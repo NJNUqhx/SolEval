@@ -1,0 +1,4 @@
+function toInt200(int256 x) internal  pure returns (int200) {
+if (x < type(int200).min || x > type(int200).max) revert();
+        return int200(x);
+    }

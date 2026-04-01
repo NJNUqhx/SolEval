@@ -1,0 +1,30 @@
+function tryDecodeAuthCompact(bytes memory encodedAuth) internal  pure returns (WebAuthnAuth memory decoded) {
+if (encodedAuth.length < 0x46) {
+            return decoded;
+        }
+
+        assembly {
+            let ptr := add(encodedAuth, 0x20)
+            
+            let authDataLen := shr(240, mload(ptr))
+            ptr := add(ptr, 0x02)
+            
+            mstore(add(decoded, 0x20), ptr)
+            mstore(add(decoded, 0x40), authDataLen)
+            ptr := add(ptr, authDataLen)
+            
+            let clientDataLen := sub(sub(mload(add(encodedAuth, 0x04)), authDataLen), 0x42)
+            mstore(add(decoded, 0x60), ptr)
+            mstore(add(decoded, 0x80), clientDataLen)
+            ptr := add(ptr, clientDataLen)
+            
+            mstore(add(decoded, 0xa0), shr(248, mload(ptr)))
+            ptr := add(ptr, 0x01)
+            mstore(add(decoded, 0xc0), shr(248, mload(ptr)))
+            ptr := add(ptr, 0x01)
+            
+            mstore(add(decoded, 0xe0), mload(ptr))
+            ptr := add(ptr, 0x20)
+            mstore(add(decoded, 0x100), mload(ptr))
+        }
+    }

@@ -1,0 +1,6 @@
+function rawMulMod(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            z := mulmod(x, y, d)
+        }
+    }

@@ -1,0 +1,8 @@
+function G1Point() {
+struct G1Point {
+        uint256 x_a;
+        uint256 x_b;
+        uint256 y_a;
+        uint256 y_b;
+    }
+}

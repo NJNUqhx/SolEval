@@ -1,0 +1,10 @@
+function sha2(bytes32 b) internal  view returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, b)
+            if iszero(staticcall(gas(), 2, 0x00, 0x20, 0x01, 0x20)) {
+                revert(0, 0)
+            }
+            result := mload(0x01)
+        }
+    }

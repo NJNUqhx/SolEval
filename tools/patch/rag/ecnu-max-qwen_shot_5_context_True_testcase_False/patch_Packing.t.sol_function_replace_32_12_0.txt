@@ -1,0 +1,20 @@
+function replace_32_12(bytes32 self, bytes12 value, uint8 offset) internal  pure returns (bytes32 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Calculate the shift amount in bits (offset * 8)
+            let shift := mul(offset, 8)
+            
+            // Create a mask for 12 bytes (96 bits): 0xFFFFFFFFFFFFFFFFFFFFFFFF
+            // We shift this mask left by 'shift' bits to align with the target position
+            let mask := shl(shift, 0xFFFFFFFFFFFFFFFFFFFFFFFF)
+            
+            // Clear the 12-byte segment in 'self' by ANDing with the inverted mask
+            let cleared := and(self, not(mask))
+            
+            // Shift the new 'value' left by 'shift' bits to align it
+            let shiftedValue := shl(shift, value)
+            
+            // Combine the cleared original value with the shifted new value
+            result := or(cleared, shiftedValue)
+        }
+    }

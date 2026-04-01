@@ -1,0 +1,10 @@
+function isLeapYear(uint256 year) internal  pure returns (bool leap) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mask := shr(2, year)
+            let divisibleBy4 := iszero(and(mask, 3))
+            let divisibleBy100 := iszero(mod(year, 100))
+            let divisibleBy400 := iszero(mod(year, 400))
+            leap := and(divisibleBy4, or(iszero(divisibleBy100), divisibleBy400))
+        }
+    }

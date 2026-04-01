@@ -1,0 +1,9 @@
+function free(uint256[] memory a) internal  pure returns (uint256[] memory result) {
+result = a;
+        uint256 n;
+        /// @solidity memory-safe-assembly
+        assembly {
+            n := mload(a)
+            mstore(a, 0)
+        }
+    }

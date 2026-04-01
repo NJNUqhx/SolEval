@@ -1,0 +1,10 @@
+function pack_12_12(bytes12 left, bytes12 right) internal  pure returns (bytes24 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear the upper 160 bits of left and right to ensure they are 12 bytes.
+            left := and(left, 0x000000000000000000000000ffffffffffffffffffffffff)
+            right := and(right, 0x000000000000000000000000ffffffffffffffffffffffff)
+            // Shift right by 96 bits and combine with left using OR.
+            result := or(left, shl(96, right))
+        }
+    }

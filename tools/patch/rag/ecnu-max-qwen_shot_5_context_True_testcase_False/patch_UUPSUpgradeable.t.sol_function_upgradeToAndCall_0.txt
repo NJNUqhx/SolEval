@@ -1,0 +1,37 @@
+function upgradeToAndCall(address newImplementation, bytes calldata data) public virtual onlyProxy {
+function upgradeToAndCall(address newImplementation, bytes calldata data) public virtual onlyProxy {
+        _authorizeUpgrade(newImplementation);
+
+        assembly {
+            // Clear the upper 96 bits of the newImplementation address
+            newImplementation := and(newImplementation, 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff)
+            
+            // Load the proxiableUUID slot constant (keccak256("eip1967.proxy.implementation") - 1)
+            let slot := 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+            
+            // Check if the new implementation supports the proxiableUUID
+            let success := staticcall(gas(), newImplementation, 0x00, 0x00, 0x00, 0x20)
+            let uuid := mload(0x00)
+            
+            if or(iszero(success), iszero(eq(uuid, slot))) {
+                revert(0x00, 0x00)
+            }
+        }
+
+        emit Upgraded(newImplementation);
+
+        assembly {
+            // Update the implementation slot in storage
+            sstore(slot, newImplementation)
+        }
+
+        if (data.length > 0) {
+            (bool success, bytes memory returndata) = newImplementation.delegatecall(data);
+            if (!success) {
+                assembly {
+                    revert(add(returndata, 32), mload(returndata))
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,20 @@
+function sliceCalldata(bytes calldata subject, uint256 start, uint256 end) internal  pure returns (bytes calldata result) {
+assembly {
+        let length := subject.length
+        if gt(start, length) {
+            start := length
+        }
+        if gt(end, length) {
+            end := length
+        }
+        if lt(start, end) {
+            let offset := add(subject.offset, start)
+            let len := sub(end, start)
+            result.offset := offset
+            result.length := len
+        } else {
+            result.offset := subject.offset
+            result.length := 0
+        }
+    }
+} 

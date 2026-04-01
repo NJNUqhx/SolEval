@@ -1,0 +1,7 @@
+function diffYears(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+uint256 fromDays = fromTimestamp / 86400;
+    uint256 toDays = toTimestamp / 86400;
+    (uint256 fromYear, , ) = epochDayToDate(fromDays);
+    (uint256 toYear, , ) = epochDayToDate(toDays);
+    result = _sub(toYear, fromYear);
+} 

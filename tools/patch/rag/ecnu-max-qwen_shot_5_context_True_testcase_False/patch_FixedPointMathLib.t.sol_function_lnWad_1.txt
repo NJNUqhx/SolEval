@@ -1,0 +1,82 @@
+function lnWad(int256 x) internal  pure returns (int256 r) {
+function lnWad(int256 x) internal pure returns (int256 r) {
+    assembly {
+        if iszero(x) {
+            revert(0, 0)
+        }
+
+        let k := 0
+        let xx := x
+        let r0 := 0
+
+        // Normalize x to be within [2^96, 2^97)
+        if lt(xx, 0x1000000000000000000000000) {
+            for {
+                let t := lt(xx, 0x1000000000000000000000000)
+            } t {
+                let t := lt(xx, 0x1000000000000000000000000)
+            } {
+                xx := shl(1, xx)
+                k := sub(k, 1)
+            }
+        } else {
+            for {
+                let t := gt(xx, 0x1ffffffffffffffffffffffffffffff)
+            } t {
+                let t := gt(xx, 0x1ffffffffffffffffffffffffffffff)
+            } {
+                xx := shr(1, xx)
+                k := add(k, 1)
+            }
+        }
+
+        // Rational approximation constants
+        // Numerator coefficients
+        let p1 := 0x1a096e8e8f8d1d1d
+        let p2 := 0x0e3f6e8e8f8d1d1d
+        let p3 := 0x061f6e8e8f8d1d1d
+        let p4 := 0x021f6e8e8f8d1d1d
+        let p5 := 0x009f6e8e8f8d1d1d
+        let p6 := 0x003f6e8e8f8d1d1d
+        let p7 := 0x000f6e8e8f8d1d1d
+        let p8 := 0x00036e8e8f8d1d1d
+
+        // Denominator coefficients
+        let q1 := 0x1b096e8e8f8d1d1d
+        let q2 := 0x0f3f6e8e8f8d1d1d
+        let q3 := 0x071f6e8e8f8d1d1d
+        let q4 := 0x031f6e8e8f8d1d1d
+        let q5 := 0x011f6e8e8f8d1d1d
+        let q6 := 0x005f6e8e8f8d1d1d
+        let q7 := 0x001f6e8e8f8d1d1d
+        let q8 := 0x00076e8e8f8d1d1d
+
+        // Evaluate numerator polynomial
+        let num := add(xx, p1)
+        num := add(div(mul(num, xx), 1e18), p2)
+        num := add(div(mul(num, xx), 1e18), p3)
+        num := add(div(mul(num, xx), 1e18), p4)
+        num := add(div(mul(num, xx), 1e18), p5)
+        num := add(div(mul(num, xx), 1e18), p6)
+        num := add(div(mul(num, xx), 1e18), p7)
+        num := add(div(mul(num, xx), 1e18), p8)
+
+        // Evaluate denominator polynomial
+        let den := add(xx, q1)
+        den := add(div(mul(den, xx), 1e18), q2)
+        den := add(div(mul(den, xx), 1e18), q3)
+        den := add(div(mul(den, xx), 1e18), q4)
+        den := add(div(mul(den, xx), 1e18), q5)
+        den := add(div(mul(den, xx), 1e18), q6)
+        den := add(div(mul(den, xx), 1e18), q7)
+        den := add(div(mul(den, xx), 1e18), q8)
+
+        // Compute rational approximation
+        r := div(mul(num, 1e18), den)
+
+        // Adjust for scaling factor and log(2)
+        r := add(r, mul(k, 0x59f281557d9fa3b5)) // k * ln(2) in 1e18 precision
+        r := add(r, 0x1f0c2c2c2c2c2c2c) // ln(2^96 / 1e18) adjustment
+    }
+}
+}

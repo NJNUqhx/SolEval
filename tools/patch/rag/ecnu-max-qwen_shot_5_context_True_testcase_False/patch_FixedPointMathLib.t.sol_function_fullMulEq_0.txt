@@ -1,0 +1,11 @@
+function fullMulEq(uint256 a, uint256 b, uint256 x, uint256 y) internal  pure returns (bool result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let p1 := mul(a, b)
+            let p2 := mul(x, y)
+            let m := not(0)
+            let mp1 := mulmod(a, b, m)
+            let mp2 := mulmod(x, y, m)
+            result := and(eq(p1, p2), eq(mp1, mp2))
+        }
+    }

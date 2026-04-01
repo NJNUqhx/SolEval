@@ -1,0 +1,6 @@
+function toStringWithFallback(ShortString value, string storage store) internal  pure returns (string memory) {
+if (!value.isFallback()) {
+            return value.toString();
+        }
+        return store;
+    }

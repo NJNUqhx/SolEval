@@ -1,0 +1,11 @@
+function sqrtWad(uint256 x) internal  pure returns (uint256 z) {
+if (x < 1e36) {
+            z = sqrt(x * 1e18);
+        } else {
+            z = sqrt(x) * 1e9;
+            z = fullMulDivUnchecked(z + 1e18, 1e18, z);
+            assembly {
+                z := sub(z, gt(mul(z, z), x))
+            }
+        }
+    } 

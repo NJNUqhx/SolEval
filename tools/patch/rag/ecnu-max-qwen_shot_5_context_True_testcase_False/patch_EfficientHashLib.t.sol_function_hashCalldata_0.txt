@@ -1,0 +1,11 @@
+function hashCalldata(bytes calldata b, uint256 start, uint256 end) internal  pure returns (bytes32 result) {
+assembly {
+            let len := b.length
+            if gt(start, len) { start := len }
+            if gt(end, len) { end := len }
+            if lt(end, start) { end := start }
+            let n := sub(end, start)
+            calldatacopy(0x00, add(b.offset, start), n)
+            result := keccak256(0x00, n)
+        }
+    }

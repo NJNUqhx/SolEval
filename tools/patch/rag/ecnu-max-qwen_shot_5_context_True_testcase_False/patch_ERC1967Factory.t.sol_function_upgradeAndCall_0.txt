@@ -1,0 +1,24 @@
+function upgradeAndCall(address proxy, address implementation, bytes calldata data) public  payable {
+if (ADMIN_SLOT != bytes32(0) && vm.load(proxy, ADMIN_SLOT) != bytes32(uint256(uint160(msg.sender)))) {
+            revert Unauthorized();
+        }
+
+        bytes memory callData = abi.encodeWithSignature(
+            "upgradeToAndCall(address,bytes)",
+            implementation,
+            data
+        );
+
+        (bool success, bytes memory returndata) = proxy.call{value: msg.value}(callData);
+
+        if (!success) {
+            if (returndata.length == 0) {
+                revert UpgradeFailed();
+            }
+            assembly {
+                revert(add(returndata, 32), mload(returndata))
+            }
+        }
+
+        emit Upgraded(proxy, implementation);
+    }

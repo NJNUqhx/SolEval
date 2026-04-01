@@ -1,0 +1,13 @@
+function sliceCalldata(bytes calldata subject, uint256 start, uint256 end) internal  pure returns (bytes calldata result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let subjectLen := subject.length
+            if gt(start, subjectLen) { start := subjectLen }
+            if gt(end, subjectLen) { end := subjectLen }
+            let offset := add(subject.offset, start)
+            let length := 0
+            if lt(start, end) { length := sub(end, start) }
+            result.offset := offset
+            result.length := length
+        }
+    }

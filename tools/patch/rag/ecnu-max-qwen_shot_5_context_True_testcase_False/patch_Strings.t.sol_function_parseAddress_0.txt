@@ -1,0 +1,7 @@
+function parseAddress(string memory input, uint256 begin, uint256 end) internal  pure returns (address) {
+(bool success, address addr) = tryParseAddress(input, begin, end);
+        if (!success) {
+            revert("StringsInvalidAddressFormat");
+        }
+        return addr;
+    }

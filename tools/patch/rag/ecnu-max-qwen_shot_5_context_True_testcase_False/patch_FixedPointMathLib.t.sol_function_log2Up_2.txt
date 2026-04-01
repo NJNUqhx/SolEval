@@ -1,0 +1,8 @@
+function log2Up(uint256 x) internal  pure returns (uint256 r) {
+r = Math.log2(x);
+        assembly {
+            if lt(shl(r, 1), x) {
+                r := add(r, 1)
+            }
+        }
+    }

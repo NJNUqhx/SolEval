@@ -1,0 +1,40 @@
+function clz(uint256 x) internal  pure returns (uint256 r) {
+if (x == 0) {
+            return 256;
+        }
+        /// @solidity memory-safe-assembly
+        assembly {
+            r := 0x100
+            if iszero(and(x, 0xffffffffffffffffffffffffffffffff)) {
+                r := sub(r, 0x80)
+                x := shl(0x80, x)
+            }
+            if iszero(and(x, 0xffffffffffffffff0000000000000000)) {
+                r := sub(r, 0x40)
+                x := shl(0x40, x)
+            }
+            if iszero(and(x, 0xffffffff000000000000000000000000)) {
+                r := sub(r, 0x20)
+                x := shl(0x20, x)
+            }
+            if iszero(and(x, 0xffff0000000000000000000000000000)) {
+                r := sub(r, 0x10)
+                x := shl(0x10, x)
+            }
+            if iszero(and(x, 0xff000000000000000000000000000000)) {
+                r := sub(r, 0x08)
+                x := shl(0x08, x)
+            }
+            if iszero(and(x, 0xf0000000000000000000000000000000)) {
+                r := sub(r, 0x04)
+                x := shl(0x04, x)
+            }
+            if iszero(and(x, 0xc0000000000000000000000000000000)) {
+                r := sub(r, 0x02)
+                x := shl(0x02, x)
+            }
+            if iszero(and(x, 0x80000000000000000000000000000000)) {
+                r := sub(r, 0x01)
+            }
+        }
+    }

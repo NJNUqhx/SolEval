@@ -1,0 +1,16 @@
+function children(Item memory item) internal  pure returns (Item[] memory result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := mload(0x40)
+            let input := _toInput(item)
+            let data := staticcall(gas(), address(), input, 0x20, 0x00, 0x00)
+            let size := returndatasize()
+            if size {
+                returndatacopy(add(result, 0x20), 0, size)
+                mstore(result, div(size, 0x20))
+                mstore(0x40, add(add(result, 0x20), size))
+            } else {
+                mstore(result, 0)
+            }
+        }
+    }

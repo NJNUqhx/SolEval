@@ -1,0 +1,17 @@
+function clamp(uint256 x, uint256 minValue, uint256 maxValue) internal  pure returns (uint256 z) {
+assembly {
+            // Step 2: Check if x < minValue. If true, z = minValue, else z = x.
+            // gt(minValue, x) returns 1 if minValue > x, else 0.
+            // mul(gt(minValue, x), minValue) yields minValue if x < minValue, else 0.
+            // mul(iszero(gt(minValue, x)), x) yields x if x >= minValue, else 0.
+            // Adding them gives the correct lower bound.
+            z := add(mul(gt(minValue, x), minValue), mul(iszero(gt(minValue, x)), x))
+
+            // Step 3: Check if z > maxValue. If true, z = maxValue, else keep z.
+            // gt(z, maxValue) returns 1 if z > maxValue, else 0.
+            // mul(gt(z, maxValue), maxValue) yields maxValue if z > maxValue, else 0.
+            // mul(iszero(gt(z, maxValue)), z) yields z if z <= maxValue, else 0.
+            // Adding them gives the final clamped value.
+            z := add(mul(gt(z, maxValue), maxValue), mul(iszero(gt(z, maxValue)), z))
+        }
+    }

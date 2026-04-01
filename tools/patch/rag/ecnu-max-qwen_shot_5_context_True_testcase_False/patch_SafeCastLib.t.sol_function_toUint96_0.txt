@@ -1,0 +1,4 @@
+function toUint96(uint256 x) internal  pure returns (uint96) {
+if (x >= (1 << 96)) revert("Overflow: uint256 to uint96");
+        return uint96(x);
+    }

@@ -1,0 +1,5 @@
+function _mint(address to, uint256 tokenId) internal {
+if (to == address(0)) revert ERC721InvalidReceiver();
+        address previousOwner = _update(to, tokenId, address(0));
+        if (previousOwner != address(0)) revert ERC721InvalidSender();
+    }

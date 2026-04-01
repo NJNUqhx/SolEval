@@ -1,0 +1,31 @@
+function parseUintFromHex(string memory s) internal  pure returns (uint256 result) {
+bytes memory b = bytes(s);
+        uint256 length = b.length;
+        uint256 start = 0;
+
+        if (length >= 2 && (b[0] == '0' && (b[1] == 'x' || b[1] == 'X'))) {
+            start = 2;
+        }
+
+        if (length == start) {
+            revert();
+        }
+
+        result = 0;
+        for (uint256 i = start; i < length; i++) {
+            uint8 c = uint8(b[i]);
+            uint8 val;
+
+            if (c >= 48 && c <= 57) {
+                val = c - 48;
+            } else if (c >= 65 && c <= 70) {
+                val = c - 55;
+            } else if (c >= 97 && c <= 102) {
+                val = c - 87;
+            } else {
+                revert();
+            }
+
+            result = (result << 4) | val;
+        }
+    }

@@ -1,0 +1,29 @@
+function getContractInfo(string memory contractName, string memory outDir) internal  view returns (ContractInfo memory) {
+Vm vm = Vm(CHEATCODE_ADDRESS);
+        ContractInfo memory info;
+
+        string memory shortName = vm.toString(contractName);
+        string memory fileName = string.concat(shortName, ".json");
+        string memory root = vm.projectRoot();
+        string memory artifactPath = string.concat(root, "/", outDir, "/", fileName);
+
+        string memory json = vm.readFile(artifactPath);
+
+        if (!vm.keyExists(json, "ast")) {
+            revert("AST not found in artifact");
+        }
+
+        info.absolutePath = vm.parseJsonString(json, "ast.absolutePath");
+
+        if (vm.keyExistsJson(json, "metadata.sources")) {
+            string memory sourcesJson = vm.parseJsonString(json, "metadata.sources");
+            if (vm.keyExists(sourcesJson, "license")) {
+                info.license = vm.parseJsonString(sourcesJson, "license");
+            }
+        }
+
+        info.sourceCodeHash = vm.parseJsonString(json, "bytecodeHash");
+        info.artifactPath = artifactPath;
+
+        return info;
+    }

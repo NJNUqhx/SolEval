@@ -1,0 +1,4 @@
+function toInt248(int256 x) internal  pure returns (int248) {
+require(x >= type(int248).min && x <= type(int248).max, "Overflow");
+        return int248(x);
+    }

@@ -1,0 +1,11 @@
+function pack_10_6(bytes10 left, bytes6 right) internal  pure returns (bytes16 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            // Clear lower 176 bits of left (keep top 80 bits) and shift to top of bytes16
+            let l := and(left, shl(176, not(0)))
+            // Clear lower 208 bits of right (keep top 48 bits)
+            let r := and(right, shl(208, not(0)))
+            // Combine: left occupies bits 255-176, right occupies bits 175-128
+            result := or(shr(128, l), shr(128, r))
+        }
+    }

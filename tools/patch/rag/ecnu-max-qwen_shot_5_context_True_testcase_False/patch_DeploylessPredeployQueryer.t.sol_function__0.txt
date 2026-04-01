@@ -1,0 +1,30 @@
+constructor (address target, bytes[] memory targetQueryCalldata, address factory, bytes memory factoryCalldata) {
+if (target.code.length == 0) {
+            if (factory == address(0)) {
+                revert("Factory address is zero");
+            }
+            (bool success, bytes memory returnData) = factory.call(factoryCalldata);
+            if (!success) {
+                assembly {
+                    revert(add(returnData, 0x20), mload(returnData))
+                }
+            }
+            address deployedTarget;
+            assembly {
+                deployedTarget := mload(add(returnData, 0x20))
+            }
+            if (deployedTarget != target) {
+                revert("Deployed target address mismatch");
+            }
+        }
+
+        uint256 length = targetQueryCalldata.length;
+        for (uint256 i = 0; i < length; i++) {
+            (bool success, bytes memory result) = target.call(targetQueryCalldata[i]);
+            if (!success) {
+                assembly {
+                    revert(add(result, 0x20), mload(result))
+                }
+            }
+        }
+    }

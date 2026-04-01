@@ -1,0 +1,34 @@
+function verifyCalldata(bytes32[] calldata proof, bytes32 root, bytes32 leaf) internal  pure returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let proofLength := proof.length
+            if iszero(proofLength) {
+                isValid := eq(leaf, root)
+                leave
+            }
+
+            let offset := proof.offset
+            let end := add(offset, mul(proofLength, 0x20))
+
+            for {} lt(offset, end) {} {
+                let proofElement := calldataload(offset)
+                
+                // Determine position in scratch space (0x00 or 0x20) based on leaf < proofElement
+                // We compare leaf and proofElement to decide sorting order for hashing
+                let pos := mul(0x20, lt(leaf, proofElement))
+                
+                // Store leaf and proofElement in scratch space (0x00 and 0x20)
+                // If pos is 0: [0x00] = leaf, [0x20] = proofElement
+                // If pos is 0x20: [0x00] = proofElement, [0x20] = leaf
+                mstore(pos, leaf)
+                mstore(xor(pos, 0x20), proofElement)
+                
+                // Compute hash of the pair
+                leaf := keccak256(0x00, 0x40)
+                
+                offset := add(offset, 0x20)
+            }
+
+            isValid := eq(leaf, root)
+        }
+    }

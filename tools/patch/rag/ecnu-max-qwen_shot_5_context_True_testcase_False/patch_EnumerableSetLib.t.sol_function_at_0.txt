@@ -1,0 +1,13 @@
+function at(AddressSet storage set, uint256 i) internal  view returns (address result) {
+bytes32 rootSlot = set._inner._slots.slot;
+    bytes32 valueSlot;
+    assembly {
+        mstore(0x00, rootSlot)
+        mstore(0x20, add(i, 1))
+        valueSlot := keccak256(0x00, 0x40)
+        result := shr(96, sload(valueSlot))
+        if iszero(mul(result, lt(i, sload(rootSlot)))) {
+            revert(0x00, 0x00)
+        }
+    }
+}

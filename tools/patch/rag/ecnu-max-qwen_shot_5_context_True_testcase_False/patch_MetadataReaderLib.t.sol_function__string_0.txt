@@ -1,0 +1,65 @@
+function _string(address target, bytes32 ptr, uint256 limit, uint256 gasStipend) private  view returns (string memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let success := staticcall(gasStipend, target, add(ptr, 0x20), mload(ptr), 0x00, 0x00)
+            if iszero(success) {
+                returndatacopy(0x00, 0x00, returndatasize())
+                revert(0x00, returndatasize())
+            }
+
+            let size := returndatasize()
+            result := mload(0x40)
+
+            // Attempt ABI decoding if returndata >= 64 bytes
+            if gt(size, 0x3f) {
+                let offset := mload(0x00)
+                // Check if offset is within bounds and points to a valid length location
+                if and(gt(offset, 0x1f), lt(add(offset, 0x20), size)) {
+                    let strLen := mload(add(0x20, offset))
+                    // Check if string data fits in returndata
+                    if lt(add(add(offset, 0x20), strLen), size) {
+                        if gt(strLen, limit) {
+                            strLen := limit
+                        }
+                        mstore(result, strLen)
+                        let dataPtr := add(result, 0x20)
+                        returndatacopy(dataPtr, add(offset, 0x20), strLen)
+                        // Zero out remaining bytes up to 32-byte boundary
+                        let remainder := and(sub(0x1f, strLen), 0x1f)
+                        if remainder {
+                            mstore(add(dataPtr, strLen), 0)
+                        }
+                        mstore(0x40, add(dataPtr, add(strLen, 0x20)))
+                        // Success, skip fallback
+                        if 1 { leave }
+                    }
+                }
+            }
+
+            // Fallback: Treat returndata as null-terminated string
+            let strLen := 0
+            let i := 0
+            for { } lt(i, size) { i := add(i, 1) } {
+                let byte := byte(0, mload(add(0x00, i)))
+                if iszero(byte) {
+                    strLen := i
+                    break
+                }
+            }
+            if iszero(strLen) {
+                strLen := size
+            }
+            if gt(strLen, limit) {
+                strLen := limit
+            }
+            mstore(result, strLen)
+            let dataPtr := add(result, 0x20)
+            returndatacopy(dataPtr, 0x00, strLen)
+            // Zero out remaining bytes up to 32-byte boundary
+            let remainder := and(sub(0x1f, strLen), 0x1f)
+            if remainder {
+                mstore(add(dataPtr, strLen), 0)
+            }
+            mstore(0x40, add(dataPtr, add(strLen, 0x20)))
+        }
+}

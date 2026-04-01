@@ -1,0 +1,14 @@
+function decSigned(TUint256 storage ptr, int256 delta) internal   returns (uint256 newValue) {
+uint256 currentValue;
+        assembly ("memory-safe") {
+            currentValue := sload(ptr.slot)
+            newValue := sub(currentValue, delta)
+            if and(gt(delta, 0), lt(newValue, currentValue)) {
+                panic(0x11)
+            }
+            if and(lt(delta, 0), gt(newValue, currentValue)) {
+                panic(0x11)
+            }
+            sstore(ptr.slot, newValue)
+        }
+    }

@@ -1,0 +1,47 @@
+function cmp(bytes memory a, bytes memory b) internal  pure returns (int256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let aLen := mload(a)
+            let bLen := mload(b)
+            let n := and(min(aLen, bLen), not(31))
+            let aPtr := add(a, 0x20)
+            let bPtr := add(b, 0x20)
+            let end := add(aPtr, n)
+
+            for {} lt(aPtr, end) {
+                aPtr := add(aPtr, 32)
+                bPtr := add(bPtr, 32)
+            } {
+                let w1 := mload(aPtr)
+                let w2 := mload(bPtr)
+                if gt(w1, w2) {
+                    result := 1
+                    break
+                }
+                if lt(w1, w2) {
+                    result := -1
+                    break
+                }
+            }
+
+            if iszero(result) {
+                if gt(aLen, bLen) {
+                    let w1 := shr(sub(256, mul(8, sub(aLen, n))), mload(aPtr))
+                    let w2 := 0
+                    if gt(w1, w2) {
+                        result := 1
+                    }
+                }
+                if gt(bLen, aLen) {
+                    let w1 := 0
+                    let w2 := shr(sub(256, mul(8, sub(bLen, n))), mload(bPtr))
+                    if lt(w1, w2) {
+                        result := -1
+                    }
+                }
+                if eq(aLen, bLen) {
+                    result := 0
+                }
+            }
+        }
+    }

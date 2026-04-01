@@ -1,0 +1,8 @@
+function log2Up(uint256 x) internal  pure returns (uint256 r) {
+function log2Up(uint256 x) internal  pure returns (uint256 r) {
+        assembly {
+            r := lt(shl(r, 1), x)
+        }
+        return r;
+    }
+}

@@ -1,0 +1,15 @@
+function add(G1Point memory point0, G1Point memory point1) internal  view returns (G1Point memory result) {
+assembly ("memory-safe") {
+            mcopy(result, point0, 0x80)
+            mcopy(add(result, 0x80), point1, 0x80)
+            if iszero(
+                and(
+                    eq(returndatasize(), 0x80),
+                    staticcall(gas(), BLS12_G1ADD, result, 0x100, result, 0x80)
+                )
+            ) {
+                mstore(0x00, 0x8d7b8b35) // `G1AddFailed()`.
+                revert(0x1c, 0x04)
+            }
+        }
+    }

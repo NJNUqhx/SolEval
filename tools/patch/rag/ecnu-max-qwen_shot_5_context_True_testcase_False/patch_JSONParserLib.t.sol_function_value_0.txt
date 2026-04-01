@@ -1,0 +1,7 @@
+function value(Item memory item) internal  pure returns (string memory result) {
+bytes32 queried = _query(_toInput(item), 0);
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := queried
+        }
+    }

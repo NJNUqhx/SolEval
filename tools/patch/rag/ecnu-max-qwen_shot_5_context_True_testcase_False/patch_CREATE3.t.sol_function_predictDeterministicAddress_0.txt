@@ -1,0 +1,17 @@
+function predictDeterministicAddress(bytes32 salt, address deployer) internal  pure returns (address deployed) {
+bytes32 bytecodeHash = keccak256(_initCode());
+        /// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(add(m, 0x40), deployer)
+            mstore8(m, 0xff)
+            mstore(add(m, 0x01), salt)
+            mstore(add(m, 0x21), bytecodeHash)
+            deployed := keccak256(m, 0x55)
+            
+            mstore(add(m, 0x40), 0xd694)
+            mstore(add(m, 0x3a), deployed)
+            mstore8(add(m, 0x4f), 0x01)
+            deployed := keccak256(add(m, 0x3a), 0x16)
+        }
+    }

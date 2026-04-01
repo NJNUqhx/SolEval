@@ -1,0 +1,30 @@
+function cbrt(uint256 x) internal  pure returns (uint256 z) {
+if (x == 0) return 0;
+
+    uint256 xAux = x;
+    uint256 r = 1;
+    uint256 s;
+
+    if (xAux >= 2 ** 192) { xAux >>= 192; r <<= 64; }
+    if (xAux >= 2 ** 96)  { xAux >>= 96;  r <<= 32; }
+    if (xAux >= 2 ** 48)  { xAux >>= 48;  r <<= 16; }
+    if (xAux >= 2 ** 24)  { xAux >>= 24;  r <<= 8; }
+    if (xAux >= 2 ** 12)  { xAux >>= 12;  r <<= 4; }
+    if (xAux >= 2 ** 6)   { xAux >>= 6;   r <<= 2; }
+    if (xAux >= 2 ** 3)   { xAux >>= 3;   r <<= 1; }
+
+    s = r;
+    s = (2 * s + x / (s * s)) / 3;
+    s = (2 * s + x / (s * s)) / 3;
+    s = (2 * s + x / (s * s)) / 3;
+    s = (2 * s + x / (s * s)) / 3;
+    s = (2 * s + x / (s * s)) / 3;
+    s = (2 * s + x / (s * s)) / 3;
+    s = (2 * s + x / (s * s)) / 3;
+
+    if (s * s * s > x) {
+        z = s - 1;
+    } else {
+        z = s;
+    }
+}

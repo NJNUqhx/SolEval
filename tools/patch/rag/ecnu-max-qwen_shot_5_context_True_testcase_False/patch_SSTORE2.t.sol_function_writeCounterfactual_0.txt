@@ -1,0 +1,19 @@
+function writeCounterfactual(bytes memory data, bytes32 salt) internal   returns (address pointer) {
+uint256 n;
+        assembly {
+            n := mload(data)
+            if gt(n, 0xfffe) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+            mstore(data, shl(240, 0x60ff5f525ff35b3d5f5f365f5f37365f73))
+            mstore(add(data, 0x0e), shr(96, shl(96, data)))
+            mstore(add(data, 0x1c), add(n, 0x15))
+            pointer := create2(0, add(data, 0x0b), add(n, 0x26), salt)
+            if iszero(pointer) {
+                mstore(0x00, 0x30116425)
+                revert(0x1c, 0x04)
+            }
+            mstore(data, n)
+        }
+}

@@ -1,0 +1,18 @@
+function fullMulDivUnchecked(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let mm := mulmod(x, y, not(0))
+            let p1 := sub(mm, add(mul(x, y), lt(mm, mul(x, y))))
+            let t := and(d, sub(0, d))
+            let r := mulmod(x, y, d)
+            d := div(d, t)
+            let inv := xor(mul(3, d), 2)
+            inv := xor(mul(inv, sub(2, mul(d, inv))), 1)
+            inv := xor(mul(inv, sub(2, mul(d, inv))), 1)
+            inv := xor(mul(inv, sub(2, mul(d, inv))), 1)
+            inv := xor(mul(inv, sub(2, mul(d, inv))), 1)
+            inv := xor(mul(inv, sub(2, mul(d, inv))), 1)
+            inv := xor(mul(inv, sub(2, mul(d, inv))), 1)
+            z := add(mul(mul(x, y), inv), mul(div(sub(0, t), d), mul(r, inv)))
+        }
+    }

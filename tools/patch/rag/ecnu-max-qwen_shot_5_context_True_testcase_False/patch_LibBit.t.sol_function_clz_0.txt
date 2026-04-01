@@ -1,0 +1,965 @@
+function clz(uint256 x) internal  pure returns (uint256 r) {
+if (x == 0) return 256;
+        /// @solidity memory-safe-assembly
+        assembly {
+            let mask := shl(128, 1)
+            let shift := 128
+            r := 0
+            if iszero(and(x, mask)) {
+                r := shift
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+            }
+            shift := shr(1, shift)
+            mask := shr(shift, mask)
+            if iszero(and(x, mask)) {
+                r := add(r, shift)
+                x := shl(shift, x)
+}}}

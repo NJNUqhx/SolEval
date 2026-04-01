@@ -1,0 +1,7 @@
+function dist(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := xor(x, y)
+            z := xor(z, sub(0, mul(xor(sub(0, gt(x, y)), 1), sub(x, y))))
+        }
+    }

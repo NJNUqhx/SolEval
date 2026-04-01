@@ -1,0 +1,6 @@
+function extract_32_24(bytes32 self, uint8 offset) internal  pure returns (bytes24 result) {
+if (offset > 8) revert();
+        assembly {
+            result := shr(mul(8, offset), and(self, 0xffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000))
+        }
+    }

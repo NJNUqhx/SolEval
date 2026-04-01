@@ -1,0 +1,7 @@
+function ffs(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+        x := and(x, sub(0, x))
+        let upper := shr(253, x)
+        r := add(shl(5, mload(add(0x20, mload(0x80)))), byte(upper, mload(add(0x20, mload(0x40)))))
+    }
+}

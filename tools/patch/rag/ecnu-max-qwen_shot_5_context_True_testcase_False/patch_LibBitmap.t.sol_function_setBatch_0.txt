@@ -1,0 +1,31 @@
+function setBatch(Bitmap storage bitmap, uint256 start, uint256 amount) internal {
+uint256 max = not(0);
+        uint256 shift = and(start, 0xff);
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, bitmap.slot)
+            mstore(0x20, shr(8, start))
+            let bucket := shr(8, start)
+            let current := sload(keccak256(0x00, 0x40))
+            let mask := shr(sub(256, amount), max)
+            if gt(add(shift, amount), 256) {
+                let setBits := shl(shift, max)
+                current := or(current, setBits)
+                sstore(keccak256(0x00, 0x40), current)
+                let fullBuckets := div(sub(add(shift, amount), 256), 256)
+                let endBucket := add(bucket, add(1, fullBuckets))
+                for { let i := add(bucket, 1) } lt(i, endBucket) { i := add(i, 1) } {
+                    mstore(0x20, i)
+                    sstore(keccak256(0x00, 0x40), max)
+                }
+                amount := sub(add(shift, amount), mul(add(1, fullBuckets), 256))
+                shift := 0
+                bucket := endBucket
+                if iszero(amount) { stop }
+                mask := shr(sub(256, amount), max)
+                current := sload(keccak256(0x00, 0x40))
+            }
+            current := or(current, shl(shift, mask))
+            sstore(keccak256(0x00, 0x40), current)
+        }
+    }

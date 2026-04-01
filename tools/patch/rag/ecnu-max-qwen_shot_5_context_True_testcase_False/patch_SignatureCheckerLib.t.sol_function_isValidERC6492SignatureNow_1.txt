@@ -1,0 +1,27 @@
+function isValidERC6492SignatureNow(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length == 0) {
+            try ECDSA.recover(hash, signature) returns (address recovered) {
+                return recovered == signer;
+            } catch {
+                return false;
+            }
+        }
+
+        bytes32 magic = 0x52657475726e56616c696443616c6c6572000000000000000000000000000000;
+        bytes memory callData = abi.encodeWithSignature(
+            "isValidSignature(bytes32,bytes)",
+            hash,
+            signature
+        );
+
+        assembly {
+            let success := staticcall(gas(), signer, add(callData, 0x20), mload(callData), 0x00, 0x20)
+            if success {
+                if eq(mload(0x00), magic) {
+                    isValid := true
+                }
+            }
+        }
+
+        return isValid;
+    }

@@ -1,0 +1,34 @@
+function add(AddressSet storage set, address value) internal   returns (bool result) {
+bytes32 root = set._field1;
+    assembly ("memory-safe") {
+        let setPtr := set.slot
+        let valueUint := shr(96, shl(96, value))
+        if iszero(valueUint) {
+            let errorSelector := shl(224, 0x570f00f9) // ValueIsZeroSentinel()
+            mstore(0x00, errorSelector)
+            revert(0x00, 0x04)
+        }
+        if iszero(value) {
+            valueUint := 1
+        }
+        let exists := 0
+        let len := shr(128, root)
+        let dataPtr := add(setPtr, 1)
+        let i := 0
+        for {} lt(i, len) { i := add(i, 1) } {
+            let slotValue := sload(add(dataPtr, i))
+            let storedValue := and(slotValue, 0xffffffffffffffffffffffff)
+            if eq(storedValue, valueUint) {
+                exists := 1
+                break
+            }
+        }
+        if iszero(exists) {
+            let newLen := add(len, 1)
+            let newRoot := or(shl(128, newLen), and(root, 0xffffffffffffffffffffffff))
+            sstore(setPtr, newRoot)
+            sstore(add(dataPtr, len), valueUint)
+            result := 1
+        }
+    }
+} 

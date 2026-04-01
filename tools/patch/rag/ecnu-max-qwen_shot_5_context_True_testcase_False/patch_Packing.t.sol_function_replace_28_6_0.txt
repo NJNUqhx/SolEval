@@ -1,0 +1,9 @@
+function replace_28_6(bytes28 self, bytes6 value, uint8 offset) internal  pure returns (bytes28 result) {
+bytes6 old = extract_28_6(self, offset);
+        assembly {
+            let mask := shl(shl(3, sub(28, add(offset, 6))), sub(shl(48, 1), 1))
+            let shiftedOld := and(mask, shl(shl(3, sub(28, add(offset, 6))), old))
+            let shiftedNew := and(mask, shl(shl(3, sub(28, add(offset, 6))), value))
+            result := xor(xor(self, shiftedOld), shiftedNew)
+        }
+    }

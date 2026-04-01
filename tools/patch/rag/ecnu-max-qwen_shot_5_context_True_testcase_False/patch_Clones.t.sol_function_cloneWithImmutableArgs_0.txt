@@ -1,0 +1,20 @@
+function cloneWithImmutableArgs(address implementation, bytes memory args, uint256 value) internal   returns (address instance) {
+if (address(this).balance < value) {
+            revert InsufficientBalance();
+        }
+
+        bytes memory bytecode = abi.encodePacked(
+            hex"602d5f8160095f39f35f5f365f5f37365f73",
+            implementation,
+            hex"5af43d5f5f3e6029573d5ffd5b3d5ff3",
+            args
+        );
+
+        assembly {
+            instance := create(value, add(bytecode, 0x20), mload(bytecode))
+        }
+
+        if (instance == address(0)) {
+            revert FailedDeployment();
+        }
+    }

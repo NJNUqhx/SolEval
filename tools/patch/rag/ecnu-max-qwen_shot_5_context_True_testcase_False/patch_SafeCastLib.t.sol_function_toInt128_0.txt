@@ -1,0 +1,4 @@
+function toInt128(int256 x) internal  pure returns (int128) {
+require(x >= type(int128).min && x <= type(int128).max, "Overflow when casting to int128");
+        return int128(x);
+    }

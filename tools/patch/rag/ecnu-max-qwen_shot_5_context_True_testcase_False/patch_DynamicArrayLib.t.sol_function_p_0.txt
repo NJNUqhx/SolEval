@@ -1,0 +1,38 @@
+function p(DynamicArray memory a, uint256 data) internal  pure returns (DynamicArray memory result) {
+_deallocate(result);
+        result = a;
+        assembly ("memory-safe") {
+            let arrayData := add(a, 0x20)
+            let arrayLen := mload(arrayData)
+            let newLen := add(arrayLen, 1)
+            let newByteLen := mul(newLen, 0x20)
+            let prime := 0x7fffffffffffffff
+            let capacity := and(add(newByteLen, 0x1f), not(0x1f))
+            if gt(capacity, prime) {
+                capacity := add(capacity, prime)
+            }
+            let currentEnd := add(arrayData, mul(arrayLen, 0x20))
+            let nextFree := mload(0x40)
+            if eq(currentEnd, nextFree) {
+                let required := add(currentEnd, 0x20)
+                if gt(required, nextFree) {
+                    mstore(0x40, required)
+                }
+                mstore(arrayData, newLen)
+                mstore(currentEnd, data)
+            } else {
+                let newData := mload(0x40)
+                let newTotal := add(newData, add(0x20, capacity))
+                mstore(0x40, newTotal)
+                mstore(result, newData)
+                mstore(newData, newLen)
+                let copyStart := add(arrayData, 0x20)
+                let copyEnd := add(copyStart, mul(arrayLen, 0x20))
+                let dest := add(newData, 0x20)
+                if gt(arrayLen, 0) {
+                    mcopy(dest, copyStart, mul(arrayLen, 0x20))
+                }
+                mstore(add(dest, mul(arrayLen, 0x20)), data)
+            }
+        }
+    }

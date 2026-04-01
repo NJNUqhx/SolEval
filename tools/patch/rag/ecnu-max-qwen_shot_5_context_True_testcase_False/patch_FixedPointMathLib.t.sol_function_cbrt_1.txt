@@ -1,0 +1,15 @@
+function cbrt(uint256 x) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let guess := shr(mul(86, lt(x, 0x100000000000000000000000000000000)), shr(mod(mul(43, log2(x)), 128), 0x55555555555555555555555555555555))
+            guess := add(div(x, mul(guess, guess)), mul(2, guess))
+            guess := div(guess, 3)
+            guess := add(div(x, mul(guess, guess)), mul(2, guess))
+            guess := div(guess, 3)
+            guess := add(div(x, mul(guess, guess)), mul(2, guess))
+            guess := div(guess, 3)
+            guess := add(div(x, mul(guess, guess)), mul(2, guess))
+            guess := div(guess, 3)
+            z := guess
+        }
+    }

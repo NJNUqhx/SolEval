@@ -1,0 +1,189 @@
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/Packing.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/SlotDerivation.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/SlotDerivation.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/ShortStrings.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/ShortStrings.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Create2.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/Create2.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Arrays.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/Arrays.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/Strings.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/Strings.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/cryptography/P256.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/cryptography/P256.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/math/Math.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/math/Math.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/math/SignedMath.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/math/SignedMath.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/structs/Checkpoints.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/structs/Checkpoints.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/utils/structs/Heap.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/utils/structs/Heap.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/metatx/ERC2771Forwarder.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/metatx/ERC2771Forwarder.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/governance/Governor.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/governance/Governor.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-contracts/contracts/proxy/Clones.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-contracts/contracts/proxy/Clones.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/metrics/Statistics.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/metrics/Statistics.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/attacks/CoinFlipAttack.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/attacks/CoinFlipAttack.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Dex.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Dex.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/DexTwo.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/DexTwo.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Instance.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Instance.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/CoinFlip.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/CoinFlip.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/HigherOrder.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/HigherOrder.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Preservation.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Preservation.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Privacy.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Privacy.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Fallback.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Fallback.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/GoodSamaritan.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/GoodSamaritan.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/PuzzleWallet.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/PuzzleWallet.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Vault.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Vault.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/King.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/King.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/NaughtCoin.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/NaughtCoin.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Motorbike.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Motorbike.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Switch.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Switch.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Token.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Token.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/MagicAnimalCarousel.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/MagicAnimalCarousel.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Stake.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Stake.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/ethernaut/lib/ethernaut.git/contracts/src/levels/Fallout.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/ethernaut/lib/ethernaut.git/contracts/src/levels/Fallout.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-community-contracts/lib/openzeppelin-community-contracts/contracts/utils/Masks.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-community-contracts/lib/openzeppelin-community-contracts/contracts/utils/Masks.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/LegacyUpgrades.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/LegacyUpgrades.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/Utils.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/Utils.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/DefenderDeploy.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/DefenderDeploy.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/Core.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/openzeppelin-foundry-upgrades/lib/openzeppelin-foundry-upgrades/src/internal/Core.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/Account2/lib/Account2/src/Greeter.sol
+[2026-03-31 10:54:52] [INFO] Skip file_path: /root/Account2/lib/Account2/src/Greeter.sol
+[2026-03-31 10:54:52] [INFO] file_path:
+/root/solady/lib/solady/src/utils/DateTimeLib.sol
+[2026-03-31 10:54:57] [INFO] --------------function(start)-----------------
+[2026-03-31 10:54:57] [INFO] function dateToEpochDay(uint256 year, uint256 month, uint256 day) internal  pure returns (uint256 epochDay) {
+assembly {
+        let adjustment := 0
+        if lt(month, 3) {
+            year := sub(year, 1)
+            adjustment := 306
+        }
+        let yoe := mod(year, 400)
+        let doe := add(add(mul(yoe, 365), div(sub(add(yoe, 3), mod(add(yoe, 3), 4)), 4)), sub(div(sub(add(yoe, 399), mod(add(yoe, 399), 400)), 400), adjustment))
+        let monthDays := mul(div(mul(sub(month, 1), 153), 5), 1)
+        doe := add(doe, add(monthDays, sub(day, 1)))
+        let era := div(year, 400)
+        let daysSinceEpoch := add(mul(era, 146097), doe)
+        epochDay := sub(daysSinceEpoch, 719162)
+    }
+}
+[2026-03-31 10:54:57] [INFO] --------------function(end)-----------------
+[2026-03-31 10:54:57] [INFO] average_inference_time: 5.03s
+[2026-03-31 10:55:03] [INFO] --------------function(start)-----------------
+[2026-03-31 10:55:03] [INFO] function epochDayToDate(uint256 epochDay) internal  pure returns (uint256 year, uint256 month, uint256 day) {
+assembly {
+        epochDay := add(epochDay, 719468)
+        let doe := mod(epochDay, 146097)
+        let yoe := div(sub(doe, sub(div(doe, 1460), sub(div(doe, 36524), div(doe, 146096)))), 365)
+        let doy := sub(doe, add(mul(365, yoe), sub(div(yoe, 4), sub(div(yoe, 100), 0))))
+        let mp := div(add(mul(5, doy), 2), 153)
+        day := add(sub(doy, div(sub(add(mul(153, mp), 2), 5), 5)), 1)
+        month := add(mod(add(mp, 2), 12), 1)
+        year := add(add(div(sub(epochDay, doe), 146097), mul(400, div(doe, 146097))), add(yoe, sub(gt(mp, 9), 0)))
+    }
+}
+[2026-03-31 10:55:03] [INFO] --------------function(end)-----------------
+[2026-03-31 10:55:03] [INFO] average_inference_time: 5.24s
+[2026-03-31 10:55:06] [INFO] --------------function(start)-----------------
+[2026-03-31 10:55:06] [INFO] function dateToTimestamp(uint256 year, uint256 month, uint256 day) internal  pure returns (uint256 result) {
+uint256 epochDay = dateToEpochDay(year, month, day);
+    unchecked {
+        result = epochDay * 86400;
+    }
+} 
+[2026-03-31 10:55:06] [INFO] --------------function(end)-----------------
+[2026-03-31 10:55:06] [INFO] average_inference_time: 4.64s
+[2026-03-31 10:55:10] [INFO] --------------function(start)-----------------
+[2026-03-31 10:55:10] [INFO] function timestampToDate(uint256 timestamp) internal  pure returns (uint256 year, uint256 month, uint256 day) {
+uint256 days = timestamp / 86400;
+    (year, month, day) = epochDayToDate(days);
+} 
+[2026-03-31 10:55:10] [INFO] --------------function(end)-----------------
+[2026-03-31 10:55:10] [INFO] average_inference_time: 4.30s
+[2026-03-31 10:55:13] [INFO] --------------function(start)-----------------
+[2026-03-31 10:55:13] [INFO] function dateTimeToTimestamp(uint256 year, uint256 month, uint256 day, uint256 hour, uint256 minute, uint256 second) internal  pure returns (uint256 result) {
+unchecked {
+        result = dateToEpochDay(year, month, day) * 86400 + hour * 3600 + minute * 60 + second;
+    }
+}
+[2026-03-31 10:55:13] [INFO] --------------function(end)-----------------
+[2026-03-31 10:55:13] [INFO] average_inference_time: 4.10s

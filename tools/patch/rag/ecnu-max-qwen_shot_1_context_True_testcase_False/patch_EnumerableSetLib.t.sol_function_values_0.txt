@@ -1,0 +1,25 @@
+function values(AddressSet storage set) internal  view returns (address[] memory result) {
+bytes32 root = set._inner._slots;
+    uint256 n;
+    assembly {
+        let packed := sload(root)
+        n := shr(248, packed)
+    }
+
+    result = new address[](n);
+    assembly {
+        let dataPtr := add(result, 0x20)
+        let endPtr := add(dataPtr, mul(n, 0x20))
+        let i := 0
+        for {} lt(dataPtr, endPtr) {} {
+            let slot := add(root, add(1, i))
+            let val := and(sload(slot), 0xffffffffffffffffffffffffffffffffffffffff)
+            if val {
+                mstore(dataPtr, val)
+                dataPtr := add(dataPtr, 0x20)
+            }
+            i := add(i, 1)
+        }
+        mstore(result, sub(div(sub(dataPtr, add(result, 0x20)), 0x20), 0))
+    }
+}

@@ -1,0 +1,10 @@
+function replace_20_10(bytes20 self, bytes10 value, uint8 offset) internal  pure returns (bytes20 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let shift := shl(3, sub(20, add(offset, 10)))
+            let mask := shr(shift, shl(shift, not(0)))
+            let oldSegment := and(self, shr(shift, shl(shift, mask)))
+            let newSegment := and(shl(shift, value), shr(shift, shl(shift, mask)))
+            result := xor(xor(self, oldSegment), newSegment)
+        }
+    }

@@ -1,0 +1,18 @@
+function nthWeekdayInMonthOfYearTimestamp(uint256 year, uint256 month, uint256 n, uint256 wd) internal  pure returns (uint256 result) {
+uint256 firstDayEpoch = dateToEpochDay(year, month, 1);
+    uint256 firstDayWeekday = firstDayEpoch % 7;
+    uint256 daysInMon = daysInMonth(year, month);
+    
+    uint256 offset;
+    assembly {
+        let diff := sub(wd, firstDayWeekday)
+        if slt(diff, 0) { diff := add(diff, 7) }
+        offset := add(diff, mul(sub(n, 1), 7))
+    }
+
+    if (offset >= daysInMon) {
+        return 0;
+    }
+
+    result = (firstDayEpoch + offset) * 86400;
+}

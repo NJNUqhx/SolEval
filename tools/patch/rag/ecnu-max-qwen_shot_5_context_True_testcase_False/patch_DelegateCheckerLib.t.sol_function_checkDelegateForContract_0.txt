@@ -1,0 +1,17 @@
+function checkDelegateForContract(address to, address from, address contract_) internal  view returns (bool isValid) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(add(0x60, m), contract_)
+            mstore(add(0x4c, m), shl(96, from))
+            mstore(add(0x2c, m), shl(96, to))
+            // `checkDelegateForContract(address,address,address)`.
+            mstore(add(0x0c, m), 0x90c9a2d0000000000000000000000000)
+            isValid := staticcall(gas(), DELEGATE_REGISTRY_V2, add(m, 0x1c), 0x64, m, 0x20)
+            isValid := and(eq(mload(m), 1), isValid)
+            if iszero(isValid) {
+                isValid := staticcall(gas(), DELEGATE_REGISTRY_V1, add(m, 0x1c), 0x64, m, 0x20)
+                isValid := and(eq(mload(m), 1), isValid)
+            }
+        }
+    }

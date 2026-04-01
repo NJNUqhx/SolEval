@@ -1,0 +1,7 @@
+function clearCompat(TUint256 storage ptr) internal {
+if (block.chainid == 1) {
+            clear(ptr);
+        } else {
+            _compat(ptr)._spacer = 0;
+        }
+    }

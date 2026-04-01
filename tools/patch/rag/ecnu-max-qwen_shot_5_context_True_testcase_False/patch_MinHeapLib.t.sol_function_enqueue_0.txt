@@ -1,0 +1,8 @@
+function enqueue(Heap storage heap, uint256 value, uint256 maxLength) internal   returns (bool success, bool hasPopped, uint256 popped) {
+(uint256 status, uint256 poppedVal) = _set(heap, value, maxLength, 0);
+        assembly {
+            success := eq(status, 1)
+            hasPopped := eq(status, 3)
+            popped := poppedVal
+        }
+    }

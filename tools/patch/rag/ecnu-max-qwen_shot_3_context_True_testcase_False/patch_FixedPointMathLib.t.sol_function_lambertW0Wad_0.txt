@@ -1,0 +1,74 @@
+function lambertW0Wad(int256 x) internal  pure returns (int256 w) {
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "./MathWad.sol"; // Assuming MathWad contains lnWad, expWad, and WAD constant
+
+function lambertW0Wad(int256 x) internal pure returns (int256 w) {
+    // 1/e in wad precision: approximately -0.3678794411714423215955237701614608674458111310317678...
+    // Scaled by 1e18: -367879441171442322
+    int256 constant NEGATIVE_ONE_OVER_E_WAD = -367879441171442322;
+
+    // Step 1: Check domain
+    if (x < NEGATIVE_ONE_OVER_E_WAD) {
+        revert("OutOfDomain");
+    }
+
+    int256 constant WAD = 1e18;
+    int256 p = 0;
+    int256 i = 0;
+
+    // Step 3: Determine number of iterations based on magnitude of x
+    if (x == 0) {
+        return 0;
+    } else if (x > 0) {
+        // For positive x, use log2 to estimate iterations
+        // Approximate log2(x/WAD) + 1, clamped between 1 and 64
+        int256 absX = x > 0 ? x : -x;
+        int256 log2x = MathWad.log2(absX); // Assuming log2 returns log2 scaled by WAD
+        i = (log2x / int256(WAD)) + 1;
+        if (i < 1) i = 1;
+        if (i > 64) i = 64;
+    } else {
+        // For negative x (near -1/e), more iterations may be needed
+        // Use fixed high iteration count for safety in this range
+        i = 32;
+    }
+
+    // Initial guess: w0 = ln(x+1) for small x, or ln(x) for large x
+    if (x > -367879441171442322 && x < 367879441171442322) {
+        // Near zero: use series approximation or ln(1+x)
+        w = MathWad.lnWad(x + int256(WAD));
+    } else {
+        w = MathWad.lnWad(x);
+    }
+
+    // Steps 4, 5, 6: Iterate using Newton/Halley methods
+    for (uint256 k = 0; k < uint256(i); k++) {
+        int256 ew = MathWad.expWad(w);
+        int256 we = (w * ew) / int256(WAD);
+        int256 diff = we - x;
+
+        if (diff == 0) {
+            break;
+        }
+
+        // Halley's method: w_{n+1} = w_n - (we - x) / (we + w - (w+2)(we-x)/(2w+2))
+        // Simplified for wad precision
+        int256 denominator = (we * (int256(WAD) + w)) / int256(WAD);
+        if (denominator == 0) {
+            break;
+        }
+        int256 delta = (diff * int256(WAD)) / denominator;
+        p = w;
+        w = w - delta;
+
+        // Check for convergence
+        if (w == p) {
+            break;
+        }
+    }
+
+    return w;
+}
+}

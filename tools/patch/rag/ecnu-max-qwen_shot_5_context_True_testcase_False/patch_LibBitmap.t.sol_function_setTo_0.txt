@@ -1,0 +1,12 @@
+function setTo(Bitmap storage bitmap, uint256 index, bool shouldSet) internal {
+bytes32 slot = bytes32(index >> 8);
+    assembly ("memory-safe") {
+        slot := add(bitmap.slot, shr(8, index))
+    }
+    bytes32 value = vm.load(address(this), slot);
+    uint256 bitPos = index & 0xff;
+    bytes32 mask = ~(bytes32(uint256(1) << bitPos));
+    bytes32 bitValue = shouldSet ? bytes32(uint256(1) << bitPos) : bytes32(0);
+    bytes32 newValue = (value & mask) | bitValue;
+    vm.store(address(this), slot, newValue);
+} 

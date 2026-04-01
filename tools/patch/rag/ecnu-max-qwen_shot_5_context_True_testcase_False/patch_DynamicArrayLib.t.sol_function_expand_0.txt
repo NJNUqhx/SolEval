@@ -1,0 +1,11 @@
+function expand(DynamicArray memory a, uint256 n) internal  pure returns (DynamicArray memory result) {
+_deallocate(result);
+        result = a;
+        if (n >= length(a.data)) {
+            reserve(result, n);
+        }
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(add(mload(result), 0x20), n)
+        }
+    }

@@ -1,0 +1,18 @@
+function mulDivUp(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if iszero(d) {
+                mstore(0x00, 0xbac65e5b) // `MulDivFailed()`.
+                revert(0x1c, 0x04)
+            }
+            let mm := mulmod(x, y, d)
+            z := div(mul(x, y), d)
+            if mm {
+                z := add(z, 1)
+                if lt(z, add(mul(x, y), 1)) {
+                    mstore(0x00, 0xbac65e5b) // `MulDivFailed()`.
+                    revert(0x1c, 0x04)
+                }
+            }
+        }
+    }

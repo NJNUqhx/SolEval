@@ -1,0 +1,11 @@
+function initCode(address implementation) internal  pure returns (bytes memory c) {
+assembly {
+            let m := mload(0x40)
+            mstore(add(m, 0x38), 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            mstore(add(m, 0x28), implementation)
+            mstore(add(m, 0x14), 0x602d5f8160095f39f35f5f365f5f37365f73)
+            mstore(m, 0x0000000000000000000000000000000000000000000000000000000000000000)
+            mstore(0x40, add(m, 0x50))
+            c := m
+        }
+    }

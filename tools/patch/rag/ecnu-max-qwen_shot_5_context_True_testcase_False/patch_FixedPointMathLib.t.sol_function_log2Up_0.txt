@@ -1,0 +1,11 @@
+function log2Up(uint256 x) internal  pure returns (uint256 r) {
+require(x > 0, "Math: input is zero");
+        unchecked {
+            r = Math.log2(x);
+            assembly {
+                if lt(shl(r, 1), x) {
+                    r := add(r, 1)
+                }
+            }
+        }
+    }

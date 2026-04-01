@@ -1,0 +1,28 @@
+function findLastSet(Bitmap storage bitmap, uint256 upTo) internal  view returns (uint256 setBitIndex) {
+setBitIndex = NOT_FOUND;
+        uint256 bucketIndex = upTo >> 8;
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let slot := bucketIndex
+            let offset := and(upTo, 0xff)
+            let bucket := shr(sub(255, offset), sload(slot))
+            let originalBucketIndex := bucketIndex
+
+            if iszero(bucket) {
+                for {} 1 {} {
+                    if iszero(bucketIndex) { break }
+                    bucketIndex := sub(bucketIndex, 1)
+                    slot := sub(slot, 1)
+                    bucket := sload(slot)
+                    if bucket { break }
+                }
+            }
+
+            if bucket {
+                let bitIndex := fls(bucket)
+                setBitIndex := add(shl(8, bucketIndex), sub(0xff, bitIndex))
+                if gt(setBitIndex, upTo) { setBitIndex := not(0) }
+            }
+        }
+    }

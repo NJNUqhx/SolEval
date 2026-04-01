@@ -1,0 +1,10 @@
+function replace_6_1(bytes6 self, bytes1 value, uint8 offset) internal  pure returns (bytes6 result) {
+bytes1 oldValue = extract_6_1(self, offset);
+        /// @solidity memory-safe-assembly
+        assembly {
+            let mask := shl(mul(offset, 8), 0xff)
+            let oldValShifted := shl(mul(offset, 8), and(0xff, oldValue))
+            let newValShifted := shl(mul(offset, 8), and(0xff, value))
+            result := xor(xor(self, oldValShifted), newValShifted)
+        }
+    }

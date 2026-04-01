@@ -1,0 +1,37 @@
+function isValidSignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let len := signature.length
+            if eq(len, 65) {
+                let r := calldataload(signature.offset)
+                let s := calldataload(add(signature.offset, 0x20))
+                let v := byte(0, calldataload(add(signature.offset, 0x40)))
+                let recovered := staticcall(gas(), 0x01, r, 0x40, 0x00, 0x20)
+                if and(recovered, eq(signer, mload(0x00))) {
+                    isValid := true
+                }
+            } else {
+                if eq(len, 64) {
+                    let r := calldataload(signature.offset)
+                    let s := calldataload(add(signature.offset, 0x20))
+                    let recovered := staticcall(gas(), 0x01, r, 0x40, 0x00, 0x20)
+                    if and(recovered, eq(signer, mload(0x00))) {
+                        isValid := true
+                    }
+                }
+            }
+        }
+
+        if (!isValid) {
+            (bool success, bytes memory result) = signer.staticcall(
+                abi.encodeWithSelector(IERC1271.isValidSignature.selector, hash, signature)
+            );
+            if (success && result.length == 32) {
+                isValid = (abi.decode(result, (bytes4)) == IERC1271.isValidSignature.selector);
+            }
+        }
+    }

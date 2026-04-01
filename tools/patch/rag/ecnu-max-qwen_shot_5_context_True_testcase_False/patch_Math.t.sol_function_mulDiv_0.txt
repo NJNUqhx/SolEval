@@ -1,0 +1,17 @@
+function mulDiv(uint256 x, uint256 y, uint256 denominator) internal  pure returns (uint256 result) {
+function mulDiv(uint256 x, uint256 y, uint256 denominator) internal  pure returns (uint256 result) {
+        if (denominator == 0) {
+            panic(DIVISION_BY_ZERO);
+        }
+        assembly {
+            let mm := mulmod(x, y, denominator)
+            result := div(mul(x, y), denominator)
+            if mm {
+                result := add(result, 1)
+                if iszero(gt(result, 0)) {
+                    panic(UNDER_OVERFLOW)
+                }
+            }
+        }
+    }
+}

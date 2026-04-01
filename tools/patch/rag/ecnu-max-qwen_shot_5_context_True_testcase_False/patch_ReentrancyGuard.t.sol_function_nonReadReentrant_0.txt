@@ -1,0 +1,16 @@
+function nonReadReentrant()  virtual {
+uint256 slot = _REENTRANCY_GUARD_SLOT;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            if eq(sload(slot), address()) {
+                mstore(0x00, 0xab143c06) // Reentrancy() selector (placeholder, actual selector depends on error definition)
+                revert(0x1c, 0x04)
+            }
+            sstore(slot, address())
+        }
+        _;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            sstore(slot, 0)
+        }
+    }

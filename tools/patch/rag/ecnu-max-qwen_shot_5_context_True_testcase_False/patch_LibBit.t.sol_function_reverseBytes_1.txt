@@ -1,0 +1,71 @@
+function reverseBytes(uint256 x) internal  pure returns (uint256 r) {
+uint256 m0 = 0x00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff00ff ^ x;
+        uint256 m1 = 0x0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff ^ m0;
+        uint256 m2 = 0x00000000ffffffff00000000ffffffff00000000ffffffff00000000ffffffff ^ m1;
+        uint256 m3 = 0x0000000000000000ffffffffffffffff0000000000000000ffffffffffffffff ^ m2;
+        assembly {
+            r := or(shl(248, and(x, 0xff)),
+                or(shl(240, and(shr(8, x), 0xff)),
+                    or(shl(232, and(shr(16, x), 0xff)),
+                        or(shl(224, and(shr(24, x), 0xff)),
+                            or(shl(216, and(shr(32, x), 0xff)),
+                                or(shl(208, and(shr(40, x), 0xff)),
+                                    or(shl(200, and(shr(48, x), 0xff)),
+                                        or(shl(192, and(shr(56, x), 0xff)),
+                                            or(shl(184, and(shr(64, x), 0xff)),
+                                                or(shl(176, and(shr(72, x), 0xff)),
+                                                    or(shl(168, and(shr(80, x), 0xff)),
+                                                        or(shl(160, and(shr(88, x), 0xff)),
+                                                            or(shl(152, and(shr(96, x), 0xff)),
+                                                                or(shl(144, and(shr(104, x), 0xff)),
+                                                                    or(shl(136, and(shr(112, x), 0xff)),
+                                                                        or(shl(128, and(shr(120, x), 0xff)),
+                                                                            or(shl(120, and(shr(128, x), 0xff)),
+                                                                                or(shl(112, and(shr(136, x), 0xff)),
+                                                                                    or(shl(104, and(shr(144, x), 0xff)),
+                                                                                        or(shl(96, and(shr(152, x), 0xff)),
+                                                                                            or(shl(88, and(shr(160, x), 0xff)),
+                                                                                                or(shl(80, and(shr(168, x), 0xff)),
+                                                                                                    or(shl(72, and(shr(176, x), 0xff)),
+                                                                                                        or(shl(64, and(shr(184, x), 0xff)),
+                                                                                                            or(shl(56, and(shr(192, x), 0xff)),
+                                                                                                                or(shl(48, and(shr(200, x), 0xff)),
+                                                                                                                    or(shl(40, and(shr(208, x), 0xff)),
+                                                                                                                        or(shl(32, and(shr(216, x), 0xff)),
+                                                                                                                            or(shl(24, and(shr(224, x), 0xff)),
+                                                                                                                                or(shl(16, and(shr(232, x), 0xff)),
+                                                                                                                                    or(shl(8, and(shr(240, x), 0xff)),
+                                                                                                                                        shr(248, x)
+                                                                                                                                    )
+                                                                                                                                )
+                                                                                                                            )
+                                                                                                                        )
+                                                                                                                    )
+                                                                                                                )
+                                                                                                            )
+                                                                                                        )
+                                                                                                    )
+                                                                                                )
+                                                                                            )
+                                                                                        )
+                                                                                    )
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        }
+    }

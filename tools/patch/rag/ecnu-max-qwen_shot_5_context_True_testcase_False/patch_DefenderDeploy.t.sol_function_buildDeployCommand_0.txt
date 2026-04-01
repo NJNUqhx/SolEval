@@ -1,0 +1,72 @@
+function buildDeployCommand(ContractInfo memory contractInfo, string memory buildInfoFile, bytes memory constructorData, DefenderOptions memory defenderOpts) internal  view returns (string[] memory) {
+function buildDeployCommand(ContractInfo memory contractInfo, string memory buildInfoFile, bytes memory constructorData, DefenderOptions memory defenderOpts) internal  view returns (string[] memory) {
+        if (defenderOpts.licenseType != LicenseType.NONE && (defenderOpts.skipVerifySourceCode || defenderOpts.skipLicenseType)) {
+            revert("Cannot specify licenseType when skipVerifySourceCode or skipLicenseType is true");
+        }
+
+        string[] memory inputs = new string[](20);
+        uint256 inputCount = 0;
+
+        inputs[inputCount++] = "npx";
+        inputs[inputCount++] = DEFENDER_DEPLOY_CLIENT_CLI;
+        inputs[inputCount++] = "deploy";
+        inputs[inputCount++] = contractInfo.name;
+        inputs[inputCount++] = contractInfo.path;
+        inputs[inputCount++] = "--chain-id";
+        inputs[inputCount++] = vm.toString(block.chainid);
+        inputs[inputCount++] = "--build-info-file";
+        inputs[inputCount++] = buildInfoFile;
+
+        if (constructorData.length > 0) {
+            inputs[inputCount++] = "--constructor-args";
+            inputs[inputCount++] = vm.toString(constructorData);
+        }
+
+        if (defenderOpts.licenseType != LicenseType.NONE) {
+            inputs[inputCount++] = "--license-type";
+            inputs[inputCount++] = vm.toString(uint256(defenderOpts.licenseType));
+        }
+
+        if (defenderOpts.relayerId != address(0)) {
+            inputs[inputCount++] = "--relayer-id";
+            inputs[inputCount++] = vm.toString(defenderOpts.relayerId);
+        }
+
+        if (defenderOpts.salt != bytes32(0)) {
+            inputs[inputCount++] = "--salt";
+            inputs[inputCount++] = vm.toString(defenderOpts.salt);
+        }
+
+        if (defenderOpts.gasLimit > 0) {
+            inputs[inputCount++] = "--gas-limit";
+            inputs[inputCount++] = vm.toString(defenderOpts.gasLimit);
+        }
+
+        if (defenderOpts.gasPrice > 0) {
+            inputs[inputCount++] = "--gas-price";
+            inputs[inputCount++] = vm.toString(defenderOpts.gasPrice);
+        }
+
+        if (defenderOpts.maxFeePerGas > 0) {
+            inputs[inputCount++] = "--max-fee-per-gas";
+            inputs[inputCount++] = vm.toString(defenderOpts.maxFeePerGas);
+        }
+
+        if (defenderOpts.maxPriorityFeePerGas > 0) {
+            inputs[inputCount++] = "--max-priority-fee-per-gas";
+            inputs[inputCount++] = vm.toString(defenderOpts.maxPriorityFeePerGas);
+        }
+
+        if (bytes(defenderOpts.metadata).length > 0) {
+            inputs[inputCount++] = "--metadata";
+            inputs[inputCount++] = defenderOpts.metadata;
+        }
+
+        string[] memory result = new string[](inputCount);
+        for (uint256 i = 0; i < inputCount; i++) {
+            result[i] = inputs[i];
+        }
+
+        return result;
+    }
+}

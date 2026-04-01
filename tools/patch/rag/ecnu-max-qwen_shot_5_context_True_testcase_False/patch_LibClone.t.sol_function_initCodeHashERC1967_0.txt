@@ -1,0 +1,11 @@
+function initCodeHashERC1967(address implementation) internal  pure returns (bytes32 hash) {
+assembly {
+        let m := mload(0x40)
+        mstore(m, 0x602d8060095f395ff3363d3d373d3d3d363d73)
+        mstore(add(m, 0x14), shl(96, implementation))
+        mstore(add(m, 0x28), 0x5af43d82803e903d91602b57fd5bf3)
+        hash := keccak256(m, 0x37)
+        mstore(0x40, m)
+        mstore(m, 0)
+    }
+}

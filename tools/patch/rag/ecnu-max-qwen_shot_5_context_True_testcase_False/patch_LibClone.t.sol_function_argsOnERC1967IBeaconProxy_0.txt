@@ -1,0 +1,10 @@
+function argsOnERC1967IBeaconProxy(address instance) internal  view returns (bytes memory args) {
+assembly {
+            let codeSize := extcodesize(instance)
+            let dataLength := sub(codeSize, 0x57)
+            args := mload(0x40)
+            mstore(args, dataLength)
+            extcodecopy(instance, add(args, 0x20), 0x57, dataLength)
+            mstore(0x40, add(args, add(0x20, dataLength)))
+        }
+    }

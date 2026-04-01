@@ -1,0 +1,12 @@
+function deployDeterministicAndCall(address implementation, address admin, bytes32 salt, bytes calldata data) public  payable returns (address proxy) {
+assembly {
+            if xor(shr(96, salt), caller()) {
+                mstore(0x00, 0x8c379a01) // `Error(string)`.
+                mstore(0x20, 0x20)
+                mstore(0x40, 0x2a)
+                mstore(0x60, 0x53616c7420646f6573206e6f7420737461727420776974682063616c6c6572) // "Salt does not start with caller".
+                revert(0x1c, 0x64)
+            }
+        }
+        proxy = _deploy(implementation, admin, salt, true, data);
+    } 

@@ -1,0 +1,9 @@
+function mulDiv(uint256 x, uint256 y, uint256 d) internal  pure returns (uint256 z) {
+        assembly {
+            let mm := mulmod(x, y, d)
+            z := div(mm, d)
+            if eq(d, 0) { revert(0, 0) }
+            if gt(mm, mul(x, y)) { revert(0, 0) }
+            z := div(mul(x, y), d)
+        }
+    }

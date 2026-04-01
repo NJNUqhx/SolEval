@@ -1,0 +1,9 @@
+function pop(DynamicArray memory a) internal  pure returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let o := mload(a)
+            let n := mload(o)
+            result := mload(add(o, shl(5, n)))
+            mstore(o, sub(n, iszero(iszero(n))))
+        }
+    }

@@ -1,0 +1,17 @@
+function reserve(DynamicBuffer memory buffer, uint256 minimum) internal  pure returns (DynamicBuffer memory result) {
+_deallocate(result);
+        result = buffer;
+        if (result.length < minimum) {
+            uint256 capacity = result.length == 0 ? 32 : result.length;
+            while (capacity < minimum) {
+                capacity *= 2;
+            }
+            assembly {
+                let ptr := mload(0x40)
+                mstore(0x40, add(ptr, add(32, capacity)))
+                mstore(result, ptr)
+                mstore(add(result, 0x20), minimum)
+                mstore(add(result, 0x40), capacity)
+            }
+        }
+    }

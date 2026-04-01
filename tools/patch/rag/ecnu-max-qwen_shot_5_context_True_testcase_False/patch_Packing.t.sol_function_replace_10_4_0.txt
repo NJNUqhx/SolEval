@@ -1,0 +1,9 @@
+function replace_10_4(bytes10 self, bytes4 value, uint8 offset) internal  pure returns (bytes10 result) {
+assembly {
+            let selfVal := shl(160, self)
+            let valueVal := shl(224, value)
+            let shift := mul(sub(10, add(offset, 4)), 8)
+            let mask := not(shl(shift, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000))
+            result := shr(160, or(and(selfVal, mask), shl(shift, valueVal)))
+        }
+    }

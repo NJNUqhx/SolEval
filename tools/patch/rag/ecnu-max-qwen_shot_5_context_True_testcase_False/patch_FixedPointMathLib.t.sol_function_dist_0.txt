@@ -1,0 +1,8 @@
+function dist(uint256 x, uint256 y) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let diff := sub(x, y)
+            let isXGreater := gt(x, y)
+            z := xor(diff, mul(xor(diff, sub(y, x)), iszero(isXGreater)))
+        }
+    }

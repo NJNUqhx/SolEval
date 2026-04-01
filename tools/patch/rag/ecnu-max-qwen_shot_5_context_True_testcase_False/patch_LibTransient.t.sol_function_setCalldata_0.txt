@@ -1,0 +1,21 @@
+function setCalldata(TBytes storage ptr, bytes calldata value) internal {
+assembly {
+        let len := value.length
+        let packed := or(0xff, shl(8, len))
+        for { let i := 0 } 1 {} {
+            if iszero(gt(len, 0xfe)) {
+                i := 0x1f
+                packed := or(len, shl(8, shr(8, calldataload(value.offset))))
+                if iszero(gt(len, i)) { break }
+            }
+            mstore(0x00, ptr.slot)
+            for { let p := keccak256(0x00, 0x20) } 1 {} {
+                sstore(add(p, shr(5, i)), calldataload(add(value.offset, i)))
+                i := add(i, 0x20)
+                if iszero(lt(i, len)) { break }
+            }
+            break
+        }
+        sstore(ptr.slot, packed)
+    }
+}

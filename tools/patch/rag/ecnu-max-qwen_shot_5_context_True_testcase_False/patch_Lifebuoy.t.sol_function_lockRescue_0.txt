@@ -1,0 +1,3 @@
+function lockRescue(uint256 locksToSet) public virtual onlyRescuer(_LIFEBUOY_LOCK_RESCUE_LOCK) {
+_lockRescue(locksToSet);
+    }

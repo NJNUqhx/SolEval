@@ -1,0 +1,6 @@
+function getBool(uint256[] memory a, uint256 i) internal  pure returns (bool result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := mload(add(add(a, 0x20), mul(i, 0x20)))
+        }
+    }

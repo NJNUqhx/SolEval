@@ -1,0 +1,10 @@
+function replace_22_6(bytes22 self, bytes6 value, uint8 offset) internal  pure returns (bytes22 result) {
+assembly {
+        let v := and(shl(152, value), 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+        let shift := sub(176, mul(8, offset))
+        let mask := shr(shift, 0xFFFFFFFFFFFF000000000000000000000000000000000000000000000000)
+        let old := and(self, mask)
+        let new := and(v, mask)
+        result := xor(xor(self, old), new)
+    }
+}

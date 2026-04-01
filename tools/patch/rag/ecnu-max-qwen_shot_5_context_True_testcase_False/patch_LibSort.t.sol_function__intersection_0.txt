@@ -1,0 +1,40 @@
+function _intersection(uint256[] memory a, uint256[] memory b, uint256 signed) private  pure returns (uint256[] memory c) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let aLen := mload(a)
+            let bLen := mload(b)
+            let aPtr := add(a, 0x20)
+            let bPtr := add(b, 0x20)
+            let aEnd := add(aPtr, mul(aLen, 0x20))
+            let bEnd := add(bPtr, mul(bLen, 0x20))
+            
+            c := mload(0x40)
+            let cPtr := add(c, 0x20)
+            let cLen := 0
+            
+            for {} and(lt(aPtr, aEnd), lt(bPtr, bEnd)) {} {
+                let valA := mload(aPtr)
+                let valB := mload(bPtr)
+                
+                let adjustedB := valB
+                if signed {
+                    adjustedB := add(valB, signed)
+                }
+                
+                if eq(valA, adjustedB) {
+                    mstore(cPtr, valA)
+                    cPtr := add(cPtr, 0x20)
+                    cLen := add(cLen, 1)
+                    aPtr := add(aPtr, 0x20)
+                    bPtr := add(bPtr, 0x20)
+                } else if lt(valA, adjustedB) {
+                    aPtr := add(aPtr, 0x20)
+                } else {
+                    bPtr := add(bPtr, 0x20)
+                }
+            }
+            
+            mstore(c, cLen)
+            mstore(0x40, add(cPtr, 0x20))
+        }
+    }

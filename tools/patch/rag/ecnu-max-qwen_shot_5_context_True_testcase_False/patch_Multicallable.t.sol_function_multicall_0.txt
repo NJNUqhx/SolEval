@@ -1,0 +1,5 @@
+function multicall(bytes[] calldata data) public virtual payable returns (bytes[] memory) {
+if (msg.value != 0) revert ERC2771ContextNonZeroValue();
+        bytes32 results = _multicall(data);
+        _multicallDirectReturn(results);
+    }

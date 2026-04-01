@@ -1,0 +1,5 @@
+function toInt208(int256 x) internal  pure returns (int208) {
+int208 result = int208(x);
+        require(int256(result) == x, "toInt208 overflow");
+        return result;
+    }

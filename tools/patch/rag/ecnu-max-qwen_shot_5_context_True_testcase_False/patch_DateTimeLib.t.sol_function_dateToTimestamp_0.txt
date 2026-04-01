@@ -1,0 +1,3 @@
+function dateToTimestamp(uint256 year, uint256 month, uint256 day) internal  pure returns (uint256 result) {
+result = dateToEpochDay(year, month, day) * 86400;
+    }

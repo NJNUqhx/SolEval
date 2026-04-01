@@ -1,0 +1,24 @@
+function submitSuccess(address instance, address level, address player) external  playerExistsCheck(player) {
+require(playerStats[player][level].instance != address(0), "Instance for the level is not created");
+        require(playerStats[player][level].instance == instance, "Submitted instance is not the created one");
+        require(playerStats[player][level].isCompleted == false, "Level already completed");
+
+        bool isFirstCompletion = (levelStats[level].noOfInstancesSubmitted_Success == 0);
+
+        playerStats[player][level].timeSubmitted.push(block.timestamp);
+        playerStats[player][level].isCompleted = true;
+        playerStats[player][level].timeCompleted.push(block.timestamp);
+
+        levelStats[level].noOfInstancesSubmitted_Success++;
+        globalNoOfCompletedSubmissions++;
+        globalNoOfInstancesCompletedByPlayer[player]++;
+
+        if (isFirstCompletion) {
+            globalNoOfLevelsCompletedByPlayer[player]++;
+            if (levelStats[level].firstCompletedTime == 0) {
+                levelStats[level].firstCompletedTime = block.timestamp;
+            }
+            _updatePlayerAverageTime(player);
+            emit playerScoreProfile(player, getPlayerScoreProfile(player));
+        }
+}

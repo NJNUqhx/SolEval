@@ -1,0 +1,24 @@
+function invMod(uint256 a, uint256 n) internal  pure returns (uint256 x) {
+assembly {
+            let g := n
+            let r := mod(a, n)
+            let y := 0
+            x := 1
+            for {} gt(r, 0) {} {
+                let q := div(g, r)
+                let t := g
+                g := r
+                r := sub(t, mul(q, r))
+                t := x
+                x := y
+                y := sub(t, mul(q, y))
+            }
+            if eq(g, 1) {
+                if slt(x, 0) {
+                    x := add(x, n)
+                }
+            } else {
+                x := 0
+            }
+        }
+    }

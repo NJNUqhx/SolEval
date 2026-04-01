@@ -1,0 +1,7 @@
+function parse(string memory s) internal  pure returns (Item memory result) {
+assembly {
+            result := mload(0x40)
+            mstore(0x40, add(result, 0x40))
+            mstore(result, _query(s, 255))
+        }
+    }

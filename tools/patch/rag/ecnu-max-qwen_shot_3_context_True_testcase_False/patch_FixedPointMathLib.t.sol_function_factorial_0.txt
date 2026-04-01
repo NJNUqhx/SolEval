@@ -1,0 +1,17 @@
+function factorial(uint256 x) internal  pure returns (uint256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            z := 1
+            if gt(x, 57) {
+                mstore(0x00, 0x4e487b71)
+                mstore(0x20, 0x11)
+                revert(0x1c, 0x24)
+            }
+            let i := x
+            for {} i {} {
+                z := mul(z, i)
+                i := sub(i, 1)
+                if iszero(i) { break }
+            }
+        }
+    }

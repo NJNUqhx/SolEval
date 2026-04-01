@@ -1,0 +1,14 @@
+function log256(uint256 x) internal  pure returns (uint256 r) {
+assembly {
+            if iszero(x) { revert(0, 0) }
+            if iszero(shr(128, x)) { r := add(r, 0x80) } else { x := shr(128, x) }
+            if iszero(shr(64, x)) { r := add(r, 0x40) } else { x := shr(64, x) }
+            if iszero(shr(32, x)) { r := add(r, 0x20) } else { x := shr(32, x) }
+            if iszero(shr(16, x)) { r := add(r, 0x10) } else { x := shr(16, x) }
+            if iszero(shr(8, x)) { r := add(r, 0x08) } else { x := shr(8, x) }
+            if iszero(shr(4, x)) { r := add(r, 0x04) } else { x := shr(4, x) }
+            if iszero(shr(2, x)) { r := add(r, 0x02) } else { x := shr(2, x) }
+            if iszero(shr(1, x)) { r := add(r, 0x01) }
+        }
+        r = r >> 3;
+    }

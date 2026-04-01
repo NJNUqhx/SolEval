@@ -1,0 +1,22 @@
+function indexOf(uint256[] memory a, uint256 needle, uint256 from) internal  pure returns (uint256 result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            result := not(0)
+            let len := mload(a)
+            if iszero(gt(from, len)) {
+                let start := add(a, mul(add(from, 1), 0x20))
+                let end := add(a, mul(add(len, 1), 0x20))
+                let saved := mload(end)
+                mstore(end, needle)
+                let ptr := start
+                for {} 1 {} {
+                    if eq(mload(ptr), needle) { break }
+                    ptr := add(ptr, 0x20)
+                }
+                mstore(end, saved)
+                if iszero(gt(ptr, end)) {
+                    result := sub(div(sub(ptr, a), 0x20), 1)
+                }
+            }
+        }
+    }

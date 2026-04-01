@@ -1,0 +1,35 @@
+function clone(address implementation, uint256 value) internal   returns (address instance) {
+if (address(this).balance < value) {
+            revert InsufficientBalance();
+        }
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Clean the upper 96 bits of the `implementation` address.
+            implementation := shr(96, shl(96, implementation))
+            
+            // Store the creation code and packed implementation address in memory.
+            // Bytecode structure:
+            // [0x00-0x0D]: Creation code header
+            // [0x0E-0x13]: First 3 bytes of implementation address (packed)
+            // [0x14-0x24]: Remaining 17 bytes of implementation address (packed)
+            // [0x25-0x3D]: Runtime code
+            
+            mstore(0x00, 0x602d5f8160095f39f35f5f365f5f37365f73000000000000000000000000)
+            mstore(0x14, implementation)
+            mstore(0x24, 0x5af43d5f5f3e6029573d5ffd5b3d5ff3)
+            
+            // Deploy the contract using CREATE.
+            // Offset: 0x0e (14 bytes) to skip the first part of the header before the address packing.
+            // Size: 0x36 (54 bytes) total length of the payload.
+            instance := create(value, 0x0e, 0x36)
+            
+            // Check if deployment failed.
+            if iszero(instance) {
+                mstore(0x00, 0x30116425) // `FailedDeployment()` selector.
+                revert(0x1c, 0x04)
+            }
+            
+            // Restore the overwritten part of the free memory pointer.
+            mstore(0x24, 0)
+        }
+    }

@@ -1,0 +1,5 @@
+function loadCalldata(bytes calldata a, uint256 offset) internal  pure returns (bytes32 result) {
+assembly {
+            result := calldataload(add(a.offset, offset))
+        }
+    }

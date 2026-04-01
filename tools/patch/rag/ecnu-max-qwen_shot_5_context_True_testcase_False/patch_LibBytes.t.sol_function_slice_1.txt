@@ -1,0 +1,23 @@
+function slice(bytes memory subject, uint256 start, uint256 end) internal  pure returns (bytes memory result) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let subjectLen := mload(subject)
+            if gt(end, subjectLen) { end := subjectLen }
+            if gt(start, subjectLen) { start := subjectLen }
+            if lt(start, end) {
+                let n := sub(end, start)
+                result := mload(0x40)
+                let i := add(add(subject, 0x20), start)
+                let o := add(add(result, 0x20), n)
+                mstore(result, n)
+                for {} 1 {} {
+                    o := sub(o, 0x20)
+                    i := sub(i, 0x20)
+                    mstore(o, mload(i))
+                    if iszero(lt(add(result, 0x20), o)) { break }
+                }
+                mstore(add(add(result, 0x20), n), 0)
+                mstore(0x40, add(add(result, 0x20), and(add(n, 0x1f), not(0x1f))))
+            }
+        }
+    }

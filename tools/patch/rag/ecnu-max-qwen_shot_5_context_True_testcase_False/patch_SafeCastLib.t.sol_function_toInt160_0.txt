@@ -1,0 +1,5 @@
+function toInt160(int256 x) internal  pure returns (int160) {
+int256 y = x;
+        if ((y << 96) >> 96 != y) revert Overflow();
+        return int160(y);
+    }

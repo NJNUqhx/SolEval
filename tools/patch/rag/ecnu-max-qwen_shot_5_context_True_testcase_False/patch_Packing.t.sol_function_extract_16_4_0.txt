@@ -1,0 +1,6 @@
+function extract_16_4(bytes16 self, uint8 offset) internal  pure returns (bytes4 result) {
+if (offset > 12) revert();
+        assembly {
+            result := and(shr(mul(8, offset), shl(96, self)), 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
+        }
+    }

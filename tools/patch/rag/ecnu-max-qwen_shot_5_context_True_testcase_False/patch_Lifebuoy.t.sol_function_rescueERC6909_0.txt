@@ -1,0 +1,20 @@
+function rescueERC6909(address token, address to, uint256 id, uint256 amount) public virtual onlyRescuer(_LIFEBUOY_RESCUE_ERC6909_LOCK) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let m := mload(0x40) // Cache the free memory pointer.
+            mstore(0x40, to) // Store the `to` argument.
+            mstore(0x60, id) // Store the `id` argument.
+            mstore(0x80, amount) // Store the `amount` argument.
+            mstore(0x00, 0x90b98a11000000000000000000000000) // `transfer(address,uint256,uint256)`.
+            let success := call(gas(), token, 0, 0x1c, 0x84, 0x00, 0x20)
+            if iszero(and(eq(mload(0x00), 1), success)) {
+                if iszero(lt(or(iszero(extcodesize(token)), returndatasize()), success)) {
+                    mstore(0x00, 0x90b98a11) // `TransferFailed()`.
+                    revert(0x1c, 0x04)
+                }
+            }
+            mstore(0x60, 0) // Restore the zero slot to zero.
+            mstore(0x80, 0) // Restore the zero slot to zero.
+            mstore(0x40, m) // Restore the free memory pointer.
+        }
+    }

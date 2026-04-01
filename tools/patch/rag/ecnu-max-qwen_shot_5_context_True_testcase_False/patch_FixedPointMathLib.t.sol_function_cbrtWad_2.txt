@@ -1,0 +1,37 @@
+function cbrtWad(uint256 x) internal  pure returns (uint256 z) {
+if (x < 1e54) {
+            z = _cbrt(x);
+        } else {
+            uint256 shift;
+            if (x >= 1e162) {
+                shift = 54;
+                x /= 1e162;
+            } else if (x >= 1e108) {
+                shift = 36;
+                x /= 1e108;
+            } else if (x >= 1e72) {
+                shift = 24;
+                x /= 1e72;
+            } else if (x >= 1e54) {
+                shift = 18;
+                x /= 1e54;
+            }
+            z = _cbrt(x);
+            z *= 10 ** (shift / 3);
+        }
+    }
+
+    function _cbrt(uint256 x) private pure returns (uint256 z) {
+        if (x == 0) return 0;
+        if (x < 8) return 1;
+
+        uint256 guess = x / 3 + 1;
+        uint256 prev;
+        unchecked {
+            while (guess != prev) {
+                prev = guess;
+                guess = (2 * guess + x / (guess * guess)) / 3;
+            }
+        }
+        z = guess;
+    }

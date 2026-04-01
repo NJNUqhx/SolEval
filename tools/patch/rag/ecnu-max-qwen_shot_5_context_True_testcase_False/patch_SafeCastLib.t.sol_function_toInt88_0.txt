@@ -1,0 +1,7 @@
+function toInt88(int256 x) internal  pure returns (int88) {
+unchecked {
+        int88 y = int88(x);
+        if (y != x) revert();
+        return y;
+    }
+}

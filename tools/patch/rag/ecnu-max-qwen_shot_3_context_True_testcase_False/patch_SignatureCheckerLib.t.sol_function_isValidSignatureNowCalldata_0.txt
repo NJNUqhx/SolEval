@@ -1,0 +1,36 @@
+function isValidSignatureNowCalldata(address signer, bytes32 hash, bytes calldata signature) internal  view returns (bool isValid) {
+if (signer == address(0)) {
+            return false;
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            let len := signature.length
+            let ptr := signature.offset
+
+            if or(eq(len, 64), eq(len, 65)) {
+                let r := mload(add(ptr, 0x20))
+                let s := mload(add(ptr, 0x40))
+                let v := 0
+                if eq(len, 65) {
+                    v := byte(0, mload(add(ptr, 0x60)))
+                }
+                
+                let recovered := staticcall(gas(), 0x01, add(ptr, 0x20), len, 0x00, 0x20)
+                
+                if and(eq(recovered, 1), eq(signer, mload(0x00))) {
+                    isValid := 1
+                }
+            }
+        }
+
+        if (!isValid) {
+            try ISignatureValidator(signer).isValidSignature(hash, signature) returns (bytes4 magicValue) {
+                isValid = (magicValue == ISignatureValidator.isValidSignature.selector);
+            } catch {
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }

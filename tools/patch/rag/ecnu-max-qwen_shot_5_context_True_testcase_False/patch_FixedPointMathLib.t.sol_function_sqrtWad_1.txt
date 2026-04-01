@@ -1,0 +1,15 @@
+function sqrtWad(uint256 x) internal  pure returns (uint256 z) {
+if (x < 3) {
+            return x;
+        }
+        if (x <= type(uint256).max / 1e18) {
+            z = Math.sqrt(x * 1e18);
+        } else {
+            z = Math.sqrt(x) * 1e9;
+            z = fullMulDivUnchecked(z + 1e9, z + 1e9, 1e18);
+            /// @solidity memory-safe-assembly
+            assembly {
+                z := sub(z, gt(mul(z, z), mul(x, 1e18)))
+            }
+        }
+    }

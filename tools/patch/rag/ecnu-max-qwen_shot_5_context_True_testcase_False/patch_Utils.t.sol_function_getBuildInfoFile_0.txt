@@ -1,0 +1,31 @@
+function getBuildInfoFile(string memory sourceCodeHash, string memory contractName, string memory outDir) internal   returns (string memory) {
+string[] memory inputs = new string[](4);
+        inputs[0] = "find";
+        inputs[1] = outDir;
+        inputs[2] = "-name";
+        inputs[3] = string(abi.encodePacked("*", sourceCodeHash, "*.json"));
+
+        Vm.FfiResult memory result = Utils.runAsBashCommand(inputs);
+        string memory stdout = string(result.stdout);
+
+        if (result.exitCode != 0) {
+            revert(string(abi.encodePacked("Failed to find build-info: ", string(result.stderr))));
+        }
+
+        bytes memory stdoutBytes = bytes(stdout);
+        if (stdoutBytes.length == 0) {
+            revert("No build-info file found for the given source code hash");
+        }
+
+        if (
+            stdoutBytes[stdoutBytes.length - 5] != '.' ||
+            stdoutBytes[stdoutBytes.length - 4] != 'j' ||
+            stdoutBytes[stdoutBytes.length - 3] != 's' ||
+            stdoutBytes[stdoutBytes.length - 2] != 'o' ||
+            stdoutBytes[stdoutBytes.length - 1] != 'n'
+        ) {
+            revert("Invalid build-info file format: output does not end with .json");
+        }
+
+        return stdout;
+    }

@@ -1,0 +1,21 @@
+function sDivWad(int256 x, int256 y) internal  pure returns (int256 z) {
+/// @solidity memory-safe-assembly
+        assembly {
+            if iszero(y) {
+                mstore(0x00, 0x93936799) // `SDivWadFailed()`.
+                revert(0x1c, 0x04)
+            }
+            let xx := x
+            let yy := y
+            let negative := xor(xx < 0, yy < 0)
+            if xx < 0 { xx := sub(0, xx) }
+            if yy < 0 { yy := sub(0, yy) }
+            let prod := mul(xx, 1000000000000000000)
+            if and(gt(xx, 0), lt(xx, div(add(prod, sub(0, 1)), xx))) {
+                 mstore(0x00, 0x93936799)
+                 revert(0x1c, 0x04)
+            }
+            z := sdiv(prod, yy)
+            if negative { z := sub(0, z) }
+        }
+    }

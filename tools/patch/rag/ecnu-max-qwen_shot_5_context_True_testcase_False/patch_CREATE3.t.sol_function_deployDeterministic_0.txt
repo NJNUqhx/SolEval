@@ -1,0 +1,3 @@
+function deployDeterministic(bytes memory initCode, bytes32 salt) internal   returns (address deployed) {
+deployed = deployDeterministic(0, initCode, salt);
+    }

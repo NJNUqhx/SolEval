@@ -1,0 +1,4 @@
+function toInt24(int256 x) internal  pure returns (int24) {
+if (x < type(int24).min || x > type(int24).max) revert();
+        return int24(x);
+    }

@@ -1,0 +1,54 @@
+function clz(uint256 x) internal  pure returns (uint256 r) {
+if (x == 0) return 256;
+        /// @solidity memory-safe-assembly
+        assembly {
+            let mask := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            let shift := 128
+            let bit := shr(shift, x)
+            if iszero(bit) {
+                mask := shr(shift, mask)
+                r := add(r, shift)
+            }
+            shift := 64
+            bit := shr(shift, and(x, mask))
+            if iszero(bit) {
+                mask := shr(shift, mask)
+                r := add(r, shift)
+            }
+            shift := 32
+            bit := shr(shift, and(x, mask))
+            if iszero(bit) {
+                mask := shr(shift, mask)
+                r := add(r, shift)
+            }
+            shift := 16
+            bit := shr(shift, and(x, mask))
+            if iszero(bit) {
+                mask := shr(shift, mask)
+                r := add(r, shift)
+            }
+            shift := 8
+            bit := shr(shift, and(x, mask))
+            if iszero(bit) {
+                mask := shr(shift, mask)
+                r := add(r, shift)
+            }
+            shift := 4
+            bit := shr(shift, and(x, mask))
+            if iszero(bit) {
+                mask := shr(shift, mask)
+                r := add(r, shift)
+            }
+            shift := 2
+            bit := shr(shift, and(x, mask))
+            if iszero(bit) {
+                mask := shr(shift, mask)
+                r := add(r, shift)
+            }
+            shift := 1
+            bit := shr(shift, and(x, mask))
+            if iszero(bit) {
+                r := add(r, shift)
+            }
+        }
+    }

@@ -1,0 +1,4 @@
+function toUint256(int256 x) internal  pure returns (uint256) {
+require(x >= 0, "Negative int256 value cannot be converted to uint256");
+        return uint256(x);
+    }

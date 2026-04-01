@@ -1,0 +1,8 @@
+function extract_22_20(bytes22 self, uint8 offset) internal  pure returns (bytes20 result) {
+if (offset > 2) revert OutOfRangeAccess();
+        /// @solidity memory-safe-assembly
+        assembly {
+            let shifted := shl(mul(8, offset), self)
+            result := shr(16, shifted)
+        }
+    }

@@ -1,0 +1,33 @@
+function isValidERC6492SignatureNowAllowSideEffects(address signer, bytes32 hash, bytes memory signature) internal   returns (bool isValid) {
+if (signer.code.length == 0) {
+        require(signature.length == 64 || signature.length == 65, "ECDSA: invalid signature length");
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            if eq(signature.length, 65) {
+                v := byte(0, mload(add(signature, 0x60)))
+            } else {
+                v := 27
+                if gt(s, 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
+                    v := 28
+                }
+            }
+        }
+        address recovered = ecrecover(hash, v, r, s);
+        isValid = (recovered == signer);
+    } else {
+        (bool success, bytes memory result) = signer.staticcall(
+            abi.encodeCall(IERC1271.isValidSignature, (hash, signature))
+        );
+        if (success && result.length == 32) {
+            bytes32 magicValue;
+            assembly {
+                magicValue := mload(add(result, 0x20))
+            }
+            isValid = (magicValue == IERC1271.isValidSignature.selector);
+        }
+    }
+}

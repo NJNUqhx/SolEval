@@ -1,0 +1,4 @@
+function diffMinutes(uint256 fromTimestamp, uint256 toTimestamp) internal  pure returns (uint256 result) {
+uint256 seconds = toTimestamp - fromTimestamp;
+        result = seconds / 60;
+    }

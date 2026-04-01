@@ -1,0 +1,24 @@
+function pairing(G1Point[] memory g1Points, G2Point[] memory g2Points) internal  view returns (bool result) {
+assembly ("memory-safe") {
+            let k := mload(g1Points)
+            let d := sub(g2Points, g1Points)
+            let f := add(g1Points, mul(0x40, k))
+            let o := mload(0x40)
+            mstore(0x40, add(o, mul(0x140, k)))
+            for { let i := 0 } iszero(eq(g1Points, f)) { g1Points := add(g1Points, 0x20) } {
+                mcopy(o, mload(g1Points), 0x40)
+                mcopy(add(o, 0x40), mload(add(g1Points, d)), 0x100)
+                o := add(o, 0x140)
+            }
+            if iszero(
+                and(
+                    and(eq(k, mload(g2Points)), eq(returndatasize(), 0x20)),
+                    staticcall(gas(), BLS12_PAIRING, add(g1Points, sub(mload(0x40), mul(0x140, k))), mul(0x140, k), mload(0x40), 0x20)
+                )
+            ) {
+                mstore(0x00, 0x38432654) // `PairingFailed()`.
+                revert(0x1c, 0x04)
+            }
+            result := mload(mload(0x40))
+        }
+    }

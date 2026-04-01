@@ -1,0 +1,11 @@
+function byteLength(ShortString sstr) internal  pure returns (uint256) {
+/// @solidity memory-safe-assembly
+        assembly {
+            let len := and(sstr, 0xFF)
+            if gt(len, 31) {
+                mstore(0x00, 0xe2e72f92) // `InvalidShortString()` selector
+                revert(0x1c, 0x04)
+            }
+            result := len
+        }
+    }

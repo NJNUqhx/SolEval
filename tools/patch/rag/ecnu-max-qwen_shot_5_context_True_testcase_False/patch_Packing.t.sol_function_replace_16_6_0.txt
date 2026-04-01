@@ -1,0 +1,9 @@
+function replace_16_6(bytes16 self, bytes6 value, uint8 offset) internal  pure returns (bytes16 result) {
+assembly {
+            let mask := shl(mul(8, sub(16, offset)), shr(32, shl(32, value)))
+            let oldSegment := and(self, shl(mul(8, sub(16, sub(offset, 6))), not(shl(mul(8, sub(16, offset)), not(0)))))
+            oldSegment := and(oldSegment, not(shl(mul(8, sub(16, sub(offset, 6))), not(0))))
+            oldSegment := and(self, and(shl(mul(8, sub(16, offset)), not(0)), not(shl(mul(8, sub(16, sub(offset, 6))), not(0)))))
+            result := xor(xor(self, oldSegment), mask)
+        }
+    }

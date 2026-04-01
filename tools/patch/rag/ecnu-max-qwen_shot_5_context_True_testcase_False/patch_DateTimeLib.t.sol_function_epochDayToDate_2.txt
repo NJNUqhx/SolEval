@@ -1,0 +1,12 @@
+function epochDayToDate(uint256 epochDay) internal  pure returns (uint256 year, uint256 month, uint256 day) {
+assembly {
+            epochDay := add(epochDay, 719468)
+            let doe := mod(epochDay, 146097)
+            let yoe := div(sub(doe, div(sub(doe, div(div(doe, 1460), 4)), 1461)), 365)
+            let doy := sub(doe, add(add(mul(365, yoe), div(yoe, 4)), sub(div(yoe, 100), div(yoe, 400))))
+            let mp := div(add(mul(5, doy), 2), 153)
+            day := add(sub(doy, div(sub(add(mul(153, mp), 2), 5), 5)), 1)
+            month := add(mod(add(mp, 2), 12), 1)
+            year := add(add(yoe, mul(div(epochDay, 146097), 400)), sub(0, gt(month, 2)))
+        }
+    }

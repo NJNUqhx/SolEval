@@ -1,0 +1,12 @@
+function argsOnERC1967(address instance) internal  view returns (bytes memory args) {
+function argsOnERC1967(address instance) internal  view returns (bytes memory args) {
+        assembly {
+            args := mload(0x40)
+            let length := and(extcodesize(instance), 0xffffffffffffffffffffffffffffffffffffffff)
+            length := sub(length, 0x3d)
+            mstore(args, length)
+            extcodecopy(instance, add(args, 0x20), 0x3d, length)
+            mstore(0x40, add(add(args, 0x20), and(add(length, 0x1f), not(0x1f))))
+        }
+    }
+}
